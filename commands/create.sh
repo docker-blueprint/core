@@ -323,6 +323,8 @@ BUILD_ARGS+=("--build-arg BLUEPRINT_DIR=$BLUEPRINT_DIR")
 
 docker-compose build ${BUILD_ARGS[@]}
 
+docker-compose down
+
 docker-compose up -d
 
 #
