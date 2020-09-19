@@ -29,7 +29,7 @@ if [[ -z "$DEFAULT_SERVICE" ]]; then
 fi
 
 case $1 in
-    create|default)
+    create|default|pull)
         source ./commands/$1.sh
         ;;
 
