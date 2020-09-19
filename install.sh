@@ -34,7 +34,7 @@ if [[ -z $(which docker-blueprint) ]]; then
 
     for DIR in "${BIN_DIRS[@]}"; do
         if [[ -d "$DIR" ]]; then
-            echo "Creating link to '$DIR'..."
+            echo "Creating link in '$DIR'..."
 
             sudo ln -sf "$PROJECT_DIR/entrypoint.sh" "$DIR/docker-blueprint"
 
