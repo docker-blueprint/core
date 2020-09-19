@@ -41,15 +41,15 @@ case $1 in
     up|down|restart)
         docker-compose "$1" ${@:2}
         ;;
-    
+
     default)
         source ./commands/default.sh
         ;;
-    
+
     -h | --help)
         source ./commands/help.sh
         ;;
-    
+
     *)
         if [[ ! -z "$1" ]]; then
             if [[ ! -z "$2" ]] && [[ "$2" == "sudo" ]]; then
