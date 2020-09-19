@@ -30,15 +30,16 @@ if [[ -z "$DEFAULT_SERVICE" ]]; then
     init_default_service
 fi
 
+if [[ -f "./commands/$1.sh" ]]; then
+    if [[ -z $AS_FUNCTION ]]; then
+        AS_FUNCTION=false
+    fi
+
+    source ./commands/$1.sh
+    exit
+fi
+
 case $1 in
-    create|default|pull|update|version)
-        if [[ -z $AS_FUNCTION ]]; then
-            AS_FUNCTION=false
-        fi
-
-        source ./commands/$1.sh
-        ;;
-
     exec)
         docker-compose exec --user="$UID":"$GID" ${@:2}
         ;;
