@@ -43,7 +43,6 @@ case $1 in
         docker-compose exec --user="$UID":"$GID" ${@:2}
         ;;
 
-
     up|down|restart)
         docker-compose "$1" ${@:2}
         ;;
