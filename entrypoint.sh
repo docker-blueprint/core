@@ -32,6 +32,10 @@ fi
 
 case $1 in
     create|default|pull)
+        if [[ -z $AS_FUNCTION ]]; then
+            AS_FUNCTION=false
+        fi
+
         source ./commands/$1.sh
         ;;
 
