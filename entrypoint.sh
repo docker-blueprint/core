@@ -1,6 +1,6 @@
 #!/bin/bash
 
-EXECUTABLE_NAME=$(basename "${BASH_SOURCE%.sh}")
+EXECUTABLE_NAME=$(basename "${BASH_SOURCE}")
 
 DIR=.docker-blueprint
 
