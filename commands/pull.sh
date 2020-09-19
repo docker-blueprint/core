@@ -116,7 +116,7 @@ done
 
 if ! $FOUND; then
     if ! $AS_FUNCTION; then
-        echo "ERROR: Unable to find version '$BLUEPRINT_BRANCH'."
+        echo "${RED}ERROR${RESET}: Unable to find version '$BLUEPRINT_BRANCH'."
     fi
     exit 1
 fi

@@ -16,6 +16,7 @@ if [[ -z "$GID" ]]; then
 fi
 
 source ./includes/yq.sh
+source ./includes/colors.sh
 
 init_default_service() {
     DEFAULT_SERVICE=$(cat $DIR/default_service 2>/dev/null)
