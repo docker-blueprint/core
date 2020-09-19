@@ -323,7 +323,11 @@ BUILD_ARGS+=("--build-arg BLUEPRINT_DIR=$BLUEPRINT_DIR")
 
 docker-compose build ${BUILD_ARGS[@]}
 
+echo "Removing existing stack..."
+
 docker-compose down
+
+echo "Building new stack..."
 
 docker-compose up -d
 
