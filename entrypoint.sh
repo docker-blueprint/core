@@ -5,6 +5,7 @@ EXECUTABLE_NAME=$(basename "${BASH_SOURCE}")
 DIR=.docker-blueprint
 
 mkdir -p $DIR
+source ./includes/update-gitignore.sh
 
 if [[ -z $UID ]]; then
     UID=$(id -u)
