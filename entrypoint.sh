@@ -29,8 +29,8 @@ if [[ -z "$DEFAULT_SERVICE" ]]; then
 fi
 
 case $1 in
-    create)
-        source ./commands/create.sh
+    create|default)
+        source ./commands/$1.sh
         ;;
 
     exec)
@@ -40,10 +40,6 @@ case $1 in
 
     up|down|restart)
         docker-compose "$1" ${@:2}
-        ;;
-
-    default)
-        source ./commands/default.sh
         ;;
 
     -h | --help)
