@@ -86,7 +86,7 @@ if ! [[ -f docker-blueprint.yml ]] || [[ -n "$ARG_WITH" ]]; then
 
     # Merge environment preset with technology preset
 
-    if [[ -f "$ENV_DIR/blueprint.yml" ]]; then
+    if [[ -n $ENV_DIR ]] && [[ -f "$ENV_DIR/blueprint.yml" ]]; then
         printf -- "$(yq merge -a $BLUEPRINT_FILE_BASE $ENV_DIR/blueprint.yml)" > "$BLUEPRINT_FILE_TMP"
     else
         cp "$BLUEPRINT_FILE_BASE" "$BLUEPRINT_FILE_TMP"
