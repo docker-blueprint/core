@@ -61,33 +61,6 @@ if [[ -z "$DEFAULT_SERVICE" ]]; then
     init_default_service
 fi
 
-display_help() {
-    echo "Software stack builder for Docker."
-    echo ""
-    echo "Usage:"
-    echo "  $EXECUTABLE_NAME <command>     Run program command or 'exec' command in the default service"
-    echo "  $EXECUTABLE_NAME -h|--help     Display this help message"
-    echo ""
-    echo "Example:"
-    echo "  # Create PHP development environment for Laravel framework with MySQL and Redis:"
-    echo "  $EXECUTABLE_NAME create php --env laravel --with mysql redis"
-    echo ""
-    echo "  # Compile front-end assets:"
-    echo "  $EXECUTABLE_NAME npm run dev   # Executes command in the default service"
-    echo ""
-    echo "Commands:"
-    echo "  default clear                  Clear default service"
-    echo "  default <service>              Set default service to run commands against (usually set by preset)"
-    echo ""
-    echo "  create <blueprint> [options]   Create containerized technology stack for the project in current directory"
-    echo "    -e, --env                    Set technology-specific environment (for example framework)"
-    echo "    -m, --with                    A list of modules to include from this technology blueprint"
-    echo ""
-    echo "  exec <service> <command>       Execute 'docker-compose exec' as current host user"
-    echo "  [service] sudo <command>       Execute 'docker-compose exec' as root against service"
-    echo "                                 (service parameter can be omitted to run against the default)"
-}
-
 case $1 in
     create)
         
@@ -513,7 +486,7 @@ case $1 in
         ;;
     
     -h | --help)
-        display_help
+        source ./commands/help.sh
         ;;
     
     *)
@@ -533,7 +506,7 @@ case $1 in
                 $COMMAND
             fi
         else
-            display_help
+            source ./commands/help.sh
         fi
         ;;
 esac
