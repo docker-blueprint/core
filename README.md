@@ -26,7 +26,7 @@ Installation is done by cloning this repository and symlinking the
 (`/usr/local/bin` by default).
 
 To ease the process of installation you can invoke this one-liner that will
-handle the installation process for you.
+handle the installation process for you:
 
 with **curl**:
 
