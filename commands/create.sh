@@ -51,19 +51,27 @@ if [[ -n "$ENV_NAME" ]] && [[ -z "$ARG_WITH" ]]; then
     exit 1
 fi
 
-mkdir -p $DIR/blueprints
-
 #
 # Initialize path variables
 #
 
-BLUEPRINT_DIR=$DIR/blueprints/$BLUEPRINT
-BLUEPRINT_FILE_TMP=$DIR/blueprints/$BLUEPRINT/blueprint.tmp
-BLUEPRINT_FILE_BASE=$DIR/blueprints/$BLUEPRINT/blueprint.yml
+printf "Pulling blueprint..."
+
+BLUEPRINT_DIR=$(AS_FUNCTION=true bash $PWD/entrypoint.sh pull $BLUEPRINT)
+
+if [[ $? -ne 0 ]]; then
+    printf "\nERROR: Unable to pull blueprint '$BLUEPRINT'.\n"
+    exit 1
+fi
+
+printf " done\n"
+
+BLUEPRINT_FILE_TMP=$BLUEPRINT_DIR/blueprint.tmp
+BLUEPRINT_FILE_BASE=$BLUEPRINT_DIR/blueprint.yml
 BLUEPRINT_FILE_FINAL=docker-blueprint.yml
 
 if [[ -n "$ENV_NAME" ]]; then
-    ENV_DIR=$DIR/blueprints/$BLUEPRINT/env/$ENV_NAME
+    ENV_DIR=$BLUEPRINT_DIR/env/$ENV_NAME
 fi
 
 #
