@@ -22,7 +22,7 @@ installed.
 # Installation
 
 Installation is done by cloning this repository and symlinking the
-`entrypoint.sh` script from one of the `bin` directories on the system
+`entrypoint.sh` script to one of the `bin` directories on the system
 (`/usr/local/bin` by default).
 
 To ease the process of installation you can invoke this one-liner that will
