@@ -31,7 +31,7 @@ if [[ -z "$DEFAULT_SERVICE" ]]; then
 fi
 
 case $1 in
-    create|default|pull)
+    create|default|pull|update)
         if [[ -z $AS_FUNCTION ]]; then
             AS_FUNCTION=false
         fi
