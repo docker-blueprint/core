@@ -12,6 +12,30 @@ BLUEPRINT=$1
 shift
 
 #
+# Check if blueprint is a local directory
+#
+
+if [[ -d $BLUEPRINT ]] && [[ $BLUEPRINT =~ "/" ]]; then
+    mkdir -p "$DIR/blueprints/@"
+
+    HASH=$(echo -n "$BLUEPRINT" | openssl dgst -sha1 | sed 's/^.* //')
+    BLUEPRINT_DIR="$DIR/blueprints/@/$HASH"
+
+    if ! $AS_FUNCTION; then
+        echo "Copying '$BLUEPRINT'..."
+    fi
+
+    rm -rf $BLUEPRINT_DIR
+    cp -rf $BLUEPRINT $BLUEPRINT_DIR
+
+    if $AS_FUNCTION; then
+        echo $BLUEPRINT_DIR
+    fi
+
+    exit
+fi
+
+#
 # Parse blueprint maintainer and name
 #
 
