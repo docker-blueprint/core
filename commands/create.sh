@@ -57,7 +57,7 @@ fi
 
 printf "Pulling blueprint..."
 
-BLUEPRINT_DIR=$(AS_FUNCTION=true bash $PWD/entrypoint.sh pull $BLUEPRINT)
+BLUEPRINT_DIR=$(AS_FUNCTION=true bash $ENTRYPOINT pull $BLUEPRINT)
 
 if [[ $? -ne 0 ]]; then
     printf "\n${RED}ERROR${RESET}: Unable to pull blueprint '$BLUEPRINT'.\n"

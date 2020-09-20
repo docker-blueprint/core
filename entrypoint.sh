@@ -3,6 +3,9 @@
 EXECUTABLE_NAME=$(basename "${BASH_SOURCE}")
 
 DIR=.docker-blueprint
+REAL_DIR="$(readlink -f "$0")"
+ROOT_DIR="$(dirname "$REAL_DIR")"
+ENTRYPOINT="$ROOT_DIR/$(basename "$REAL_DIR")"
 
 mkdir -p $DIR
 source ./includes/update-gitignore.sh
