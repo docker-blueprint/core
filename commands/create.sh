@@ -67,12 +67,6 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
-if [[ -n "$ENV_NAME" ]] && [[ -z "$ARG_WITH" ]]; then
-    echo "Notice: --with argument not specified."
-    echo "Setting environment has no effect."
-    exit 1
-fi
-
 #
 # Initialize path variables
 #
@@ -102,7 +96,8 @@ fi
 # Generate only when file is not present
 # or force rebuild when the flag is supplied
 
-if ! [[ -f docker-blueprint.yml ]] || $FORCE_GENERATE; then
+if ! [[ -f docker-blueprint.yml ]] || $FORCE_GENERATE \
+    [[ -n $ENV_NAME ]] || [[ -n $ARG_WITH ]]; then
 
     printf "Generating blueprint file..."
 
