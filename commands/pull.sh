@@ -2,6 +2,25 @@
 
 shift
 
+#
+# Read arguments
+#
+
+case $1 in
+    -h|--help)
+        printf "pull <blueprint>\t\tDownload the latest version of blueprint\n"
+        exit
+
+        ;;
+    *)
+        if [[ -z "$1" ]]; then
+            bash $ENTRYPOINT pull --help
+            exit 1
+        fi
+
+        BLUEPRINT=$1
+esac
+
 if [[ -z "$1" ]]; then
     echo "Usage: $EXECUTABLE_NAME pull <blueprint>"
     exit 1

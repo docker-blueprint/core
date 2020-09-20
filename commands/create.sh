@@ -3,7 +3,7 @@
 shift
 
 if [[ -z "$1" ]]; then
-    echo "Usage: $EXECUTABLE_NAME create <blueprint>"
+    bash $ENTRYPOINT create --help
     exit 1
 fi
 
@@ -26,7 +26,7 @@ while [[ "$#" -gt 0 ]]; do
             done
 
             if [[ -z "${ARG_WITH[0]}" ]]; then
-                echo "Usage: $EXECUTABLE_NAME create <blueprint> --with <modules>"
+                bash $ENTRYPOINT create --help
                 exit 1
             fi
 
@@ -37,9 +37,27 @@ while [[ "$#" -gt 0 ]]; do
             shift
 
             if [[ -z "$ENV_NAME" ]]; then
-                echo "Usage: $EXECUTABLE_NAME create <blueprint> --env <name> --with <modules>"
+                bash $ENTRYPOINT create --help
                 exit 1
             fi
+
+            ;;
+
+        -h|--help)
+            printf "create <blueprint> [options]\tCreate containerized technology stack for the project in current directory\n"
+            printf "  -e, --env <environment>   \tSet technology-specific environment (for example framework)\n"
+            printf "  -m, --with <module>...    \tA list of modules to include from this technology blueprint\n"
+            exit
+
+            ;;
+
+        *)
+            if [[ -z "$1" ]]; then
+                bash $ENTRYPOINT create --help
+                exit 1
+            fi
+
+            BLUEPRINT=$1
     esac
 
     shift

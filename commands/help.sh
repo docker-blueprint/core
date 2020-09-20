@@ -1,28 +1,31 @@
 #!/bin/bash
 
-echo "Development software stack builder for docker."
-echo ""
-echo "Usage:"
-echo "  $EXECUTABLE_NAME <command>     Run program command or 'exec' command in the default service"
-echo "  $EXECUTABLE_NAME -h|--help     Display this help message"
-echo ""
-echo "Example:"
-echo "  # Create PHP development environment for Laravel framework with MySQL and Redis:"
-echo "  $EXECUTABLE_NAME create php --env laravel --with mysql redis"
-echo ""
-echo "  # Compile front-end assets:"
-echo "  $EXECUTABLE_NAME npm run dev   # Executes command in the default service"
-echo ""
-echo "Commands:"
-echo "  default clear                  Clear default service"
-echo "  default <service>              Set default service to run commands against (usually set by preset)"
-echo ""
-echo "  update                         Download latest version of $EXECUTABLE_NAME"
-echo ""
-echo "  create <blueprint> [options]   Create containerized technology stack for the project in current directory"
-echo "    -e, --env                    Set technology-specific environment (for example framework)"
-echo "    -m, --with                    A list of modules to include from this technology blueprint"
-echo ""
-echo "  exec <service> <command>       Execute 'docker-compose exec' as current host user"
-echo "  [service] sudo <command>       Execute 'docker-compose exec' as root against service"
-echo "                                 (service parameter can be omitted to run against the default)"
+printf "Development software stack builder for docker.\n"
+printf "\n"
+printf "Usage:\n"
+printf "  $EXECUTABLE_NAME <command>     Run program command or 'exec' command in the default service\n"
+printf "  $EXECUTABLE_NAME -h|--help     Display this help message\n"
+printf "\n"
+printf "Example:\n"
+printf "  # Create PHP development environment for Laravel framework with MySQL and Redis:\n"
+printf "  $EXECUTABLE_NAME create php --env laravel --with mysql redis\n"
+printf "\n"
+printf "  # Compile front-end assets:\n"
+printf "  $EXECUTABLE_NAME npm run dev   # Executes command in the default service\n"
+printf "\n"
+printf "Commands:\n"
+printf "\n"
+printf "  exec <service> <command>\tExecute 'docker-compose exec' as current host user\n"
+printf "  [service] sudo <command>\tExecute 'docker-compose exec' as root against service\n"
+printf "                          \t(service parameter can be omitted to run against the default)\n"
+
+FILES=("$ROOT_DIR/commands/"*.sh)
+
+for file in "${FILES[@]}"; do
+    command=$(basename "$file" .sh)
+
+    if [[ $command != "help" ]]; then
+        printf "\n"
+        printf "$(bash $ENTRYPOINT $command --help | pr -To 2)\n"
+    fi
+done

@@ -1,6 +1,23 @@
 #!/bin/bash
 
-if [[ -z "$2" ]]; then
+shift
+
+#
+# Read arguments
+#
+
+case $1 in
+    -h|--help)
+        printf "default clear\t\t\tClear default service\n"
+        printf "default <service>\t\tSet default service to run commands against (usually set by preset)\n"
+        exit
+
+        ;;
+    *)
+        SERVICE=$1
+esac
+
+if [[ -z "$SERVICE" ]]; then
     if [[ -z "$DEFAULT_SERVICE" ]]; then
         echo "No default service set"
     else
@@ -9,19 +26,19 @@ if [[ -z "$2" ]]; then
     echo ""
     echo "Usage: $EXECUTABLE_NAME default <service>"
 else
-    if [[ "$2" == "clear" ]]; then
+    if [[ "$SERVICE" == "clear" ]]; then
         if [[ -f $DIR/default_service ]]; then
             rm $DIR/default_service
         fi
         echo "Default service cleared"
     else
         SERVICES=$(docker-compose ps --services)
-        if [[ ${SERVICES[@]} =~ $2 ]]; then
-            echo "$2" > $DIR/default_service
+        if [[ ${SERVICES[@]} =~ $SERVICE ]]; then
+            echo "$SERVICE" > $DIR/default_service
             init_default_service
-            echo "Default service set: $2"
+            echo "Default service set: $SERVICE"
         else
-            echo "Unknown service '$2'."
+            echo "Unknown service '$SERVICE'."
             echo "Available services:" "$SERVICES"
         fi
     fi
