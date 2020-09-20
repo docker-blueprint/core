@@ -7,9 +7,7 @@ if [[ -z "$1" ]]; then
     exit 1
 fi
 
-BLUEPRINT=$1
-
-shift
+FORCE_GENERATE=false
 
 #
 # Read arguments
@@ -43,10 +41,16 @@ while [[ "$#" -gt 0 ]]; do
 
             ;;
 
+        -f|--force)
+            FORCE_GENERATE=true
+
+            ;;
+
         -h|--help)
             printf "create <blueprint> [options]\tCreate containerized technology stack for the project in current directory\n"
             printf "  -e, --env <environment>   \tSet technology-specific environment (for example framework)\n"
             printf "  -m, --with <module>...    \tA list of modules to include from this technology blueprint\n"
+            printf "  -f, --force               \tAlways generate new docker-blueprint.yml, even if it already exists\n"
             exit
 
             ;;
@@ -96,9 +100,9 @@ fi
 # Build custom blueprint file
 #
 # Generate only when file is not present
-# or force rebuild when modules have changed
+# or force rebuild when the flag is supplied
 
-if ! [[ -f docker-blueprint.yml ]] || [[ -n "$ARG_WITH" ]]; then
+if ! [[ -f docker-blueprint.yml ]] || $FORCE_GENERATE; then
 
     printf "Generating blueprint file..."
 
@@ -222,6 +226,8 @@ if ! [[ -f docker-blueprint.yml ]] || [[ -n "$ARG_WITH" ]]; then
 
     printf -- "$(yq delete $BLUEPRINT_FILE_FINAL 'modules')" > "$BLUEPRINT_FILE_FINAL"
     printf -- "$(yq delete $BLUEPRINT_FILE_FINAL 'depends_on')" > "$BLUEPRINT_FILE_FINAL"
+else
+    echo "docker-blueprint.yml already exists, skipping generation (run with --force to override)"
 fi
 
 rm -f "$BLUEPRINT_FILE_TMP"
