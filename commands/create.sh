@@ -345,6 +345,13 @@ BUILD_ARGS=()
 
 BUILD_ARGS+=("--build-arg BLUEPRINT_DIR=$BLUEPRINT_DIR")
 
+read_keys BUILD_ARGS_KEYS 'build_args'
+
+for variable in ${BUILD_ARGS_KEYS[@]}; do
+    read_value value "build_args.$variable"
+    BUILD_ARGS+=("--build-arg $variable=$value")
+done
+
 docker-compose build ${BUILD_ARGS[@]}
 
 echo "Removing existing stack..."
