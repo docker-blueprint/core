@@ -8,7 +8,7 @@ ROOT_DIR="$(dirname "$REAL_DIR")"
 ENTRYPOINT="$ROOT_DIR/$(basename "$REAL_DIR")"
 
 mkdir -p $DIR
-source ./includes/update-gitignore.sh
+source "$ROOT_DIR/includes/update-gitignore.sh"
 
 if [[ -z $UID ]]; then
     UID=$(id -u)
@@ -18,8 +18,8 @@ if [[ -z "$GID" ]]; then
     GID=$(id -g)
 fi
 
-source ./includes/yq.sh
-source ./includes/colors.sh
+source "$ROOT_DIR/includes/yq.sh"
+source "$ROOT_DIR/includes/colors.sh"
 
 init_default_service() {
     DEFAULT_SERVICE=$(cat $DIR/default_service 2>/dev/null)
@@ -33,12 +33,12 @@ if [[ -z "$DEFAULT_SERVICE" ]]; then
     init_default_service
 fi
 
-if [[ -f "./commands/$1.sh" ]]; then
+if [[ -f "$ROOT_DIR/commands/$1.sh" ]]; then
     if [[ -z $AS_FUNCTION ]]; then
         AS_FUNCTION=false
     fi
 
-    source ./commands/$1.sh
+    source "$ROOT_DIR/commands/$1.sh"
     exit
 fi
 
@@ -52,7 +52,7 @@ case $1 in
         ;;
 
     -h | --help)
-        source ./commands/help.sh
+        source "$ROOT_DIR/commands/help.sh"
         ;;
 
     *)
@@ -72,7 +72,7 @@ case $1 in
                 $COMMAND
             fi
         else
-            source ./commands/help.sh
+            source "$ROOT_DIR/commands/help.sh"
         fi
         ;;
 esac
