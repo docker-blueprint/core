@@ -1,5 +1,18 @@
 #!/bin/bash
 
+# Blueprint CREATE command
+#
+# This command generates `docker-blueprint.yml` file and uses it to further
+# generate `docker-compose.yml` & `dockerfile` and call `docker-compose` to
+# build the container and bring up all the required services.
+#
+# Apart from service building this command also does:
+# - Post build container initialization by calling commands from
+# `postbuild_commands` section
+# - Optional directory chowning to keep it in sync with local project
+# - Commenting out .env directives that are already defined in
+# `docker-compose.yml`
+
 shift
 
 if [[ -z "$1" ]]; then
@@ -96,8 +109,8 @@ fi
 # Generate only when file is not present
 # or force rebuild when the flag is supplied
 
-if ! [[ -f docker-blueprint.yml ]] || $FORCE_GENERATE \
-    [[ -n $ENV_NAME ]] || [[ -n $ARG_WITH ]]; then
+if ! [[ -f docker-blueprint.yml ]] || $FORCE_GENERATE || \
+    [[ -n "$ENV_NAME" ]] || [[ -n "$ARG_WITH" ]]; then
 
     printf "Generating blueprint file..."
 
