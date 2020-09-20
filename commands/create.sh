@@ -229,7 +229,7 @@ echo "$DEFAULT_SERVICE" > "$DIR/default_service"
 
 printf "Building docker-compose.yml..."
 
-cp "$BLUEPRINT_DIR"/templates/docker-compose.yml "$PWD/docker-compose.yml"
+cp "$BLUEPRINT_DIR/templates/docker-compose.yml" "$PWD/docker-compose.yml"
 
 chunk="$BLUEPRINT_DIR" \
 perl -0 -i -pe 's/#\s*(.*)\$BLUEPRINT_DIR/$1$ENV{"chunk"}/g' \
