@@ -357,6 +357,11 @@ read_keys BUILD_ARGS_KEYS 'build_args'
 
 for variable in ${BUILD_ARGS_KEYS[@]}; do
     read_value value "build_args.$variable"
+
+    if [[ -n ${!variable+x} ]]; then
+        value="${!variable:-}"
+    fi
+
     BUILD_ARGS+=("--build-arg $variable=$value")
 done
 
