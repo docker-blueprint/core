@@ -1,5 +1,22 @@
 #!/bin/bash
 
+# Blueprint PULL command
+#
+# This command resolves blueprint name in format [VENDOR/]NAME[:TAG] and
+# tries to clone the repository from GitHub.
+# Default vendor is `docker-blueprint`, default tag is `origin/master`.
+#
+# If NAME is a local directory & has at least one slash (/) the command
+# generates sha1 hash of the path and copies this directory instead.
+# This mode is made for convinient blueprint development.
+#
+# This command supports two modes:
+# - interactive (AS_FUNCTION=false): prints the progress to stdout
+# - bash function (AS_FUNCTION=true): prints only the result to stdout
+#
+# Function mode allows to use this command in conjunction
+# with others (i.e. create).
+
 shift
 
 #
