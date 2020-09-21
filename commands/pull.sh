@@ -51,7 +51,7 @@ shift
 # Check if blueprint is a local directory
 #
 
-if [[ -d $BLUEPRINT ]] && [[ $BLUEPRINT =~ "/" ]]; then
+if [[ -d $BLUEPRINT ]] && [[ $BLUEPRINT =~ "/" || $BLUEPRINT =~ "." || $BLUEPRINT =~ ".." ]]; then
     mkdir -p "$DIR/blueprints/@"
 
     HASH=$(echo -n "$BLUEPRINT" | openssl dgst -sha1 | sed 's/^.* //')
