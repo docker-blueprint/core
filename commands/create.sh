@@ -365,6 +365,10 @@ for variable in ${BUILD_ARGS_KEYS[@]}; do
     BUILD_ARGS+=("--build-arg $variable=$value")
 done
 
+if $FORCE_GENERATE; then
+    BUILD_ARGS+=("--no-cache")
+fi
+
 docker-compose build ${BUILD_ARGS[@]}
 
 echo "Removing existing stack..."
