@@ -11,3 +11,5 @@ case $1 in
 esac
 
 bash -c "$(curl -fsSL https://raw.githubusercontent.com/docker-blueprint/core/master/install.sh)"
+
+bash $ENTRYPOINT version
