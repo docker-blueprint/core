@@ -420,12 +420,17 @@ echo "Restarting container '$DEFAULT_SERVICE'..."
 docker-compose restart "$DEFAULT_SERVICE"
 
 #
-# Run environment initialization
+# Run initialization scripts
 #
 
-if [[ -d "$ENV_DIR" ]] && [[ -f "$ENV_DIR/init.sh" ]]; then
+if [[ -f "$BLUEPRINT_DIR/init.sh" ]]; then
+    echo "Initializing blueprint..."
+    BLUEPRINT_DIR=$BLUEPRINT_DIR bash "$BLUEPRINT_DIR/init.sh"
+fi
+
+if [[ -f "$ENV_DIR/init.sh" ]]; then
     echo "Initializing environment..."
-    bash "$ENV_DIR/init.sh"
+    ENV_DIR=$ENV_DIR bash "$ENV_DIR/init.sh"
 fi
 
 #
