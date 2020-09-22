@@ -396,11 +396,13 @@ if [[ -n "$SYNC_USER" ]]; then
 fi
 
 if [[ -n "$MAKE_DIRS" ]]; then
-    if [[ -z "$SYNC_USER" ]]; then
-        docker-compose exec "$DEFAULT_SERVICE" mkdir -p "${MAKE_DIRS[@]}"
-    else
-        docker-compose exec --user="$UID":"$GID" "$DEFAULT_SERVICE" mkdir -p "${MAKE_DIRS[@]}"
-    fi
+    for dir in "${MAKE_DIRS[@]}"; do
+        echo "Making directory '$dir'..."
+        docker-compose exec "$DEFAULT_SERVICE" mkdir -p "$dir"
+        if [[ -n "$SYNC_USER" ]]; then
+            docker-compose exec "$DEFAULT_SERVICE" chown -R "$UID":"$GID" "$dir"
+        fi
+    done
 fi
 
 for command in "${POSTBUILD_COMMANDS[@]}"; do
