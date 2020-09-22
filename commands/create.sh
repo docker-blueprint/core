@@ -162,8 +162,14 @@ if ! [[ -f docker-blueprint.yml ]] || $FORCE_GENERATE || \
 
         # Read depends_on from each module file
 
-        if [[ -f "$BLUEPRINT_DIR/modules/$module.yml" ]]; then
-            read_array DEPENDS_ON 'depends_on' "$BLUEPRINT_DIR/modules/$module.yml"
+        if [[ -f "$BLUEPRINT_DIR/modules/$module/blueprint.yml" || \
+              -f "$BLUEPRINT_DIR/modules/$module.yml" ]]; then
+
+            if [[ -f "$BLUEPRINT_DIR/modules/$module/blueprint.yml" ]]; then
+                read_array DEPENDS_ON 'depends_on' "$BLUEPRINT_DIR/modules/$module/blueprint.yml"
+            else
+                read_array DEPENDS_ON 'depends_on' "$BLUEPRINT_DIR/modules/$module.yml"
+            fi
 
             FOUND=false
 
@@ -216,13 +222,21 @@ if ! [[ -f docker-blueprint.yml ]] || $FORCE_GENERATE || \
 
         # Each module can extend preset YAML file
 
-        append_file_to_merge "$BLUEPRINT_DIR/modules/$module.yml"
+        if [[ -f "$BLUEPRINT_DIR/modules/$module/blueprint.yml" ]]; then
+            append_file_to_merge "$BLUEPRINT_DIR/modules/$module/blueprint.yml"
+        else
+            append_file_to_merge "$BLUEPRINT_DIR/modules/$module.yml"
+        fi
 
         # If environment is specified, additionally load module
         # configuration files specific to the environment
 
         if [[ -d "$ENV_DIR" ]]; then
-            append_file_to_merge "$ENV_DIR/modules/$module.yml"
+            if [[ -f "$ENV_DIR/modules/$module/blueprint.yml" ]]; then
+                append_file_to_merge "$ENV_DIR/modules/$module/blueprint.yml"
+            else
+                append_file_to_merge "$ENV_DIR/modules/$module.yml"
+            fi
         fi
     done
 
@@ -425,10 +439,17 @@ docker-compose restart "$DEFAULT_SERVICE"
 # Run initialization scripts
 #
 
-if [[ -f "$BLUEPRINT_DIR/init.sh" ]]; then
-    echo "Initializing blueprint..."
-    BLUEPRINT_DIR=$BLUEPRINT_DIR bash "$BLUEPRINT_DIR/init.sh"
-fi
+for module in "${MODULES_TO_LOAD[@]}"; do
+    if [[ -f "$BLUEPRINT_DIR/modules/$module/init.sh" ]]; then
+        echo "Initializing module '$module'..."
+        BLUEPRINT_DIR=$BLUEPRINT_DIR bash "$BLUEPRINT_DIR/modules/$module/init.sh"
+    fi
+
+    if [[ -f "$ENV_DIR/modules/$module/init.sh" ]]; then
+        echo "Initializing environment module '$module'..."
+        ENV_DIR=$ENV_DIR bash "$ENV_DIR/modules/$module/init.sh"
+    fi
+done
 
 if [[ -d $ENV_DIR && -f "$ENV_DIR/init.sh" ]]; then
     echo "Initializing environment..."
