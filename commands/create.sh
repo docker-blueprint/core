@@ -437,24 +437,34 @@ docker-compose restart "$DEFAULT_SERVICE"
 # Run initialization scripts
 #
 
+if [[ -d $ENV_DIR && -f "$ENV_DIR/before.sh" ]]; then
+    echo "Initializing environment before modules..."
+    ENV_DIR=$ENV_DIR bash "$ENV_DIR/before.sh"
+elif [[ -d $BLUEPRINT_DIR && -f "$BLUEPRINT_DIR/before.sh" ]]; then
+    echo "Initializing blueprint before modules..."
+    BLUEPRINT_DIR=$BLUEPRINT_DIR bash "$BLUEPRINT_DIR/before.sh"
+fi
+
 for module in "${MODULES_TO_LOAD[@]}"; do
     if [[ -f "$BLUEPRINT_DIR/modules/$module/init.sh" ]]; then
         echo "Initializing module '$module'..."
-        BLUEPRINT_DIR=$BLUEPRINT_DIR bash "$BLUEPRINT_DIR/modules/$module/init.sh"
+        MODULE_DIR="$BLUEPRINT_DIR/modules/$module" \
+        bash "$BLUEPRINT_DIR/modules/$module/init.sh"
     fi
 
     if [[ -f "$ENV_DIR/modules/$module/init.sh" ]]; then
         echo "Initializing environment module '$module'..."
-        ENV_DIR=$ENV_DIR bash "$ENV_DIR/modules/$module/init.sh"
+        MODULE_DIR="$ENV_DIR/modules/$module" \
+        bash "$ENV_DIR/modules/$module/init.sh"
     fi
 done
 
-if [[ -d $ENV_DIR && -f "$ENV_DIR/init.sh" ]]; then
-    echo "Initializing environment..."
-    ENV_DIR=$ENV_DIR bash "$ENV_DIR/init.sh"
-elif [[ -d $BLUEPRINT_DIR && -f "$BLUEPRINT_DIR/init.sh" ]]; then
-    echo "Initializing blueprint..."
-    BLUEPRINT_DIR=$BLUEPRINT_DIR bash "$BLUEPRINT_DIR/init.sh"
+if [[ -d $ENV_DIR && -f "$ENV_DIR/after.sh" ]]; then
+    echo "Initializing environment after modules..."
+    ENV_DIR=$ENV_DIR bash "$ENV_DIR/after.sh"
+elif [[ -d $BLUEPRINT_DIR && -f "$BLUEPRINT_DIR/after.sh" ]]; then
+    echo "Initializing blueprint after modules..."
+    BLUEPRINT_DIR=$BLUEPRINT_DIR bash "$BLUEPRINT_DIR/after.sh"
 fi
 
 #
