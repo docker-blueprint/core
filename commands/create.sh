@@ -402,11 +402,11 @@ if [[ -n "$SYNC_USER" ]]; then
     docker-compose exec "$DEFAULT_SERVICE" usermod -u "$UID" "$SYNC_USER"
     docker-compose exec "$DEFAULT_SERVICE" groupmod -g "$GID" "$SYNC_USER"
 
-    HOME_DIR="$(docker-compose exec --user="$UID":"$GID" "$DEFAULT_SERVICE" env | grep '^HOME=' | sed -r 's/^HOME=(.*)/\1/' | sed 's/\r//' | sed 's/\n//')"
+    HOME_DIR="$(docker-compose exec --user="$SYNC_USER" "$DEFAULT_SERVICE" env | grep '^HOME=' | sed -r 's/^HOME=(.*)/\1/' | sed 's/\r//' | sed 's/\n//')"
 
     echo "Chowning home directory '$HOME_DIR'..."
 
-    docker-compose exec "$DEFAULT_SERVICE" chown -R "$UID":"$GID" "$HOME_DIR"
+    docker-compose exec "$DEFAULT_SERVICE" chown -R "$SYNC_USER" "$HOME_DIR"
 fi
 
 if [[ -n "$MAKE_DIRS" ]]; then
@@ -414,7 +414,7 @@ if [[ -n "$MAKE_DIRS" ]]; then
         echo "Making directory '$dir'..."
         docker-compose exec "$DEFAULT_SERVICE" mkdir -p "$dir"
         if [[ -n "$SYNC_USER" ]]; then
-            docker-compose exec "$DEFAULT_SERVICE" chown -R "$UID":"$GID" "$dir"
+            docker-compose exec "$DEFAULT_SERVICE" chown -R "$SYNC_USER" "$dir"
         fi
     done
 fi
@@ -424,7 +424,7 @@ for command in "${POSTBUILD_COMMANDS[@]}"; do
     if [[ -z "$SYNC_USER" ]]; then
         docker-compose exec "$DEFAULT_SERVICE" $command
     else
-        docker-compose exec --user="$UID":"$GID" "$DEFAULT_SERVICE" $command
+        docker-compose exec --user="$SYNC_USER" "$DEFAULT_SERVICE" $command
     fi
 done
 
