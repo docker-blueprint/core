@@ -116,7 +116,7 @@ if ! [[ -f docker-blueprint.yml ]] || $FORCE_GENERATE || \
     # Merge environment preset with technology preset
 
     if [[ -n $ENV_DIR ]] && [[ -f "$ENV_DIR/blueprint.yml" ]]; then
-        printf -- "$(yq merge -a $BLUEPRINT_FILE_BASE $ENV_DIR/blueprint.yml)" > "$BLUEPRINT_FILE_TMP"
+        printf -- "$(yq merge -a $ENV_DIR/blueprint.yml $BLUEPRINT_FILE_BASE)" > "$BLUEPRINT_FILE_TMP"
     else
         cp "$BLUEPRINT_FILE_BASE" "$BLUEPRINT_FILE_TMP"
     fi
@@ -209,7 +209,7 @@ if ! [[ -f docker-blueprint.yml ]] || $FORCE_GENERATE || \
     # Generate a list of YAML files to merge
     # depending on chosen modules
 
-    FILES_TO_MERGE=("$BLUEPRINT_FILE_TMP")
+    FILES_TO_MERGE=()
 
     function append_file_to_merge {
         if [[ -f "$1" ]]; then
@@ -238,6 +238,8 @@ if ! [[ -f docker-blueprint.yml ]] || $FORCE_GENERATE || \
             fi
         fi
     done
+
+    FILES_TO_MERGE+=("$BLUEPRINT_FILE_TMP")
 
     if [[ -z "${FILES_TO_MERGE[1]}" ]]; then
         printf -- "$(yq read "${FILES_TO_MERGE[0]}")" > "$BLUEPRINT_FILE_FINAL"
