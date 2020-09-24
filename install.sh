@@ -37,11 +37,12 @@ if [[ -z $(which docker-blueprint) ]]; then
             echo "Creating link in '$DIR'..."
 
             sudo ln -s "$PROJECT_DIR/entrypoint.sh" "$DIR/docker-blueprint"
+            sudo ln -s "$PROJECT_DIR/entrypoint.sh" "$DIR/dob"
 
             if [[ $? -eq 0 ]]; then
                 echo "Installed successuflly."
                 echo ""
-                echo "Run the program by typing 'docker-blueprint'"
+                echo "Run the program by typing 'dob' (or long version docker-blueprint)"
                 exit 0
             else
                 echo "Unable to create link."

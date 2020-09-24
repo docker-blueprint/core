@@ -9,6 +9,14 @@ if [[ -n $EXEC_PATH ]]; then
     printf " done\n"
 fi
 
+EXEC_PATH=$(which dob)
+
+if [[ -n $EXEC_PATH ]]; then
+    printf "Removing link..."
+    sudo rm $EXEC_PATH
+    printf " done\n"
+fi
+
 if [[ -d "$PROJECT_DIR" ]]; then
     printf "Removing project directory..."
     rm -rf $PROJECT_DIR
