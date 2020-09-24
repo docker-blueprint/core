@@ -36,7 +36,7 @@ if [[ -z $(which docker-blueprint) ]]; then
         if [[ -d "$DIR" ]]; then
             echo "Creating link in '$DIR'..."
 
-            sudo ln -sf "$PROJECT_DIR/entrypoint.sh" "$DIR/docker-blueprint"
+            sudo ln -s "$PROJECT_DIR/entrypoint.sh" "$DIR/docker-blueprint"
 
             if [[ $? -eq 0 ]]; then
                 echo "Installed successuflly."
