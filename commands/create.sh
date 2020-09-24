@@ -202,8 +202,6 @@ if ! [[ -f docker-blueprint.yml ]] || $FORCE_GENERATE || \
 
     done
 
-    printf " done\n"
-
     MODULES_TO_LOAD=("${MODULE_STACK[@]}")
 
     # Generate a list of YAML files to merge
@@ -237,20 +235,57 @@ if ! [[ -f docker-blueprint.yml ]] || $FORCE_GENERATE || \
                 append_file_to_merge "$ENV_DIR/modules/$module.yml"
             fi
         fi
+
+        printf "."
     done
 
     FILES_TO_MERGE+=("$BLUEPRINT_FILE_TMP")
 
     if [[ -z "${FILES_TO_MERGE[1]}" ]]; then
-        printf -- "$(yq read "${FILES_TO_MERGE[0]}")" > "$BLUEPRINT_FILE_FINAL"
+        printf -- "$(yq read "${FILES_TO_MERGE[0]}")" > "$BLUEPRINT_FILE_FINAL" && printf "."
     else
-        printf -- "$(yq merge -a ${FILES_TO_MERGE[@]})" > "$BLUEPRINT_FILE_FINAL"
+        printf -- "$(yq merge -a ${FILES_TO_MERGE[@]})" > "$BLUEPRINT_FILE_FINAL" && printf "."
     fi
 
-    printf -- "$(yq delete $BLUEPRINT_FILE_FINAL 'modules')" > "$BLUEPRINT_FILE_FINAL"
-    printf -- "$(yq delete $BLUEPRINT_FILE_FINAL 'depends_on')" > "$BLUEPRINT_FILE_FINAL"
+    printf -- "$(yq delete $BLUEPRINT_FILE_FINAL 'modules')" > "$BLUEPRINT_FILE_FINAL" && printf "."
+
+    for module in "${MODULES_TO_LOAD[@]}"; do
+        yq write $BLUEPRINT_FILE_FINAL 'modules[+]' "$module" -i
+    done
+
+    printf -- "$(yq delete $BLUEPRINT_FILE_FINAL 'depends_on')" > "$BLUEPRINT_FILE_FINAL" && printf "."
+
+    cd $BLUEPRINT_DIR
+
+    hash=$(git rev-parse HEAD) 2> /dev/null && printf "."
+
+    if [[ $? > 0 ]]; then
+        unset hash
+    fi
+
+    cd $PROJECT_DIR
+
+    if [[ -n $hash ]]; then
+        yq write $BLUEPRINT_FILE_FINAL 'version' "$hash" -i && printf "."
+    fi
+
+    printf " done\n"
+
 else
     echo "docker-blueprint.yml already exists, skipping generation (run with --force to override)"
+
+    read_value CHECKPOINT 'version'
+
+    if [[ -n $CHECKPOINT ]]; then
+        cd $BLUEPRINT_DIR
+        git checkout $CHECKPOINT 2> /dev/null
+        if [[ $? -eq 0 ]]; then
+            echo "Version: $CHECKPOINT"
+        else
+            printf "${YELLOW}Warning${RESET}: unable to checkout version $CHECKPOINT\n"
+        fi
+        cd $PROJECT_DIR
+    fi
 fi
 
 rm -f "$BLUEPRINT_FILE_TMP"

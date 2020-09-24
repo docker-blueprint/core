@@ -2,6 +2,7 @@
 
 EXECUTABLE_NAME=$(basename "${BASH_SOURCE}")
 
+PROJECT_DIR=$PWD
 DIR=.docker-blueprint
 REAL_DIR="$(readlink -f "$0")"
 ROOT_DIR="$(dirname "$REAL_DIR")"
