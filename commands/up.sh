@@ -2,6 +2,25 @@
 
 shift
 
+#
+# Read arguments
+#
+
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        -h|--help)
+            printf "up [-d]\t\t\tBring up docker containers and reinitialize them\n"
+            exit
+
+            ;;
+
+        *)
+            DOCKER_COMPOSE_UP_ARGS+=($1)
+    esac
+
+    shift
+done
+
 docker-compose up $@
 
 read_value SYNC_USER "user"
