@@ -6,6 +6,7 @@ DIR=.docker-blueprint
 REAL_DIR="$(readlink -f "$0")"
 ROOT_DIR="$(dirname "$REAL_DIR")"
 ENTRYPOINT="$ROOT_DIR/$(basename "$REAL_DIR")"
+BLUEPRINT_FILE_FINAL=docker-blueprint.yml
 
 mkdir -p $DIR
 source "$ROOT_DIR/includes/update-gitignore.sh"
@@ -47,7 +48,7 @@ case $1 in
         docker-compose exec --user="$UID":"$GID" ${@:2}
         ;;
 
-    up|down|restart)
+    down|restart)
         docker-compose "$1" ${@:2}
         ;;
 

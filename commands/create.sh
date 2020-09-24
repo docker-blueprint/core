@@ -97,7 +97,6 @@ printf " done\n"
 
 BLUEPRINT_FILE_TMP=$BLUEPRINT_DIR/blueprint.tmp
 BLUEPRINT_FILE_BASE=$BLUEPRINT_DIR/blueprint.yml
-BLUEPRINT_FILE_FINAL=docker-blueprint.yml
 
 if [[ -n "$ENV_NAME" ]]; then
     ENV_DIR=$BLUEPRINT_DIR/env/$ENV_NAME
@@ -261,9 +260,6 @@ rm -f "$BLUEPRINT_FILE_TMP"
 printf "Reading configuration..."
 
 read_value DEFAULT_SERVICE "default_service" && printf "."
-read_value SYNC_USER "user" && printf "."
-read_array MAKE_DIRS "make_dirs" && printf "."
-read_array POSTBUILD_COMMANDS "postbuild_commands" && printf "."
 read_keys DEPENDENCIES_KEYS "dependencies" && printf "."
 read_keys PURGE_KEYS "purge" && printf " done\n"
 
@@ -391,42 +387,7 @@ docker-compose down
 
 echo "Building new stack..."
 
-docker-compose up -d
-
-#
-# Synchronize container users with current host user during development
-#
-
-if [[ -n "$SYNC_USER" ]]; then
-    echo "Synchronizing user '$SYNC_USER'..."
-    docker-compose exec "$DEFAULT_SERVICE" usermod -u "$UID" "$SYNC_USER"
-    docker-compose exec "$DEFAULT_SERVICE" groupmod -g "$GID" "$SYNC_USER"
-
-    HOME_DIR="$(docker-compose exec --user="$SYNC_USER" "$DEFAULT_SERVICE" env | grep '^HOME=' | sed -r 's/^HOME=(.*)/\1/' | sed 's/\r//' | sed 's/\n//')"
-
-    echo "Chowning home directory '$HOME_DIR'..."
-
-    docker-compose exec "$DEFAULT_SERVICE" chown -R "$SYNC_USER" "$HOME_DIR"
-fi
-
-if [[ -n "$MAKE_DIRS" ]]; then
-    for dir in "${MAKE_DIRS[@]}"; do
-        echo "Making directory '$dir'..."
-        docker-compose exec "$DEFAULT_SERVICE" mkdir -p "$dir"
-        if [[ -n "$SYNC_USER" ]]; then
-            docker-compose exec "$DEFAULT_SERVICE" chown -R "$SYNC_USER" "$dir"
-        fi
-    done
-fi
-
-for command in "${POSTBUILD_COMMANDS[@]}"; do
-    echo "Running '$command'..."
-    if [[ -z "$SYNC_USER" ]]; then
-        docker-compose exec "$DEFAULT_SERVICE" $command
-    else
-        docker-compose exec --user="$SYNC_USER" "$DEFAULT_SERVICE" $command
-    fi
-done
+bash $ENTRYPOINT up -d
 
 #
 # Restart container to apply chown
