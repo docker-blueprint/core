@@ -65,6 +65,9 @@ while [[ "$#" -gt 0 ]]; do
             echo ""
             if [[ $REPLY =~ ^[Yy]$ ]]; then
                 rm -rf $(ls -A $PWD)
+            else
+                printf "${YELLOW}You answered 'no', stopping here.\n"
+                exit 1
             fi
 
             ;;
