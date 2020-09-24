@@ -59,6 +59,16 @@ while [[ "$#" -gt 0 ]]; do
 
             ;;
 
+        --clean)
+            printf "This will ${RED}completely wipe out${RESET} current directory.\n"
+            read -p "Are you sure? [y/N] " -n 1 -r
+            echo ""
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                rm -rf $(ls -A $PWD)
+            fi
+
+            ;;
+
         -h|--help)
             printf "create <blueprint> [options]\tCreate containerized technology stack for the project in current directory\n"
             printf "  -e, --env <environment>   \tSet technology-specific environment (for example framework)\n"
