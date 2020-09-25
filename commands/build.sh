@@ -61,9 +61,18 @@ printf "Reading configuration..."
 
 read_value DEFAULT_SERVICE "default_service" && printf "."
 read_keys DEPENDENCIES_KEYS "dependencies" && printf "."
+read_keys BUILD_ARGS_KEYS "build_args" && printf "."
 read_keys PURGE_KEYS "purge" && printf " done\n"
 
 echo "$DEFAULT_SERVICE" > "$DIR/default_service"
+
+BUILD_ARGS=()
+
+BUILD_ARGS+=("--build-arg BLUEPRINT_DIR=$BLUEPRINT_DIR")
+
+SCRIPT_VARS=()
+SCRIPT_VARS+=("ENV_DIR=$ENV_DIR")
+SCRIPT_VARS+=("BLUEPRINT_DIR=$BLUEPRINT_DIR")
 
 #
 # Build docker-compose.yml
@@ -106,6 +115,23 @@ chunk="$CHUNK" perl -0 -i -pe 's/ *# volumes:root/$ENV{"chunk"}/' \
 CHUNK="$(yq read -p v $BLUEPRINT_FILE_FINAL 'volumes' | pr -To 2)"
 chunk="$CHUNK" perl -0 -i -pe 's/ *# volumes/$ENV{"chunk"}/' \
 "$PWD/docker-compose.yml" && printf "."
+
+# Replace +variables
+
+for variable in ${BUILD_ARGS_KEYS[@]}; do
+    read_value value "build_args.$variable"
+
+    # Replace build argument value with env variable value if it is set
+    if [[ -n ${!variable+x} ]]; then
+        value="${!variable:-}"
+    fi
+
+    BUILD_ARGS+=("--build-arg $variable=$value")
+    SCRIPT_VARS+=("$variable=$value")
+
+    value="$value" perl -0 -i -pe "s/\+$variable/"'$ENV{"value"}/' \
+    "$PWD/docker-compose.yml" && printf "."
+done
 
 # Remove empty lines
 
@@ -159,22 +185,6 @@ printf "done\n"
 # Build containers
 #
 
-BUILD_ARGS=()
-
-BUILD_ARGS+=("--build-arg BLUEPRINT_DIR=$BLUEPRINT_DIR")
-
-read_keys BUILD_ARGS_KEYS 'build_args'
-
-for variable in ${BUILD_ARGS_KEYS[@]}; do
-    read_value value "build_args.$variable"
-
-    if [[ -n ${!variable+x} ]]; then
-        value="${!variable:-}"
-    fi
-
-    BUILD_ARGS+=("--build-arg $variable=$value")
-done
-
 docker-compose build ${BUILD_ARGS[@]}
 
 echo "Removing existing stack..."
@@ -198,32 +208,32 @@ docker-compose restart "$DEFAULT_SERVICE"
 
 if [[ -d $ENV_DIR && -f "$ENV_DIR/before.sh" ]]; then
     echo "Initializing environment before modules..."
-    ENV_DIR=$ENV_DIR bash "$ENV_DIR/before.sh"
+    env ${SCRIPT_VARS[@]} bash "$ENV_DIR/before.sh"
 elif [[ -d $BLUEPRINT_DIR && -f "$BLUEPRINT_DIR/before.sh" ]]; then
     echo "Initializing blueprint before modules..."
-    BLUEPRINT_DIR=$BLUEPRINT_DIR bash "$BLUEPRINT_DIR/before.sh"
+    env ${SCRIPT_VARS[@]} bash "$BLUEPRINT_DIR/before.sh"
 fi
 
 for module in "${MODULES_TO_LOAD[@]}"; do
     if [[ -f "$BLUEPRINT_DIR/modules/$module/init.sh" ]]; then
         echo "Initializing module '$module'..."
-        MODULE_DIR="$BLUEPRINT_DIR/modules/$module" \
+        env ${SCRIPT_VARS[@]} MODULE_DIR="$BLUEPRINT_DIR/modules/$module" \
         bash "$BLUEPRINT_DIR/modules/$module/init.sh"
     fi
 
     if [[ -f "$ENV_DIR/modules/$module/init.sh" ]]; then
         echo "Initializing environment module '$module'..."
-        MODULE_DIR="$ENV_DIR/modules/$module" \
+        env ${SCRIPT_VARS[@]} MODULE_DIR="$ENV_DIR/modules/$module" \
         bash "$ENV_DIR/modules/$module/init.sh"
     fi
 done
 
 if [[ -d $ENV_DIR && -f "$ENV_DIR/after.sh" ]]; then
     echo "Initializing environment after modules..."
-    ENV_DIR=$ENV_DIR bash "$ENV_DIR/after.sh"
+    env ${SCRIPT_VARS[@]} bash "$ENV_DIR/after.sh"
 elif [[ -d $BLUEPRINT_DIR && -f "$BLUEPRINT_DIR/after.sh" ]]; then
     echo "Initializing blueprint after modules..."
-    BLUEPRINT_DIR=$BLUEPRINT_DIR bash "$BLUEPRINT_DIR/after.sh"
+    env ${SCRIPT_VARS[@]} bash "$BLUEPRINT_DIR/after.sh"
 fi
 
 #

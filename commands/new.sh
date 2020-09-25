@@ -288,6 +288,18 @@ if ! [[ -f docker-blueprint.yml ]] || $FORCE_GENERATE; then
         yq write $BLUEPRINT_FILE_FINAL 'blueprint.env' "$ENV_NAME" -i && printf "."
     fi
 
+    read_keys BUILD_ARGS_KEYS 'build_args'
+
+    for variable in ${BUILD_ARGS_KEYS[@]}; do
+        read_value value "build_args.$variable"
+
+        if [[ -n ${!variable+x} ]]; then
+            value="${!variable:-}"
+        fi
+
+        yq write $BLUEPRINT_FILE_FINAL "build_args.$variable" "$value" -i && printf "."
+    done
+
     printf " done\n"
 
 else
