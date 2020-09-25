@@ -77,6 +77,7 @@ while [[ "$#" -gt 0 ]]; do
             printf "  -e, --env <environment>   \tSet technology-specific environment (for example framework)\n"
             printf "  -m, --with <module>...    \tA list of modules to include from this technology blueprint\n"
             printf "  -f, --force               \tAlways generate new docker-blueprint.yml, even if it already exists\n"
+            printf "  --clean                   \tRemove all files in current directory before building a blueprint\n"
             exit
 
             ;;
