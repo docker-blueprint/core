@@ -1,6 +1,6 @@
 #!/bin/bash
 
-# Blueprint CREATE command
+# Blueprint NEW command
 #
 # This command generates `docker-blueprint.yml` file and uses it to further
 # generate `docker-compose.yml` & `dockerfile` and call `docker-compose` to
@@ -73,7 +73,7 @@ while [[ "$#" -gt 0 ]]; do
             ;;
 
         -h|--help)
-            printf "create <blueprint> [options]\tCreate containerized technology stack for the project in current directory\n"
+            printf "new <blueprint> [options]   \tCreate containerized technology stack for the project in current directory\n"
             printf "  -e, --env <environment>   \tSet technology-specific environment (for example framework)\n"
             printf "  -m, --with <module>...    \tA list of modules to include from this technology blueprint\n"
             printf "  -f, --force               \tAlways generate new docker-blueprint.yml, even if it already exists\n"
