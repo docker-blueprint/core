@@ -4,7 +4,7 @@ shift
 
 case $1 in
     -h|--help)
-        printf "update\t\t\tUpdate docker-blueprint to the latest version\n"
+        printf "update\t\t\t\tUpdate docker-blueprint to the latest version\n"
         exit
 
         ;;
