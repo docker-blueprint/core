@@ -6,6 +6,9 @@ shift
 # Read arguments
 #
 
+DOCKER_COMPOSE_ARGS=()
+DOCKER_COMPOSE_UP_ARGS=()
+
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         -h|--help)
@@ -21,7 +24,7 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
-docker-compose up $@
+docker-compose ${DOCKER_COMPOSE_ARGS[@]} up ${DOCKER_COMPOSE_UP_ARGS[@]}
 
 read_value SYNC_USER "user"
 read_array MAKE_DIRS "make_dirs"
