@@ -58,6 +58,11 @@ case $1 in
         source "$ROOT_DIR/commands/help.sh"
         ;;
 
+    -v | --version)
+        AS_FUNCTION=false
+        source "$ROOT_DIR/commands/version.sh"
+        ;;
+
     *)
         if [[ ! -z "$1" ]]; then
             if [[ ! -z "$2" ]] && [[ "$2" == "sudo" ]]; then
