@@ -8,7 +8,9 @@ shift
 
 case $1 in
     -h|--help)
-        printf "run <command>\t\t\tRun a command in a predefined environment\n"
+        printf "${CMD_COL}run${RESET} ${ARG_COL}<command>${RESET}"
+        printf "\t\t\tRun a command in a predefined environment\n"
+
         exit
 
         ;;

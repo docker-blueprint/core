@@ -11,7 +11,9 @@ shift
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         -h|--help)
-            printf "build [options]\t\tBuild containerized technology stack defined in docker-blueprint.yml\n"
+            printf "${CMD_COL}build${RESET} ${ARG_COL}[options]${RESET}"
+            printf "\t\tBuild containerized technology stack defined in docker-blueprint.yml\n"
+
             exit
     esac
 

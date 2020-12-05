@@ -4,7 +4,7 @@ shift
 
 case $1 in
     -h|--help)
-        printf "version\t\t\t\tGet current version\n"
+        printf "${CMD_COL}version${RESET}\t\t\tGet current version\n"
         exit
 
         ;;

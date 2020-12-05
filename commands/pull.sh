@@ -25,7 +25,9 @@ shift
 
 case $1 in
     -h|--help)
-        printf "pull <blueprint>\t\tDownload the latest version of blueprint\n"
+        printf "${CMD_COL}pull${RESET} ${ARG_COL}<blueprint>${RESET}"
+        printf "\t\tDownload the latest version of blueprint\n"
+
         exit
 
         ;;

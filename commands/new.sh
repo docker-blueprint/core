@@ -73,11 +73,21 @@ while [[ "$#" -gt 0 ]]; do
             ;;
 
         -h|--help)
-            printf "new <blueprint> [options]   \tCreate containerized technology stack for the project in current directory\n"
-            printf "  -e, --env <environment>   \tSet technology-specific environment (for example framework)\n"
-            printf "  -m, --with <module>...    \tA list of modules to include from this technology blueprint\n"
-            printf "  -f, --force               \tAlways generate new docker-blueprint.yml, even if it already exists\n"
-            printf "  --clean                   \tRemove all files in current directory before building a blueprint\n"
+            printf "${CMD_COL}new${RESET} ${ARG_COL}<blueprint> [options]${RESET}"
+            printf "\tCreate containerized technology stack for the project in current directory\n"
+
+            printf "  ${FLG_COL}-e${RESET}, ${FLG_COL}--env${RESET} <environment>"
+            printf "\tSet technology-specific environment (for example framework)\n"
+
+            printf "  ${FLG_COL}-m${RESET}, ${FLG_COL}--with${RESET} <module>..."
+            printf "\tA list of modules to include from this technology blueprint\n"
+
+            printf "  ${FLG_COL}-f${RESET}, ${FLG_COL}--force${RESET}"
+            printf "\t\t\tAlways generate new docker-blueprint.yml, even if it already exists\n"
+
+            printf "  ${FLG_COL}--clean${RESET}"
+            printf "\t\t\tRemove all files in current directory before building a blueprint\n"
+
             exit
 
             ;;

@@ -8,8 +8,8 @@ shift
 
 case $1 in
     -h|--help)
-        printf "default clear\t\t\tClear default service\n"
-        printf "default <service>\t\tSet default service to run commands against (usually set by preset)\n"
+        printf "${CMD_COL}default clear${RESET}\t\t\tClear default service\n"
+        printf "${CMD_COL}default${RESET} ${ARG_COL}<service>${RESET}\t\tSet default service to run commands against (usually set by preset)\n"
         exit
 
         ;;
