@@ -105,34 +105,36 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 #
-# Initialize path variables
-#
-
-printf "Pulling blueprint..."
-
-BLUEPRINT_DIR=$(AS_FUNCTION=true bash $ENTRYPOINT pull $BLUEPRINT)
-
-if [[ $? -ne 0 ]]; then
-    printf "\n${RED}ERROR${RESET}: Unable to pull blueprint '$BLUEPRINT'.\n"
-    exit 1
-fi
-
-printf " done\n"
-
-BLUEPRINT_FILE_TMP=$BLUEPRINT_DIR/blueprint.tmp
-BLUEPRINT_FILE_BASE=$BLUEPRINT_DIR/blueprint.yml
-
-if [[ -n "$ENV_NAME" ]]; then
-    ENV_DIR=$BLUEPRINT_DIR/env/$ENV_NAME
-fi
-
-#
 # Build custom blueprint file
 #
 # Generate only when file is not present
 # or force rebuild when the flag is supplied
 
 if ! [[ -f docker-blueprint.yml ]] || $FORCE_GENERATE; then
+
+    #
+    # Initialize path variables
+    #
+
+    BLUEPRINT_QUALIFIED_NAME=$(AS_FUNCTION=true bash $ENTRYPOINT pull $BLUEPRINT --get-qualified-name)
+
+    printf "Pulling blueprint '$BLUEPRINT_QUALIFIED_NAME'..."
+
+    BLUEPRINT_DIR=$(AS_FUNCTION=true bash $ENTRYPOINT pull $BLUEPRINT)
+
+    if [[ $? -ne 0 ]]; then
+        printf "\n${RED}Error${RESET}: Unable to pull blueprint '$BLUEPRINT'.\n"
+        exit 1
+    fi
+
+    printf " ${GREEN}done${RESET}\n"
+
+    BLUEPRINT_FILE_TMP=$BLUEPRINT_DIR/blueprint.tmp
+    BLUEPRINT_FILE_BASE=$BLUEPRINT_DIR/blueprint.yml
+
+    if [[ -n "$ENV_NAME" ]]; then
+        ENV_DIR=$BLUEPRINT_DIR/env/$ENV_NAME
+    fi
 
     printf "Generating blueprint file..."
 
