@@ -73,13 +73,13 @@ while [[ "$#" -gt 0 ]]; do
             ;;
 
         -h|--help)
-            printf "${CMD_COL}new${RESET} ${ARG_COL}<blueprint> [options]${RESET}"
+            printf "${CMD_COL}new${RESET} ${ARG_COL}<blueprint>${RESET} [${FLG_COL}options${RESET}]"
             printf "\tCreate containerized technology stack for the project in current directory\n"
 
-            printf "  ${FLG_COL}-e${RESET}, ${FLG_COL}--env${RESET} <environment>"
+            printf "  ${FLG_COL}-e${RESET}, ${FLG_COL}--env${RESET} ${FLG_VAL_COL}<environment>${RESET}"
             printf "\tSet technology-specific environment (for example framework)\n"
 
-            printf "  ${FLG_COL}-m${RESET}, ${FLG_COL}--with${RESET} <module>..."
+            printf "  ${FLG_COL}-m${RESET}, ${FLG_COL}--with${RESET} ${FLG_VAL_COL}<module>${RESET}..."
             printf "\tA list of modules to include from this technology blueprint\n"
 
             printf "  ${FLG_COL}-f${RESET}, ${FLG_COL}--force${RESET}"

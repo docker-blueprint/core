@@ -9,7 +9,7 @@ shift
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         -h|--help)
-            printf "${CMD_COL}sync${RESET}"
+            printf "${CMD_COL}sync${RESET} [${FLG_COL}options${RESET}]"
             printf "\t\tSynchronize development environment container\n"
 
             exit

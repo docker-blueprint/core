@@ -7,18 +7,29 @@ if [[ -t 1 ]] && [[ -z ${DOCKER_BLUEPRINT_NO_COLOR:+x} ]]; then
     ncolors=$(tput colors)
 
     if [[ $ncolors -ge 8 ]]; then
-        export BLACK="\u001b[30m"
-        export RED="\u001b[31m"
-        export GREEN="\u001b[32m"
-        export YELLOW="\u001b[33m"
-        export BLUE="\u001b[34m"
-        export MAGENTA="\u001b[35m"
-        export CYAN="\u001b[36m"
-        export WHITE="\u001b[37m"
-        export RESET="\u001b[0m"
+        export BLACK="\033[0;30m"
+        export RED="\033[0;31m"
+        export GREEN="\033[0;32m"
+        export ORANGE="\033[0;33m"
+        export BLUE="\033[0;34m"
+        export PURPLE="\033[0;35m"
+        export CYAN="\033[0;36m"
+        export LIGHT_GRAY="\033[0;37m"
+        export DARK_GRAY="\033[1;30m"
+        export LIGHT_RED="\033[1;31m"
+        export LIGHT_GREEN="\033[1;32m"
+        export YELLOW="\033[1;33m"
+        export LIGHT_BLUE="\033[1;34m"
+        export LIGHT_PURPLE="\033[1;35m"
+        export LIGHT_CYAN="\033[1;36m"
+        export WHITE="\033[1;37m"
+        export RESET="\033[0;0m"
     fi
 fi
 
-export CMD_COL=$YELLOW
+export EXE_COL=$RESET
+export SRV_COL=$LIGHT_GRAY
+export CMD_COL=$GREEN
 export ARG_COL=$RESET
-export FLG_COL=$YELLOW
+export FLG_COL=$RED
+export FLG_VAL_COL=$RESET
