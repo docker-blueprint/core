@@ -313,7 +313,7 @@ if ! [[ -f docker-blueprint.yml ]] || $FORCE_GENERATE; then
     printf " done\n"
 
 else
-    echo "docker-blueprint.yml already exists, skipping generation (run with --force to override)"
+    printf "${YELLOW}Warning${RESET}: docker-blueprint.yml already exists, skipping generation (run with --force to override)\n"
 fi
 
 rm -f "$BLUEPRINT_FILE_TMP"

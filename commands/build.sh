@@ -64,7 +64,7 @@ printf "Reading configuration..."
 read_value DEFAULT_SERVICE "default_service" && printf "."
 read_keys DEPENDENCIES_KEYS "dependencies" && printf "."
 read_keys BUILD_ARGS_KEYS "build_args" && printf "."
-read_keys PURGE_KEYS "purge" && printf " done\n"
+read_keys PURGE_KEYS "purge" && printf " ${GREEN}done${RESET}\n"
 
 echo "$DEFAULT_SERVICE" > "$DIR/default_service"
 
@@ -139,13 +139,13 @@ done
 
 sed -ri '/^\s*$/d' "$PWD/docker-compose.yml"
 
-printf " done\n"
+printf " ${GREEN}done${RESET}\n"
 
 #
 # Build dockerfile
 #
 
-printf "Building dockerfile...\n"
+printf "Building dockerfile..."
 
 cp "$BLUEPRINT_DIR/templates/dockerfile" "$PWD/dockerfile"
 
@@ -160,7 +160,7 @@ chunk="$CHUNK" perl -0 -i -pe 's/ *# \$PRODUCTION_COMMANDS/$ENV{"chunk"}/' \
 for key in "${DEPENDENCIES_KEYS[@]}"; do
     read_array DEPS "dependencies.$key"
     key=$(echo "$key" | tr [:lower:] [:upper:])
-    printf "DEPS_$key: ${DEPS[*]}\n"
+    printf "."
 
     key="$key" chunk="${DEPS[*]}" \
     perl -0 -i -pe 's/#\s*(.*)\$DEPS_$ENV{"key"}/$1$ENV{"chunk"}/g' \
@@ -170,7 +170,7 @@ done
 for key in "${PURGE_KEYS[@]}"; do
     read_array PURGE "purge.$key"
     key=$(echo "$key" | tr [:lower:] [:upper:])
-    printf "PURGE_$key: ${PURGE[*]}\n"
+    printf "."
 
     key="$key" chunk="${PURGE[*]}" \
     perl -0 -i -pe 's/#\s*(.*)\$PURGE_$ENV{"key"}/$1$ENV{"chunk"}/g' \
@@ -181,7 +181,7 @@ chunk="$BLUEPRINT_DIR" \
 perl -0 -i -pe 's/#\s*(.*)\$BLUEPRINT_DIR/$1$ENV{"chunk"}/g' \
 "$PWD/dockerfile"
 
-printf "done\n"
+printf " ${GREEN}done${RESET}\n"
 
 #
 # Build containers
