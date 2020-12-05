@@ -312,7 +312,7 @@ if ! [[ -f docker-blueprint.yml ]] || $FORCE_GENERATE; then
         yq write $BLUEPRINT_FILE_FINAL "build_args.$variable" "$value" -i && printf "."
     done
 
-    printf " done\n"
+    printf " ${GREEN}done${RESET}\n"
 
 else
     printf "${YELLOW}Warning${RESET}: docker-blueprint.yml already exists, skipping generation (run with --force to override)\n"
