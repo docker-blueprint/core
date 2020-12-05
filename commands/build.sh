@@ -195,7 +195,7 @@ docker-compose down
 
 echo "Building new stack..."
 
-bash $ENTRYPOINT up -d
+bash $ENTRYPOINT up
 
 #
 # Restart container to apply chown

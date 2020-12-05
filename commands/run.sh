@@ -51,11 +51,11 @@ done
 
 read_value command_string "commands.$COMMAND.command" "docker-blueprint.yml"
 
-bash $ENTRYPOINT up -d
+bash $ENTRYPOINT up
 bash $ENTRYPOINT "$command_string"
 
 for key in "${ENVIRONMENT_KEYS[@]}"; do
     unset $key
 done
 
-bash $ENTRYPOINT up -d
+bash $ENTRYPOINT up
