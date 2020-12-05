@@ -10,6 +10,8 @@ allow developers to bring up local development environment while only having
 development environments for your projects. No strings attached.
 - 📦 **Modular blueprints** - mix and match your own development environment
 depending on your requirements.
+- ✏️ **Extensible** - take existing blueprint as a base and add your own
+components to it.
 - 🐳 **Automatic dockerfile & docker-compose.yml file generation** - set up
 your development environment first - learn about docker later. You are free
 to tweak generated files as you please.
