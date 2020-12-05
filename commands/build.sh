@@ -24,7 +24,7 @@ done
 # Initialize path variables
 #
 
-printf "Pulling blueprint..."
+printf "Loading blueprint..."
 
 read_value BLUEPRINT 'blueprint.name' && printf "."
 read_value CHECKPOINT 'blueprint.version' && printf "."
@@ -34,17 +34,17 @@ read_array MODULES_TO_LOAD 'modules' && printf "."
 BLUEPRINT_DIR=$(AS_FUNCTION=true bash $ENTRYPOINT pull $BLUEPRINT)
 
 if [[ $? -ne 0 ]]; then
-    printf "\n${RED}ERROR${RESET}: Unable to pull blueprint '$BLUEPRINT'.\n"
+    printf "\n${RED}Error${RESET}: Unable to pull blueprint '$BLUEPRINT'.\n"
     exit 1
 fi
 
-printf " done\n"
+printf " ${GREEN}done${RESET}\n"
 
 if [[ -n $CHECKPOINT ]]; then
     cd $BLUEPRINT_DIR
     git checkout $CHECKPOINT 2> /dev/null
     if [[ $? -eq 0 ]]; then
-        echo "Version: $CHECKPOINT"
+        printf "Version: ${CYAN}$CHECKPOINT${RESET}\n"
     else
         printf "${YELLOW}Warning${RESET}: unable to checkout version $CHECKPOINT\n"
     fi
