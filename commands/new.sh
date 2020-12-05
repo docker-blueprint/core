@@ -139,7 +139,7 @@ if ! [[ -f docker-blueprint.yml ]] || $FORCE_GENERATE; then
     # Merge environment preset with base preset
 
     if [[ -n $ENV_DIR ]] && [[ -f "$ENV_DIR/blueprint.yml" ]]; then
-        printf -- "$(yq merge -a $ENV_DIR/blueprint.yml $BLUEPRINT_FILE_BASE)" > "$BLUEPRINT_FILE_TMP"
+        printf -- "$(yq merge -a append $ENV_DIR/blueprint.yml $BLUEPRINT_FILE_BASE)" > "$BLUEPRINT_FILE_TMP"
     else
         cp "$BLUEPRINT_FILE_BASE" "$BLUEPRINT_FILE_TMP"
     fi
@@ -267,7 +267,7 @@ if ! [[ -f docker-blueprint.yml ]] || $FORCE_GENERATE; then
     if [[ -z "${FILES_TO_MERGE[1]}" ]]; then
         printf -- "$(yq read "${FILES_TO_MERGE[0]}")" > "$BLUEPRINT_FILE_FINAL" && printf "."
     else
-        printf -- "$(yq merge -a ${FILES_TO_MERGE[@]})" > "$BLUEPRINT_FILE_FINAL" && printf "."
+        printf -- "$(yq merge -a append ${FILES_TO_MERGE[@]})" > "$BLUEPRINT_FILE_FINAL" && printf "."
     fi
 
     printf -- "$(yq delete $BLUEPRINT_FILE_FINAL 'modules')" > "$BLUEPRINT_FILE_FINAL" && printf "."
