@@ -46,10 +46,6 @@ if [[ -f "$ROOT_DIR/commands/$1.sh" ]]; then
 fi
 
 case $1 in
-    exec)
-        docker-compose exec --user="$UID":"$GID" ${@:2}
-        ;;
-
     down|restart)
         docker-compose "$1" ${@:2}
         ;;
@@ -69,6 +65,10 @@ case $1 in
                 COMMAND="docker-compose exec $1 ${@:3}"
             elif [[ "$1" == "sudo" ]]; then
                 COMMAND="docker-compose exec $DEFAULT_SERVICE ${@:2}"
+            elif [[ ! -z "$2" ]] && [[ "$2" == "exec" ]]; then
+                COMMAND="docker-compose exec --user=$UID:$GID $1 ${@:3}"
+            elif [[ "$1" == "exec" ]]; then
+                COMMAND="docker-compose exec --user=$UID:$GID $DEFAULT_SERVICE ${@:2}"
             else
                 COMMAND="docker-compose exec --user=$UID:$GID $DEFAULT_SERVICE $@"
             fi
