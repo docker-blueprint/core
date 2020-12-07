@@ -1,8 +1,18 @@
 #!/bin/bash
 
-yq() {
-    docker run --rm -i -v "${PWD}":/workdir mikefarah/yq yq "$@"
-}
+# Substitue yq with a docker container version,
+# if it isn't already present in the system.
+#
+# This affects performance, but allows to run docker-blueprint
+# without installing external dependencies.
+
+which yq > /dev/null
+
+if [[ $? > 0 ]]; then
+    yq() {
+        docker run --rm -i -v "${PWD}":/workdir mikefarah/yq yq "$@"
+    }
+fi
 
 read_value() {
     if [[ -z "$3" ]]; then
