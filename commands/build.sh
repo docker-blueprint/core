@@ -197,6 +197,11 @@ echo "Building new stack..."
 
 bash $ENTRYPOINT up
 
+if [[ $? > 0 ]]; then
+    printf "${RED}ERROR${RESET}: Couldn't finish building blueprint.\n"
+    exit 1
+fi
+
 #
 # Run initialization scripts
 #
