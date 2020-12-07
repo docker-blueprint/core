@@ -198,13 +198,6 @@ echo "Building new stack..."
 bash $ENTRYPOINT up
 
 #
-# Restart container to apply chown
-#
-
-echo "Restarting container '$DEFAULT_SERVICE'..."
-docker-compose restart "$DEFAULT_SERVICE"
-
-#
 # Run initialization scripts
 #
 

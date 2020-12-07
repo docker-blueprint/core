@@ -58,3 +58,10 @@ for command in "${POSTBUILD_COMMANDS[@]}"; do
         docker-compose exec --user="$SYNC_USER" "$DEFAULT_SERVICE" $command
     fi
 done
+
+#
+# Restart container to apply chown
+#
+
+echo "Restarting container '$DEFAULT_SERVICE'..."
+docker-compose restart "$DEFAULT_SERVICE"
