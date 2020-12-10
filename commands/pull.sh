@@ -23,17 +23,24 @@
 
 shift # Remove command name from the argument list
 
+CLEAN_INSTALL=false
 MODE_DRY_RUN=false
 MODE_GET_QUALIFIED=false
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         -h|--help)
-            printf "${CMD_COL}pull${RESET} ${ARG_COL}<blueprint>${RESET}"
-            printf "\t\tDownload the latest version of blueprint\n"
+            printf "${CMD_COL}pull${RESET} ${ARG_COL}<blueprint>${RESET} [${FLG_COL}options${RESET}]"
+            printf "\tDownload the latest version of blueprint\n"
+
+            printf "  ${FLG_COL}--clean${RESET}"
+            printf "\t\t\tRemove already existing copy of a blueprint and install fresh download\n"
 
             exit
 
+            ;;
+        --clean)
+            CLEAN_INSTALL=true
             ;;
         --dry-run)
             MODE_DRY_RUN=true
@@ -144,6 +151,10 @@ else
 
     if ! $AS_FUNCTION; then
         echo "Pulling blueprint '$BLUEPRINT_QUALIFIED_NAME'..."
+    fi
+
+    if $CLEAN_INSTALL; then
+        rm -rf $BLUEPRINT_DIR
     fi
 
     if [[ ! -d $BLUEPRINT_DIR ]]; then
