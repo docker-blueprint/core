@@ -57,27 +57,17 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 #
-# Check if blueprint is a local directory
+# Parse blueprint name and branch
 #
 
-if [[ -d $BLUEPRINT ]] && [[ $BLUEPRINT =~ "/" || $BLUEPRINT =~ "." || $BLUEPRINT =~ ".." ]]; then
-    mkdir -p "$DIR/blueprints/.local"
+IFS=':' read -r -a BLUEPRINT_PART <<< $BLUEPRINT
 
-    HASH=$(echo -n "$BLUEPRINT" | openssl dgst -sha1 | sed 's/^.* //')
-    BLUEPRINT_DIR="$DIR/blueprints/.local/$HASH"
+BLUEPRINT=${BLUEPRINT_PART[0]}
 
-    if ! $AS_FUNCTION; then
-        echo "Copying '$BLUEPRINT'..."
-    fi
-
-    rm -rf $BLUEPRINT_DIR
-    cp -rf $BLUEPRINT $BLUEPRINT_DIR
-
-    if $AS_FUNCTION; then
-        echo $BLUEPRINT_DIR
-    fi
-
-    exit
+if [[ -z ${BLUEPRINT_PART[1]} ]]; then
+    BLUEPRINT_BRANCH="master"
+else
+    BLUEPRINT_BRANCH=${BLUEPRINT_PART[1]}
 fi
 
 #
@@ -99,20 +89,6 @@ else
     BLUEPRINT_NAME=${BLUEPRINT_PART[1]}
 fi
 
-#
-# Parse blueprint name and branch
-#
-
-IFS=':' read -r -a BLUEPRINT_PART <<< $BLUEPRINT_NAME
-
-BLUEPRINT_NAME=${BLUEPRINT_PART[0]}
-
-if [[ -z ${BLUEPRINT_PART[1]} ]]; then
-    BLUEPRINT_BRANCH="master"
-else
-    BLUEPRINT_BRANCH=${BLUEPRINT_PART[1]}
-fi
-
 BLUEPRINT_QUALIFIED_NAME="$BLUEPRINT_MAINTAINER/$BLUEPRINT_NAME:$BLUEPRINT_BRANCH"
 
 if $MODE_GET_QUALIFIED; then
@@ -125,51 +101,74 @@ if $MODE_GET_QUALIFIED; then
 fi
 
 #
-# Build path for the resolved blueprint
+# Check if blueprint is a local directory
 #
 
-if [[ $BLUEPRINT_MAINTAINER = "docker-blueprint" ]]; then
-    BLUEPRINT_DIR="$DIR/blueprints/_/$BLUEPRINT_NAME"
-else
-    BLUEPRINT_DIR="$DIR/blueprints/$BLUEPRINT_MAINTAINER/$BLUEPRINT_NAME"
-fi
+if [[ -d $BLUEPRINT ]] && [[ $BLUEPRINT =~ "/" || $BLUEPRINT =~ "." || $BLUEPRINT =~ ".." ]]; then
+    mkdir -p "$DIR/blueprints/.local"
 
-PREVIOUS_DIR=$PWD
+    HASH=$(echo -n "$BLUEPRINT" | openssl dgst -sha1 | sed 's/^.* //')
+    BLUEPRINT_DIR="$DIR/blueprints/.local/$HASH"
 
-if $AS_FUNCTION; then
-    GIT_ARGS="-q"
-fi
-
-#
-# Try to clone or update blueprint repository
-#
-
-if ! $AS_FUNCTION; then
-    echo "Pulling blueprint '$BLUEPRINT_QUALIFIED_NAME'..."
-fi
-
-if [[ -d $BLUEPRINT_DIR ]]; then
-    if ! $MODE_DRY_RUN; then
-        cd $BLUEPRINT_DIR
-        git pull $GIT_ARGS 2> /dev/null
-        cd $PREVIOUS_DIR
+    if ! $AS_FUNCTION; then
+        echo "Copying '$BLUEPRINT'..."
     fi
+
+    rm -rf $BLUEPRINT_DIR
+    cp -rf $BLUEPRINT $BLUEPRINT_DIR
+
+    if $AS_FUNCTION; then
+        echo $BLUEPRINT_DIR
+    fi
+
 else
-    BASE_URL="https://github.com/$BLUEPRINT_MAINTAINER/$BLUEPRINT_NAME"
-
     #
-    # Check if repository exists and is a blueprint
+    # Build path for the resolved blueprint
     #
 
-    if curl --output /dev/null --silent --head --fail "$BASE_URL/blob/master/blueprint.yml"; then
+    if [[ $BLUEPRINT_MAINTAINER = "docker-blueprint" ]]; then
+        BLUEPRINT_DIR="$DIR/blueprints/_/$BLUEPRINT_NAME"
+    else
+        BLUEPRINT_DIR="$DIR/blueprints/$BLUEPRINT_MAINTAINER/$BLUEPRINT_NAME"
+    fi
+
+    PREVIOUS_DIR=$PWD
+
+    if $AS_FUNCTION; then
+        GIT_ARGS="-q"
+    fi
+
+    #
+    # Try to clone or update blueprint repository
+    #
+
+    if ! $AS_FUNCTION; then
+        echo "Pulling blueprint '$BLUEPRINT_QUALIFIED_NAME'..."
+    fi
+
+    if [[ -d $BLUEPRINT_DIR ]]; then
         if ! $MODE_DRY_RUN; then
-            GIT_TERMINAL_PROMPT=0 \
-            git clone "$BASE_URL.git" $GIT_ARGS \
-            $BLUEPRINT_DIR
+            cd $BLUEPRINT_DIR
+            git pull $GIT_ARGS 2> /dev/null
+            cd $PREVIOUS_DIR
         fi
     else
-        echo "Provided repository is not a blueprint."
-        exit 1
+        BASE_URL="https://github.com/$BLUEPRINT_MAINTAINER/$BLUEPRINT_NAME"
+
+        #
+        # Check if repository exists and is a blueprint
+        #
+
+        if curl --output /dev/null --silent --head --fail "$BASE_URL/blob/master/blueprint.yml"; then
+            if ! $MODE_DRY_RUN; then
+                GIT_TERMINAL_PROMPT=0 \
+                git clone "$BASE_URL.git" $GIT_ARGS \
+                $BLUEPRINT_DIR
+            fi
+        else
+            echo "Provided repository is not a blueprint."
+            exit 1
+        fi
     fi
 fi
 
