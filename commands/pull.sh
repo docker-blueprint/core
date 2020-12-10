@@ -166,7 +166,7 @@ else
                 $BLUEPRINT_DIR
             fi
         else
-            echo "Provided repository is not a blueprint."
+            printf "${RED}ERROR${RESET}: Provided repository is not a blueprint.\n"
             exit 1
         fi
     fi
@@ -202,7 +202,7 @@ if ! $MODE_DRY_RUN; then
 
     if ! $FOUND; then
         if ! $AS_FUNCTION; then
-            printf "${RED}Error${RESET}: Unable to find version '$BLUEPRINT_BRANCH'.\n"
+            printf "${RED}ERROR${RESET}: Unable to find version '$BLUEPRINT_BRANCH'.\n"
         fi
         exit 1
     else

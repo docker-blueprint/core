@@ -34,7 +34,7 @@ read_array MODULES_TO_LOAD 'modules' && printf "."
 BLUEPRINT_DIR=$(AS_FUNCTION=true bash $ENTRYPOINT pull $BLUEPRINT)
 
 if [[ $? -ne 0 ]]; then
-    printf "\n${RED}Error${RESET}: Unable to pull blueprint '$BLUEPRINT'.\n"
+    printf "\n${RED}ERROR${RESET}: Unable to pull blueprint '$BLUEPRINT'.\n"
     exit 1
 fi
 
@@ -46,7 +46,7 @@ if [[ -n $CHECKPOINT ]]; then
     if [[ $? -eq 0 ]]; then
         printf "Version: ${CYAN}$CHECKPOINT${RESET}\n"
     else
-        printf "${YELLOW}Warning${RESET}: unable to checkout version $CHECKPOINT\n"
+        printf "${YELLOW}WARNING${RESET}: unable to checkout version $CHECKPOINT\n"
     fi
     cd $PROJECT_DIR
 fi

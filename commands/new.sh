@@ -123,7 +123,7 @@ if ! [[ -f docker-blueprint.yml ]] || $FORCE_GENERATE; then
     BLUEPRINT_DIR=$(AS_FUNCTION=true bash $ENTRYPOINT pull $BLUEPRINT)
 
     if [[ $? -ne 0 ]]; then
-        printf "\n${RED}Error${RESET}: Unable to pull blueprint '$BLUEPRINT'.\n"
+        printf "\n${RED}ERROR${RESET}: Unable to pull blueprint '$BLUEPRINT'.\n"
         exit 1
     fi
 
@@ -315,7 +315,7 @@ if ! [[ -f docker-blueprint.yml ]] || $FORCE_GENERATE; then
     printf " ${GREEN}done${RESET}\n"
 
 else
-    printf "${YELLOW}Warning${RESET}: docker-blueprint.yml already exists, skipping generation (run with --force to override)\n"
+    printf "${YELLOW}WARNING${RESET}: docker-blueprint.yml already exists, skipping generation (run with --force to override)\n"
 fi
 
 rm -f "$BLUEPRINT_FILE_TMP"
