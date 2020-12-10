@@ -146,13 +146,7 @@ else
         echo "Pulling blueprint '$BLUEPRINT_QUALIFIED_NAME'..."
     fi
 
-    if [[ -d $BLUEPRINT_DIR ]]; then
-        if ! $MODE_DRY_RUN; then
-            cd $BLUEPRINT_DIR
-            git pull $GIT_ARGS 2> /dev/null
-            cd $PREVIOUS_DIR
-        fi
-    else
+    if [[ ! -d $BLUEPRINT_DIR ]]; then
         BASE_URL="https://github.com/$BLUEPRINT_MAINTAINER/$BLUEPRINT_NAME"
 
         #
@@ -169,6 +163,8 @@ else
             printf "${RED}ERROR${RESET}: Provided repository is not a blueprint.\n"
             exit 1
         fi
+    else
+        git fetch > /dev/null
     fi
 fi
 
@@ -180,11 +176,11 @@ if ! $MODE_DRY_RUN; then
 
     cd $BLUEPRINT_DIR
 
-    # Always synchronize with remote
-    git -c advice.detachedHead=false reset --hard "origin/master" > /dev/null
+    # Always checkout master first
+    git checkout master &> /dev/null
 
-    BRANCHES="$(git --no-pager branch -a --list --color=never | grep -v HEAD | grep remotes/origin | sed -e 's/\s*remotes\/origin\///')"
-    TAGS="$(git --no-pager tag --list --color=never)"
+    BRANCHES=($(git --no-pager branch -a --list --color=never | grep -v HEAD | grep remotes/origin | sed -e 's/\s*remotes\/origin\///'))
+    TAGS=($(git --no-pager tag --list --color=never))
 
     for tag in "${TAGS[@]}"; do
         BRANCHES+=($tag)
@@ -194,7 +190,7 @@ if ! $MODE_DRY_RUN; then
 
     for branch in "${BRANCHES[@]}"; do
         if [[ $BLUEPRINT_BRANCH = $branch ]]; then
-            git -c advice.detachedHead=false reset --hard $BLUEPRINT_BRANCH > /dev/null
+            git checkout $BLUEPRINT_BRANCH
             FOUND=true
             break
         fi
