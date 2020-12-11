@@ -123,11 +123,6 @@ if [[ -d $BLUEPRINT ]] && [[ $BLUEPRINT =~ "/" || $BLUEPRINT =~ "." || $BLUEPRIN
 
     rm -rf $BLUEPRINT_DIR
     cp -rf $BLUEPRINT $BLUEPRINT_DIR
-
-    if $AS_FUNCTION; then
-        echo $BLUEPRINT_DIR
-    fi
-
 else
     #
     # Build path for the resolved blueprint
@@ -201,7 +196,11 @@ if ! $MODE_DRY_RUN; then
 
     for branch in "${BRANCHES[@]}"; do
         if [[ $BLUEPRINT_BRANCH = $branch ]]; then
-            git checkout $BLUEPRINT_BRANCH
+            if $AS_FUNCTION; then
+                git checkout $BLUEPRINT_BRANCH &> /dev/null
+            else
+                git checkout $BLUEPRINT_BRANCH
+            fi
             FOUND=true
             break
         fi
