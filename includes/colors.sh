@@ -27,7 +27,7 @@ if [[ -t 1 ]] && [[ -z ${DOCKER_BLUEPRINT_NO_COLOR:+x} ]]; then
     fi
 fi
 
-export EXE_COL=$RESET
+export EXE_COL=$BLUE
 export SRV_COL=$LIGHT_GRAY
 export CMD_COL=$GREEN
 export ARG_COL=$RESET
