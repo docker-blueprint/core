@@ -129,39 +129,16 @@ for stage in "${STAGES[@]}"; do
         [[ ! -f "$PWD/$DOCKER_COMPOSE_FILE" ]]; then
         cp -f "$BLUEPRINT_DIR/templates/$DOCKER_COMPOSE_FILE" "$PWD/$DOCKER_COMPOSE_FILE"
 
-        chunk="$BLUEPRINT_DIR" \
-        perl -0 -i -pe 's/#\s*(.*)\$BLUEPRINT_DIR/$1$ENV{"chunk"}/g' \
-        "$PWD/$DOCKER_COMPOSE_FILE"
+        for module in "${MODULES_TO_LOAD[@]}"; do
+            MODULE_DOCKER_COMPOSE_FILE="$BLUEPRINT_DIR/modules/$module/templates/$DOCKER_COMPOSE_FILE"
 
-        # Replace 'environment' placeholders
-
-        CHUNK="$(yq read -p pv $BLUEPRINT_FILE_FINAL 'environment' | pr -To 4)"
-        chunk="$CHUNK" perl -0 -i -pe 's/ *# environment:root/$ENV{"chunk"}/' \
-        "$PWD/$DOCKER_COMPOSE_FILE"
-
-        CHUNK="$(yq read -p v $BLUEPRINT_FILE_FINAL 'environment' | pr -To 6)"
-        chunk="$CHUNK" perl -0 -i -pe 's/ *# environment/$ENV{"chunk"}/' \
-        "$PWD/$DOCKER_COMPOSE_FILE"
-
-        # Replace 'services' placeholders
-
-        CHUNK="$(yq read -p pv $BLUEPRINT_FILE_FINAL 'services')"
-        chunk="$CHUNK" perl -0 -i -pe 's/ *# services:root/$ENV{"chunk"}/' \
-        "$PWD/$DOCKER_COMPOSE_FILE"
-
-        CHUNK="$(yq read -p v $BLUEPRINT_FILE_FINAL 'services' | pr -To 2)"
-        chunk="$CHUNK" perl -0 -i -pe 's/ *# services/$ENV{"chunk"}/' \
-        "$PWD/$DOCKER_COMPOSE_FILE"
-
-        # Replace 'volumes' placeholders
-
-        CHUNK="$(yq read -p pv $BLUEPRINT_FILE_FINAL 'volumes')"
-        chunk="$CHUNK" perl -0 -i -pe 's/ *# volumes:root/$ENV{"chunk"}/' \
-        "$PWD/$DOCKER_COMPOSE_FILE"
-
-        CHUNK="$(yq read -p v $BLUEPRINT_FILE_FINAL 'volumes' | pr -To 2)"
-        chunk="$CHUNK" perl -0 -i -pe 's/ *# volumes/$ENV{"chunk"}/' \
-        "$PWD/$DOCKER_COMPOSE_FILE"
+            if [[ -f "$MODULE_DOCKER_COMPOSE_FILE" ]]; then
+                printf -- "$(
+                    yq merge -a append \
+                    "$PWD/$DOCKER_COMPOSE_FILE" "$MODULE_DOCKER_COMPOSE_FILE"
+                )" > "$PWD/$DOCKER_COMPOSE_FILE"
+            fi
+        done
 
         # Remove empty lines
 
