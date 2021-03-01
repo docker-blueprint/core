@@ -12,8 +12,11 @@ DOCKER_COMPOSE_UP_ARGS=()
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         -h|--help)
-            printf "${CMD_COL}up${RESET} [${FLG_COL}-d${RESET}]"
-            printf "\t\t\tBring up docker containers (in detached mode) and reinitialize them\n"
+            printf "${CMD_COL}up${RESET} [${FLG_COL}options${RESET}]"
+            printf "\t\t\t"
+            printf "Bring up docker containers and reinitialize them\n"
+            printf "\t\t\t\t"
+            printf "You can use any of the options options for a regular docker-compose command\n"
 
             exit
 
