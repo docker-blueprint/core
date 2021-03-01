@@ -8,13 +8,23 @@ shift
 # Read arguments
 #
 
+MODE_FORCE=false
+
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         -h|--help)
-            printf "${CMD_COL}build${RESET}"
-            printf "\t\t\t\tBuild containerized technology stack defined in docker-blueprint.yml\n"
+            printf "${CMD_COL}build${RESET} [${FLG_COL}options${RESET}]"
+            printf "\t\tBuild containerized technology stack defined in docker-blueprint.yml\n"
+
+            printf "  ${FLG_COL}-f${RESET}, ${FLG_COL}--force${RESET}"
+            printf "\t\t\tAlways generate new docker files\n"
 
             exit
+
+            ;;
+        -f|--force)
+            MODE_FORCE=true
+            ;;
     esac
 
     shift
@@ -104,7 +114,9 @@ for stage in "${STAGES[@]}"; do
         DOCKER_COMPOSE_FILE="docker-compose.$stage.yml"
     fi
 
-    if [[ -f "$PWD/$DOCKER_COMPOSE_FILE" ]]; then
+    if $MODE_FORCE; then
+        rm -f "$PWD/$DOCKER_COMPOSE_FILE"
+    elif [[ -f "$PWD/$DOCKER_COMPOSE_FILE" ]]; then
         printf "File ${YELLOW}$DOCKER_COMPOSE_FILE${RESET} already exists in the current directory.\n"
         read -p "Do you want to overwrite it? [y/N] " -n 1 -r
         if [[ $REPLY =~ ^[Yy]$ ]]; then
