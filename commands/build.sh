@@ -77,50 +77,6 @@ SCRIPT_VARS=()
 SCRIPT_VARS+=("ENV_DIR=$ENV_DIR")
 SCRIPT_VARS+=("BLUEPRINT_DIR=$BLUEPRINT_DIR")
 
-#
-# Build docker-compose.yml
-#
-
-printf "Building docker-compose.yml..."
-
-cp "$BLUEPRINT_DIR/templates/docker-compose.yml" "$PWD/docker-compose.yml"
-
-chunk="$BLUEPRINT_DIR" \
-perl -0 -i -pe 's/#\s*(.*)\$BLUEPRINT_DIR/$1$ENV{"chunk"}/g' \
-"$PWD/docker-compose.yml" && printf "."
-
-# Replace 'environment' placeholders
-
-CHUNK="$(yq read -p pv $BLUEPRINT_FILE_FINAL 'environment' | pr -To 4)"
-chunk="$CHUNK" perl -0 -i -pe 's/ *# environment:root/$ENV{"chunk"}/' \
-"$PWD/docker-compose.yml" && printf "."
-
-CHUNK="$(yq read -p v $BLUEPRINT_FILE_FINAL 'environment' | pr -To 6)"
-chunk="$CHUNK" perl -0 -i -pe 's/ *# environment/$ENV{"chunk"}/' \
-"$PWD/docker-compose.yml" && printf "."
-
-# Replace 'services' placeholders
-
-CHUNK="$(yq read -p pv $BLUEPRINT_FILE_FINAL 'services')"
-chunk="$CHUNK" perl -0 -i -pe 's/ *# services:root/$ENV{"chunk"}/' \
-"$PWD/docker-compose.yml" && printf "."
-
-CHUNK="$(yq read -p v $BLUEPRINT_FILE_FINAL 'services' | pr -To 2)"
-chunk="$CHUNK" perl -0 -i -pe 's/ *# services/$ENV{"chunk"}/' \
-"$PWD/docker-compose.yml" && printf "."
-
-# Replace 'volumes' placeholders
-
-CHUNK="$(yq read -p pv $BLUEPRINT_FILE_FINAL 'volumes')"
-chunk="$CHUNK" perl -0 -i -pe 's/ *# volumes:root/$ENV{"chunk"}/' \
-"$PWD/docker-compose.yml" && printf "."
-
-CHUNK="$(yq read -p v $BLUEPRINT_FILE_FINAL 'volumes' | pr -To 2)"
-chunk="$CHUNK" perl -0 -i -pe 's/ *# volumes/$ENV{"chunk"}/' \
-"$PWD/docker-compose.yml" && printf "."
-
-# Replace +variables
-
 for variable in ${BUILD_ARGS_KEYS[@]}; do
     read_value value "build_args.$variable"
 
@@ -131,16 +87,77 @@ for variable in ${BUILD_ARGS_KEYS[@]}; do
 
     BUILD_ARGS+=("--build-arg $variable=$value")
     SCRIPT_VARS+=("$variable=$value")
-
-    value="$value" perl -0 -i -pe "s/\+$variable/"'$ENV{"value"}/' \
-    "$PWD/docker-compose.yml" && printf "."
 done
 
-# Remove empty lines
+#
+# Build docker-compose.yml
+#
 
-sed -ri '/^\s*$/d' "$PWD/docker-compose.yml"
+printf "Building docker-compose files...\n"
 
-printf " ${GREEN}done${RESET}\n"
+read_keys STAGES "stages"
+
+for stage in "${STAGES[@]}"; do
+    DOCKER_COMPOSE_FILE="docker-compose.yml"
+
+    if [[ "$stage" != "base" ]]; then
+        DOCKER_COMPOSE_FILE="docker-compose.$stage.yml"
+    fi
+
+    if [[ -f "$PWD/$DOCKER_COMPOSE_FILE" ]]; then
+        printf "File ${YELLOW}$DOCKER_COMPOSE_FILE${RESET} already exists in the current directory.\n"
+        read -p "Do you want to overwrite it? [y/N] " -n 1 -r
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            echo ""
+            rm -f "$PWD/$DOCKER_COMPOSE_FILE"
+        fi
+    fi
+
+    if [[ -f "$BLUEPRINT_DIR/templates/$DOCKER_COMPOSE_FILE" ]] && \
+        [[ ! -f "$PWD/$DOCKER_COMPOSE_FILE" ]]; then
+        cp -f "$BLUEPRINT_DIR/templates/$DOCKER_COMPOSE_FILE" "$PWD/$DOCKER_COMPOSE_FILE"
+
+        chunk="$BLUEPRINT_DIR" \
+        perl -0 -i -pe 's/#\s*(.*)\$BLUEPRINT_DIR/$1$ENV{"chunk"}/g' \
+        "$PWD/$DOCKER_COMPOSE_FILE"
+
+        # Replace 'environment' placeholders
+
+        CHUNK="$(yq read -p pv $BLUEPRINT_FILE_FINAL 'environment' | pr -To 4)"
+        chunk="$CHUNK" perl -0 -i -pe 's/ *# environment:root/$ENV{"chunk"}/' \
+        "$PWD/$DOCKER_COMPOSE_FILE"
+
+        CHUNK="$(yq read -p v $BLUEPRINT_FILE_FINAL 'environment' | pr -To 6)"
+        chunk="$CHUNK" perl -0 -i -pe 's/ *# environment/$ENV{"chunk"}/' \
+        "$PWD/$DOCKER_COMPOSE_FILE"
+
+        # Replace 'services' placeholders
+
+        CHUNK="$(yq read -p pv $BLUEPRINT_FILE_FINAL 'services')"
+        chunk="$CHUNK" perl -0 -i -pe 's/ *# services:root/$ENV{"chunk"}/' \
+        "$PWD/$DOCKER_COMPOSE_FILE"
+
+        CHUNK="$(yq read -p v $BLUEPRINT_FILE_FINAL 'services' | pr -To 2)"
+        chunk="$CHUNK" perl -0 -i -pe 's/ *# services/$ENV{"chunk"}/' \
+        "$PWD/$DOCKER_COMPOSE_FILE"
+
+        # Replace 'volumes' placeholders
+
+        CHUNK="$(yq read -p pv $BLUEPRINT_FILE_FINAL 'volumes')"
+        chunk="$CHUNK" perl -0 -i -pe 's/ *# volumes:root/$ENV{"chunk"}/' \
+        "$PWD/$DOCKER_COMPOSE_FILE"
+
+        CHUNK="$(yq read -p v $BLUEPRINT_FILE_FINAL 'volumes' | pr -To 2)"
+        chunk="$CHUNK" perl -0 -i -pe 's/ *# volumes/$ENV{"chunk"}/' \
+        "$PWD/$DOCKER_COMPOSE_FILE"
+
+        # Remove empty lines
+
+        sed -ri '/^\s*$/d' "$PWD/$DOCKER_COMPOSE_FILE"
+
+        printf "Generated ${YELLOW}$DOCKER_COMPOSE_FILE${RESET}\n"
+    fi
+done
 
 #
 # Build dockerfile
