@@ -29,7 +29,7 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
-docker-compose ${DOCKER_COMPOSE_ARGS[@]} up -d ${DOCKER_COMPOSE_UP_ARGS[@]}
+$DOCKER_COMPOSE ${DOCKER_COMPOSE_ARGS[@]} up -d ${DOCKER_COMPOSE_UP_ARGS[@]}
 
 if [[ $? > 0 ]]; then
     exit 1

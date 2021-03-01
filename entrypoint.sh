@@ -23,6 +23,8 @@ fi
 source "$ROOT_DIR/includes/yq.sh"
 source "$ROOT_DIR/includes/colors.sh"
 
+source "$ROOT_DIR/includes/entrypoint/init-compose.sh"
+
 init_default_service() {
     DEFAULT_SERVICE=$(cat $DIR/default_service 2>/dev/null)
 
@@ -47,7 +49,7 @@ fi
 
 case $1 in
     down|restart)
-        docker-compose "$1" ${@:2}
+        $DOCKER_COMPOSE "$1" ${@:2}
         ;;
 
     -h | --help)
@@ -62,15 +64,15 @@ case $1 in
     *)
         if [[ ! -z "$1" ]]; then
             if [[ ! -z "$2" ]] && [[ "$2" == "sudo" ]]; then
-                COMMAND="docker-compose exec $1 ${@:3}"
+                COMMAND="$DOCKER_COMPOSE exec $1 ${@:3}"
             elif [[ "$1" == "sudo" ]]; then
-                COMMAND="docker-compose exec $DEFAULT_SERVICE ${@:2}"
+                COMMAND="$DOCKER_COMPOSE exec $DEFAULT_SERVICE ${@:2}"
             elif [[ ! -z "$2" ]] && [[ "$2" == "exec" ]]; then
-                COMMAND="docker-compose exec --user=$UID:$GID $1 ${@:3}"
+                COMMAND="$DOCKER_COMPOSE exec --user=$UID:$GID $1 ${@:3}"
             elif [[ "$1" == "exec" ]]; then
-                COMMAND="docker-compose exec --user=$UID:$GID $DEFAULT_SERVICE ${@:2}"
+                COMMAND="$DOCKER_COMPOSE exec --user=$UID:$GID $DEFAULT_SERVICE ${@:2}"
             else
-                COMMAND="docker-compose exec --user=$UID:$GID $DEFAULT_SERVICE $@"
+                COMMAND="$DOCKER_COMPOSE exec --user=$UID:$GID $DEFAULT_SERVICE $@"
             fi
 
             if [[ -z "$DEFAULT_SERVICE" ]]; then

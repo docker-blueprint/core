@@ -187,11 +187,11 @@ printf " ${GREEN}done${RESET}\n"
 # Build containers
 #
 
-docker-compose build ${BUILD_ARGS[@]}
+$DOCKER_COMPOSE build ${BUILD_ARGS[@]}
 
 echo "Removing existing stack..."
 
-docker-compose down
+$DOCKER_COMPOSE down
 
 echo "Building new stack..."
 

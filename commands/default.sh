@@ -32,7 +32,7 @@ else
         fi
         echo "Default service cleared"
     else
-        SERVICES=$(docker-compose ps --services)
+        SERVICES=$($DOCKER_COMPOSE ps --services)
         if [[ ${SERVICES[@]} =~ $SERVICE ]]; then
             echo "$SERVICE" > $DIR/default_service
             init_default_service

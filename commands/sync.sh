@@ -31,22 +31,22 @@ read_array POSTBUILD_COMMANDS "postbuild_commands"
 
 if [[ -n "$SYNC_USER" ]]; then
     echo "Synchronizing user '$SYNC_USER'..."
-    docker-compose exec "$DEFAULT_SERVICE" usermod -u "$UID" "$SYNC_USER"
-    docker-compose exec "$DEFAULT_SERVICE" groupmod -g "$GID" "$SYNC_USER"
+    $DOCKER_COMPOSE exec "$DEFAULT_SERVICE" usermod -u "$UID" "$SYNC_USER"
+    $DOCKER_COMPOSE exec "$DEFAULT_SERVICE" groupmod -g "$GID" "$SYNC_USER"
 
-    HOME_DIR="$(docker-compose exec --user="$SYNC_USER" "$DEFAULT_SERVICE" env | grep '^HOME=' | sed -r 's/^HOME=(.*)/\1/' | sed 's/\r//' | sed 's/\n//')"
+    HOME_DIR="$($DOCKER_COMPOSE exec --user="$SYNC_USER" "$DEFAULT_SERVICE" env | grep '^HOME=' | sed -r 's/^HOME=(.*)/\1/' | sed 's/\r//' | sed 's/\n//')"
 
     echo "Chowning home directory '$HOME_DIR'..."
 
-    docker-compose exec "$DEFAULT_SERVICE" chown -R "$SYNC_USER" "$HOME_DIR"
+    $DOCKER_COMPOSE exec "$DEFAULT_SERVICE" chown -R "$SYNC_USER" "$HOME_DIR"
 fi
 
 if [[ -n "$MAKE_DIRS" ]]; then
     for dir in "${MAKE_DIRS[@]}"; do
         echo "Making directory '$dir'..."
-        docker-compose exec "$DEFAULT_SERVICE" mkdir -p "$dir"
+        $DOCKER_COMPOSE exec "$DEFAULT_SERVICE" mkdir -p "$dir"
         if [[ -n "$SYNC_USER" ]]; then
-            docker-compose exec "$DEFAULT_SERVICE" chown -R "$SYNC_USER" "$dir"
+            $DOCKER_COMPOSE exec "$DEFAULT_SERVICE" chown -R "$SYNC_USER" "$dir"
         fi
     done
 fi
@@ -54,9 +54,9 @@ fi
 for command in "${POSTBUILD_COMMANDS[@]}"; do
     echo "Running '$command'..."
     if [[ -z "$SYNC_USER" ]]; then
-        docker-compose exec "$DEFAULT_SERVICE" $command
+        $DOCKER_COMPOSE exec "$DEFAULT_SERVICE" $command
     else
-        docker-compose exec --user="$SYNC_USER" "$DEFAULT_SERVICE" $command
+        $DOCKER_COMPOSE exec --user="$SYNC_USER" "$DEFAULT_SERVICE" $command
     fi
 done
 
@@ -65,4 +65,4 @@ done
 #
 
 echo "Restarting container '$DEFAULT_SERVICE'..."
-docker-compose restart "$DEFAULT_SERVICE"
+$DOCKER_COMPOSE restart "$DEFAULT_SERVICE"
