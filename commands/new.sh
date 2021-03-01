@@ -110,7 +110,18 @@ done
 # Generate only when file is not present
 # or force rebuild when the flag is supplied
 
-if ! [[ -f docker-blueprint.yml ]] || $FORCE_GENERATE; then
+if $FORCE_GENERATE; then
+    rm -f "$PWD/$BLUEPRINT_FILE_FINAL"
+elif [[ -f "$PWD/$BLUEPRINT_FILE_FINAL" ]]; then
+    printf "File ${YELLOW}$BLUEPRINT_FILE_FINAL${RESET} already exists in the current directory.\n"
+    read -p "Do you want to overwrite it? [y/N] " -n 1 -r
+    echo ""
+    if [[ $REPLY =~ ^[Yy]$ ]]; then
+        rm -f "$PWD/$BLUEPRINT_FILE_FINAL"
+    fi
+fi
+
+if ! [[ -f docker-blueprint.yml ]]; then
 
     #
     # Initialize path variables
@@ -313,11 +324,14 @@ if ! [[ -f docker-blueprint.yml ]] || $FORCE_GENERATE; then
     done
 
     printf " ${GREEN}done${RESET}\n"
-
-else
-    printf "${YELLOW}WARNING${RESET}: docker-blueprint.yml already exists, skipping generation (run with --force to override)\n"
 fi
 
 rm -f "$BLUEPRINT_FILE_TMP"
 
-bash $ENTRYPOINT build
+INVOKE="$ENTRYPOINT build"
+
+if $FORCE_GENERATE; then
+    INVOKE="$INVOKE --force"
+fi
+
+bash $INVOKE
