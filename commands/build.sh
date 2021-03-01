@@ -46,7 +46,8 @@ if [[ -n $CHECKPOINT ]]; then
     if [[ $? -eq 0 ]]; then
         printf "Version: ${CYAN}$CHECKPOINT${RESET}\n"
     else
-        printf "${YELLOW}WARNING${RESET}: unable to checkout version $CHECKPOINT\n"
+        printf "${RED}ERROR${RESET}: unable to checkout version $CHECKPOINT\n"
+        exit 1
     fi
     cd $PROJECT_DIR
 fi
