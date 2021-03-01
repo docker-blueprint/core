@@ -197,14 +197,9 @@ if ! [[ -f docker-blueprint.yml ]]; then
 
         # Read depends_on from each module file
 
-        if [[ -f "$BLUEPRINT_DIR/modules/$module/blueprint.yml" || \
-              -f "$BLUEPRINT_DIR/modules/$module.yml" ]]; then
+        if [[ -f "$BLUEPRINT_DIR/modules/$module/blueprint.yml" ]]; then
 
-            if [[ -f "$BLUEPRINT_DIR/modules/$module/blueprint.yml" ]]; then
-                read_array DEPENDS_ON 'depends_on' "$BLUEPRINT_DIR/modules/$module/blueprint.yml"
-            else
-                read_array DEPENDS_ON 'depends_on' "$BLUEPRINT_DIR/modules/$module.yml"
-            fi
+            read_array DEPENDS_ON 'depends_on' "$BLUEPRINT_DIR/modules/$module/blueprint.yml"
 
             FOUND=false
 
@@ -253,23 +248,17 @@ if ! [[ -f docker-blueprint.yml ]]; then
 
     for module in "${MODULES_TO_LOAD[@]}"; do
 
-        # Each module can extend preset YAML file
+        # Each module can extend base blueprint
 
         if [[ -f "$BLUEPRINT_DIR/modules/$module/blueprint.yml" ]]; then
             append_file_to_merge "$BLUEPRINT_DIR/modules/$module/blueprint.yml"
-        else
-            append_file_to_merge "$BLUEPRINT_DIR/modules/$module.yml"
         fi
 
         # If environment is specified, additionally load module
-        # configuration files specific to the environment
+        # blueprint files specific to the environment
 
-        if [[ -d "$ENV_DIR" ]]; then
-            if [[ -f "$ENV_DIR/modules/$module/blueprint.yml" ]]; then
-                append_file_to_merge "$ENV_DIR/modules/$module/blueprint.yml"
-            else
-                append_file_to_merge "$ENV_DIR/modules/$module.yml"
-            fi
+        if [[ -d "$ENV_DIR" && -f "$ENV_DIR/modules/$module/blueprint.yml" ]]; then
+            append_file_to_merge "$ENV_DIR/modules/$module/blueprint.yml"
         fi
 
         printf "."
