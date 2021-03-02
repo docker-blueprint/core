@@ -149,6 +149,7 @@ else
     fi
 
     if $CLEAN_INSTALL; then
+        echo "Removing previous version of the blueprint..."
         rm -rf $BLUEPRINT_DIR
     fi
 
