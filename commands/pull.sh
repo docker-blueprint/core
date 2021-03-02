@@ -170,7 +170,10 @@ else
             exit 1
         fi
     else
+        PREVIOUS_DIR="$PWD"
+        cd "$PWD/$BLUEPRINT_DIR"
         git fetch > /dev/null
+        cd $PREVIOUS_DIR
     fi
 fi
 
