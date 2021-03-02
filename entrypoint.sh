@@ -20,8 +20,8 @@ if [[ -z "$GID" ]]; then
     GID=$(id -g)
 fi
 
-source "$ROOT_DIR/includes/yq.sh"
 source "$ROOT_DIR/includes/colors.sh"
+source "$ROOT_DIR/includes/yq.sh"
 
 source "$ROOT_DIR/includes/entrypoint/init-compose.sh"
 
