@@ -113,12 +113,7 @@ done
 if $FORCE_GENERATE; then
     rm -f "$PWD/$BLUEPRINT_FILE_FINAL"
 elif [[ -f "$PWD/$BLUEPRINT_FILE_FINAL" ]]; then
-    printf "File ${YELLOW}$BLUEPRINT_FILE_FINAL${RESET} already exists in the current directory.\n"
-    read -p "Do you want to overwrite it? [y/N] " -n 1 -r
-    echo ""
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        rm -f "$PWD/$BLUEPRINT_FILE_FINAL"
-    fi
+    printf "${YELLOW}WARNING${RESET}: $BLUEPRINT_FILE_FINAL already exists, skipping generation (run with --force to override).\n"
 fi
 
 if ! [[ -f "$PWD/$BLUEPRINT_FILE_FINAL" ]]; then

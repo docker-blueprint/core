@@ -127,12 +127,7 @@ for stage in "${STAGES[@]}"; do
     if $MODE_FORCE; then
         rm -f "$CURRENT_DOCKER_COMPOSE_FILE"
     elif [[ -f "$CURRENT_DOCKER_COMPOSE_FILE" ]]; then
-        printf "File ${YELLOW}$DOCKER_COMPOSE_FILE${RESET} already exists in the current directory.\n"
-        read -p "Do you want to overwrite it? [y/N] " -n 1 -r
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            echo ""
-            rm -f "$CURRENT_DOCKER_COMPOSE_FILE"
-        fi
+        printf "${YELLOW}WARNING${RESET}: $DOCKER_COMPOSE_FILE already exists, skipping generation (run with --force to override).\n"
     fi
 
     if [[ -f "$BLUEPRINT_DIR/$DOCKER_COMPOSE_FILE" ]] && \
