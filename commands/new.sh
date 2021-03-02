@@ -16,7 +16,7 @@
 shift
 
 if [[ -z "$1" ]]; then
-    bash $ENTRYPOINT create --help
+    bash $ENTRYPOINT new --help
     exit 1
 fi
 
@@ -37,7 +37,7 @@ while [[ "$#" -gt 0 ]]; do
             done
 
             if [[ -z "${ARG_WITH[0]}" ]]; then
-                bash $ENTRYPOINT create --help
+                bash $ENTRYPOINT new --help
                 exit 1
             fi
 
@@ -48,7 +48,7 @@ while [[ "$#" -gt 0 ]]; do
             shift
 
             if [[ -z "$ENV_NAME" ]]; then
-                bash $ENTRYPOINT create --help
+                bash $ENTRYPOINT new --help
                 exit 1
             fi
 
@@ -94,7 +94,7 @@ while [[ "$#" -gt 0 ]]; do
 
         *)
             if [[ -z "$1" ]]; then
-                bash $ENTRYPOINT create --help
+                bash $ENTRYPOINT new --help
                 exit 1
             fi
 
@@ -121,7 +121,7 @@ elif [[ -f "$PWD/$BLUEPRINT_FILE_FINAL" ]]; then
     fi
 fi
 
-if ! [[ -f docker-blueprint.yml ]]; then
+if ! [[ -f "$PWD/$BLUEPRINT_FILE_FINAL" ]]; then
 
     #
     # Initialize path variables
@@ -148,6 +148,11 @@ if ! [[ -f docker-blueprint.yml ]]; then
     fi
 
     printf "Generating blueprint file..."
+
+    if [[ ! -f "$BLUEPRINT_FILE_BASE" ]]; then
+        printf "\n${RED}ERROR${RESET}: Base blueprint.yml doesn't exist.\n"
+        exit 1
+    fi
 
     # Merge environment preset with base preset
 
