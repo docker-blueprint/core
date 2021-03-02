@@ -19,14 +19,18 @@ if [[ $? -eq 0 ]]; then
 fi
 
 if ! $YQ_INSTALLED; then
-    printf "${YELLOW}WARNING${RESET}: It appears that yq (version 3) is not installed locally.\n"
-    printf "We are going to use docker version of yq, however it will be much slower.\n"
-    printf "Install yq in order to improve performance: ${GREEN}https://github.com/mikefarah/yq#install${RESET}\n"
+    if [[ -z $YQ_WARNING_SHOWN ]] || ! $YQ_WARNING_SHOWN; then
+        printf "${YELLOW}WARNING${RESET}: It appears that yq (version 3) is not installed locally.\n"
+        printf "We are going to use docker version of yq, however it will be much slower.\n"
+        printf "Install yq in order to improve performance: ${GREEN}https://github.com/mikefarah/yq#install${RESET}\n"
+    fi
 
     yq() {
         docker run --rm -i -v "${PWD}":/workdir mikefarah/yq:3 yq "$@"
     }
 fi
+
+export YQ_WARNING_SHOWN=true
 
 read_value() {
     if [[ -z "$3" ]]; then
