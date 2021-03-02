@@ -188,7 +188,7 @@ if ! $MODE_DRY_RUN; then
     # Always checkout master first
     git checkout master &> /dev/null
 
-    BRANCHES=($(git --no-pager branch -a --list --color=never | grep -v HEAD | grep remotes/origin | sed -e 's/\s*remotes\/origin\///'))
+    BRANCHES=($(git --no-pager branch -a --list --color=never | grep -v HEAD | sed -e 's/\s*remotes\/origin\///' | sed -E 's/\* //' | sed -E 's/\s+//' | sort | uniq))
     TAGS=($(git --no-pager tag --list --color=never))
 
     for tag in "${TAGS[@]}"; do
