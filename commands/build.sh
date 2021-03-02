@@ -50,20 +50,28 @@ fi
 
 printf " ${GREEN}done${RESET}\n"
 
+# Set the blueprint repository to the version specified.
+# This allows to always safely reproduce previous versions of the blueprint.
 if [[ -n $CHECKPOINT ]]; then
     cd $BLUEPRINT_DIR
     git checkout $CHECKPOINT 2> /dev/null
     if [[ $? -eq 0 ]]; then
         printf "Version: ${CYAN}$CHECKPOINT${RESET}\n"
     else
-        printf "${RED}ERROR${RESET}: unable to checkout version $CHECKPOINT\n"
+        printf "${RED}ERROR${RESET}: Unable to checkout version $CHECKPOINT\n"
         exit 1
     fi
     cd $PROJECT_DIR
 fi
 
+# Set the project environment directory
 if [[ -n "$ENV_NAME" ]]; then
     ENV_DIR=$BLUEPRINT_DIR/env/$ENV_NAME
+
+    if [[ ! -d $ENV_DIR ]]; then
+        printf "${RED}ERROR${RESET}: Environment ${YELLOW}$ENV_NAME${RESET} doesn't exist\n"
+        exit 1
+    fi
 fi
 
 #
