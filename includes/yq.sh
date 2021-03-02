@@ -23,7 +23,8 @@ if ! $YQ_INSTALLED; then
         [[ -z $AS_FUNCTION || ! $AS_FUNCTION ]]; then
         printf "${YELLOW}WARNING${RESET}: It appears that yq (version 4) is not installed locally.\n"
         printf "We are going to use docker version of yq, however it will be much slower.\n"
-        printf "Install yq in order to improve performance: ${GREEN}https://github.com/mikefarah/yq#install${RESET}\n"
+        printf "Install yq in order to make building faster: ${GREEN}https://github.com/mikefarah/yq#install${RESET}\n"
+        printf "=============================================================\n"
     fi
 
     yq() {
