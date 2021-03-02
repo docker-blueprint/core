@@ -114,35 +114,37 @@ for stage in "${STAGES[@]}"; do
         DOCKER_COMPOSE_FILE="docker-compose.$stage.yml"
     fi
 
+    CURRENT_DOCKER_COMPOSE_FILE="$PWD/$DOCKER_COMPOSE_FILE"
+
     if $MODE_FORCE; then
-        rm -f "$PWD/$DOCKER_COMPOSE_FILE"
-    elif [[ -f "$PWD/$DOCKER_COMPOSE_FILE" ]]; then
+        rm -f "$CURRENT_DOCKER_COMPOSE_FILE"
+    elif [[ -f "$CURRENT_DOCKER_COMPOSE_FILE" ]]; then
         printf "File ${YELLOW}$DOCKER_COMPOSE_FILE${RESET} already exists in the current directory.\n"
         read -p "Do you want to overwrite it? [y/N] " -n 1 -r
         if [[ $REPLY =~ ^[Yy]$ ]]; then
             echo ""
-            rm -f "$PWD/$DOCKER_COMPOSE_FILE"
+            rm -f "$CURRENT_DOCKER_COMPOSE_FILE"
         fi
     fi
 
-    if [[ -f "$BLUEPRINT_DIR/templates/$DOCKER_COMPOSE_FILE" ]] && \
-        [[ ! -f "$PWD/$DOCKER_COMPOSE_FILE" ]]; then
-        cp -f "$BLUEPRINT_DIR/templates/$DOCKER_COMPOSE_FILE" "$PWD/$DOCKER_COMPOSE_FILE"
+    if [[ -f "$BLUEPRINT_DIR/$DOCKER_COMPOSE_FILE" ]] && \
+        [[ ! -f "$CURRENT_DOCKER_COMPOSE_FILE" ]]; then
+        cp -f "$BLUEPRINT_DIR/$DOCKER_COMPOSE_FILE" "$CURRENT_DOCKER_COMPOSE_FILE"
 
         for module in "${MODULES_TO_LOAD[@]}"; do
-            MODULE_DOCKER_COMPOSE_FILE="$BLUEPRINT_DIR/modules/$module/templates/$DOCKER_COMPOSE_FILE"
+            MODULE_DOCKER_COMPOSE_FILE="$BLUEPRINT_DIR/modules/$module/$DOCKER_COMPOSE_FILE"
 
             if [[ -f "$MODULE_DOCKER_COMPOSE_FILE" ]]; then
                 printf -- "$(
                     yq merge -a append \
-                    "$PWD/$DOCKER_COMPOSE_FILE" "$MODULE_DOCKER_COMPOSE_FILE"
-                )" > "$PWD/$DOCKER_COMPOSE_FILE"
+                    "$CURRENT_DOCKER_COMPOSE_FILE" "$MODULE_DOCKER_COMPOSE_FILE"
+                )" > "$CURRENT_DOCKER_COMPOSE_FILE"
             fi
         done
 
         # Remove empty lines
 
-        sed -ri '/^\s*$/d' "$PWD/$DOCKER_COMPOSE_FILE"
+        sed -ri '/^\s*$/d' "$CURRENT_DOCKER_COMPOSE_FILE"
 
         printf "Generated ${YELLOW}$DOCKER_COMPOSE_FILE${RESET}\n"
     fi
