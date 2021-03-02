@@ -6,11 +6,25 @@
 # This affects performance, but allows to run docker-blueprint
 # without installing external dependencies.
 
+YQ_INSTALLED=false
+
 which yq > /dev/null
 
-if [[ $? > 0 ]]; then
+if [[ $? -eq 0 ]]; then
+    version=$(yq --version | sed -E 's/.+\s([[:digit:]])/\1/')
+
+    if [[ $version =~ ^3 ]]; then
+        YQ_INSTALLED=true
+    fi
+fi
+
+if ! $YQ_INSTALLED; then
+    printf "${YELLOW}WARNING${RESET}: It appears that yq (version 3) is not installed locally.\n"
+    printf "We are going to use docker version of yq, however it will be much slower.\n"
+    printf "Install yq in order to improve performance: ${GREEN}https://github.com/mikefarah/yq#install${RESET}\n"
+
     yq() {
-        docker run --rm -i -v "${PWD}":/workdir mikefarah/yq yq "$@"
+        docker run --rm -i -v "${PWD}":/workdir mikefarah/yq:3 yq "$@"
     }
 fi
 
