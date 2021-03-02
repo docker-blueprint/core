@@ -19,7 +19,8 @@ if [[ $? -eq 0 ]]; then
 fi
 
 if ! $YQ_INSTALLED; then
-    if [[ -z $YQ_WARNING_SHOWN ]] || ! $YQ_WARNING_SHOWN; then
+    if [[ -z $YQ_WARNING_SHOWN || ! $YQ_WARNING_SHOWN ]] &&
+        [[ -z $AS_FUNCTION || ! $AS_FUNCTION ]]; then
         printf "${YELLOW}WARNING${RESET}: It appears that yq (version 3) is not installed locally.\n"
         printf "We are going to use docker version of yq, however it will be much slower.\n"
         printf "Install yq in order to improve performance: ${GREEN}https://github.com/mikefarah/yq#install${RESET}\n"
