@@ -36,10 +36,10 @@ done
 
 printf "Loading blueprint..."
 
-read_value BLUEPRINT 'blueprint.name' && printf "."
-read_value CHECKPOINT 'blueprint.version' && printf "."
-read_value ENV_NAME 'blueprint.env' && printf "."
-read_array MODULES_TO_LOAD 'modules' && printf "."
+yq_read_value BLUEPRINT 'blueprint.name' && printf "."
+yq_read_value CHECKPOINT 'blueprint.version' && printf "."
+yq_read_value ENV_NAME 'blueprint.env' && printf "."
+yq_read_array MODULES_TO_LOAD 'modules' && printf "."
 
 BLUEPRINT_DIR=$(AS_FUNCTION=true bash $ENTRYPOINT pull $BLUEPRINT)
 
@@ -80,10 +80,10 @@ fi
 
 printf "Reading configuration..."
 
-read_value DEFAULT_SERVICE "default_service" && printf "."
-read_keys DEPENDENCIES_KEYS "dependencies" && printf "."
-read_keys BUILD_ARGS_KEYS "build_args" && printf "."
-read_keys PURGE_KEYS "purge" && printf " ${GREEN}done${RESET}\n"
+yq_read_value DEFAULT_SERVICE "default_service" && printf "."
+yq_read_keys DEPENDENCIES_KEYS "dependencies" && printf "."
+yq_read_keys BUILD_ARGS_KEYS "build_args" && printf "."
+yq_read_keys PURGE_KEYS "purge" && printf " ${GREEN}done${RESET}\n"
 
 echo "$DEFAULT_SERVICE" > "$DIR/default_service"
 
@@ -96,7 +96,7 @@ SCRIPT_VARS+=("ENV_DIR=$ENV_DIR")
 SCRIPT_VARS+=("BLUEPRINT_DIR=$BLUEPRINT_DIR")
 
 for variable in ${BUILD_ARGS_KEYS[@]}; do
-    read_value value "build_args.$variable"
+    yq_read_value value "build_args.$variable"
 
     # Replace build argument value with env variable value if it is set
     if [[ -n ${!variable+x} ]]; then
@@ -113,7 +113,7 @@ done
 
 printf "Building docker-compose files...\n"
 
-read_keys STAGES "stages"
+yq_read_keys STAGES "stages"
 
 for stage in "${STAGES[@]}"; do
     DOCKER_COMPOSE_FILE="docker-compose.yml"
@@ -144,7 +144,7 @@ for stage in "${STAGES[@]}"; do
 
             if [[ -f "$MODULE_DOCKER_COMPOSE_FILE" ]]; then
                 printf -- "$(
-                    yq merge -a append \
+                    yq_merge \
                     "$CURRENT_DOCKER_COMPOSE_FILE" "$MODULE_DOCKER_COMPOSE_FILE"
                 )" > "$CURRENT_DOCKER_COMPOSE_FILE"
             fi

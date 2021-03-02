@@ -21,9 +21,9 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
-read_value SYNC_USER "user"
-read_array MAKE_DIRS "make_dirs"
-read_array POSTBUILD_COMMANDS "postbuild_commands"
+yq_read_value SYNC_USER "user"
+yq_read_array MAKE_DIRS "make_dirs"
+yq_read_array POSTBUILD_COMMANDS "postbuild_commands"
 
 #
 # Synchronize container user with the current host

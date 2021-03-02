@@ -29,7 +29,7 @@ init_default_service() {
     DEFAULT_SERVICE=$(cat $DIR/default_service 2>/dev/null)
 
     if [[ -z $DEFAULT_SERVICE ]] && [[ -f docker-blueprint.yml ]]; then
-        read_value DEFAULT_SERVICE "default_service" docker-blueprint.yml
+        yq_read_value DEFAULT_SERVICE "default_service" docker-blueprint.yml
         echo "$DEFAULT_SERVICE" > "$DIR/default_service"
     fi
 }

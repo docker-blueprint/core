@@ -13,7 +13,7 @@ which yq > /dev/null
 if [[ $? -eq 0 ]]; then
     version=$(yq --version | sed -E 's/.+\s([[:digit:]])/\1/')
 
-    if [[ $version =~ ^3 ]]; then
+    if [[ $version =~ ^4 ]]; then
         YQ_INSTALLED=true
     fi
 fi
@@ -21,45 +21,48 @@ fi
 if ! $YQ_INSTALLED; then
     if [[ -z $YQ_WARNING_SHOWN || ! $YQ_WARNING_SHOWN ]] &&
         [[ -z $AS_FUNCTION || ! $AS_FUNCTION ]]; then
-        printf "${YELLOW}WARNING${RESET}: It appears that yq (version 3) is not installed locally.\n"
+        printf "${YELLOW}WARNING${RESET}: It appears that yq (version 4) is not installed locally.\n"
         printf "We are going to use docker version of yq, however it will be much slower.\n"
         printf "Install yq in order to improve performance: ${GREEN}https://github.com/mikefarah/yq#install${RESET}\n"
     fi
 
     yq() {
-        docker run --rm -i -v "${PWD}":/workdir mikefarah/yq:3 yq "$@"
+        docker run --rm -i -v "${PWD}":/workdir mikefarah/yq:4 "$@"
     }
 fi
 
 export YQ_WARNING_SHOWN=true
 
-read_value() {
-    if [[ -z "$3" ]]; then
-        FILE="$BLUEPRINT_FILE_FINAL"
-    else
-        FILE="$3"
-    fi
-
-    printf -v "$1" "$(yq read "$FILE" "$2" 2>/dev/null)"
+yq_merge() {
+    yq eval-all '. as $item ireduce ({}; . * $item )' $@
 }
 
-read_array() {
+yq_read_value() {
     if [[ -z "$3" ]]; then
         FILE="$BLUEPRINT_FILE_FINAL"
     else
         FILE="$3"
     fi
 
-    readarray -t "$1" < <(yq read "$FILE" "$2[*]")
+    printf -v "$1" "$(yq eval ".$2 // \"\"" "$FILE" 2>/dev/null)"
 }
 
-read_keys() {
+yq_read_array() {
     if [[ -z "$3" ]]; then
         FILE="$BLUEPRINT_FILE_FINAL"
     else
         FILE="$3"
     fi
 
-    readarray -t "$1" < <(yq read "$FILE" "$2" --tojson | \
-                        jq -r '. | keys[]')
+    readarray -t "$1" < <(yq eval ".$2[]" "$FILE")
+}
+
+yq_read_keys() {
+    if [[ -z "$3" ]]; then
+        FILE="$BLUEPRINT_FILE_FINAL"
+    else
+        FILE="$3"
+    fi
+
+    readarray -t "$1" < <(cat "$FILE" | yq eval ".$2 // []" - | yq eval "keys" - | yq eval ".[]" -)
 }

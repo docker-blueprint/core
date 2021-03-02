@@ -18,7 +18,7 @@ case $1 in
         COMMAND=$1
 esac
 
-read_keys POSSIBLE_COMMANDS "commands" "docker-blueprint.yml"
+yq_read_keys POSSIBLE_COMMANDS "commands" "docker-blueprint.yml"
 
 if [[ -z "$COMMAND" ]]; then
     bash $ENTRYPOINT run --help
@@ -36,12 +36,12 @@ if [[ -z "$COMMAND" ]]; then
     exit 1
 fi
 
-read_keys ENVIRONMENT_KEYS "commands.$COMMAND.environment" "docker-blueprint.yml"
+yq_read_keys ENVIRONMENT_KEYS "commands.$COMMAND.environment" "docker-blueprint.yml"
 
 echo "Setting environment..."
 
 for key in "${ENVIRONMENT_KEYS[@]}"; do
-    read_value value "commands.$COMMAND.environment.$key" "docker-blueprint.yml"
+    yq_read_value value "commands.$COMMAND.environment.$key" "docker-blueprint.yml"
     if [[ -n ${value+x} ]]; then
         export $key=$value
     fi
@@ -49,7 +49,7 @@ for key in "${ENVIRONMENT_KEYS[@]}"; do
     echo "$key=${!key}"
 done
 
-read_value command_string "commands.$COMMAND.command" "docker-blueprint.yml"
+yq_read_value command_string "commands.$COMMAND.command" "docker-blueprint.yml"
 
 bash $ENTRYPOINT up
 bash $ENTRYPOINT "$command_string"

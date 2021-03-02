@@ -152,15 +152,14 @@ if ! [[ -f docker-blueprint.yml ]]; then
     # Merge environment preset with base preset
 
     if [[ -n $ENV_DIR ]] && [[ -f "$ENV_DIR/blueprint.yml" ]]; then
-        printf -- "$(yq merge -a append $ENV_DIR/blueprint.yml $BLUEPRINT_FILE_BASE)" > "$BLUEPRINT_FILE_TMP"
+        printf -- "$(yq_merge $ENV_DIR/blueprint.yml $BLUEPRINT_FILE_BASE)" >"$BLUEPRINT_FILE_TMP"
     else
         cp "$BLUEPRINT_FILE_BASE" "$BLUEPRINT_FILE_TMP"
     fi
 
-    # Collect modules to load from
-    # temporary preset file and CLI arguments
+    # Collect modules to load from temporary preset file and CLI arguments
 
-    read_array MODULES "modules" "$BLUEPRINT_FILE_TMP" && printf "."
+    yq_read_array MODULES "modules" "$BLUEPRINT_FILE_TMP" && printf "."
 
     MODULES_TO_LOAD=()
 
@@ -199,7 +198,7 @@ if ! [[ -f docker-blueprint.yml ]]; then
 
         if [[ -f "$BLUEPRINT_DIR/modules/$module/blueprint.yml" ]]; then
 
-            read_array DEPENDS_ON 'depends_on' "$BLUEPRINT_DIR/modules/$module/blueprint.yml"
+            yq_read_array DEPENDS_ON 'depends_on' "$BLUEPRINT_DIR/modules/$module/blueprint.yml"
 
             FOUND=false
 
@@ -267,18 +266,21 @@ if ! [[ -f docker-blueprint.yml ]]; then
     FILES_TO_MERGE+=("$BLUEPRINT_FILE_TMP")
 
     if [[ -z "${FILES_TO_MERGE[1]}" ]]; then
-        printf -- "$(yq read "${FILES_TO_MERGE[0]}")" > "$BLUEPRINT_FILE_FINAL" && printf "."
+        printf -- "$(cat "${FILES_TO_MERGE[0]}")" >"$BLUEPRINT_FILE_FINAL" && printf "."
     else
-        printf -- "$(yq merge -a append ${FILES_TO_MERGE[@]})" > "$BLUEPRINT_FILE_FINAL" && printf "."
+        printf -- "$(yq_merge ${FILES_TO_MERGE[@]})" >"$BLUEPRINT_FILE_FINAL" && printf "."
     fi
 
-    printf -- "$(yq delete $BLUEPRINT_FILE_FINAL 'modules')" > "$BLUEPRINT_FILE_FINAL" && printf "."
+    # Remove the list of modules in order to fill it again
+    # in the correct order and without duplicates
+    yq -i eval "del(.modules)" "$BLUEPRINT_FILE_FINAL" && printf "."
 
     for module in "${MODULES_TO_LOAD[@]}"; do
-        yq write $BLUEPRINT_FILE_FINAL 'modules[+]' "$module" -i
+        yq -i eval ".modules += [\"$module\"]" "$BLUEPRINT_FILE_FINAL"
     done
 
-    printf -- "$(yq delete $BLUEPRINT_FILE_FINAL 'depends_on')" > "$BLUEPRINT_FILE_FINAL" && printf "."
+    # Remove `depends_on` property, since it is only used for modules
+    yq -i eval "del(.depends_on)" "$BLUEPRINT_FILE_FINAL" && printf "."
 
     cd $BLUEPRINT_DIR
 
@@ -291,25 +293,25 @@ if ! [[ -f docker-blueprint.yml ]]; then
     cd $PROJECT_DIR
 
     if [[ -n $hash ]]; then
-        yq write $BLUEPRINT_FILE_FINAL 'blueprint.version' "$hash" -i && printf "."
+        yq -i eval ".blueprint.version = \"$hash\"" "$BLUEPRINT_FILE_FINAL" && printf "."
     fi
 
-    yq write $BLUEPRINT_FILE_FINAL 'blueprint.name' "$BLUEPRINT" -i && printf "."
+    yq -i eval ".blueprint.name = \"$BLUEPRINT\"" "$BLUEPRINT_FILE_FINAL" && printf "."
 
     if [[ -n $ENV_NAME ]]; then
-        yq write $BLUEPRINT_FILE_FINAL 'blueprint.env' "$ENV_NAME" -i && printf "."
+        yq -i eval ".blueprint.env = \"$ENV_NAME\"" "$BLUEPRINT_FILE_FINAL" && printf "."
     fi
 
-    read_keys BUILD_ARGS_KEYS 'build_args'
+    yq_read_keys BUILD_ARGS_KEYS 'build_args'
 
     for variable in ${BUILD_ARGS_KEYS[@]}; do
-        read_value value "build_args.$variable"
+        yq_read_value value "build_args.$variable"
 
         if [[ -n ${!variable+x} ]]; then
             value="${!variable:-}"
         fi
 
-        yq write $BLUEPRINT_FILE_FINAL "build_args.$variable" "$value" -i && printf "."
+        yq -i eval ".build_args.$variable = \"$value\"" "$BLUEPRINT_FILE_FINAL" && printf "."
     done
 
     printf " ${GREEN}done${RESET}\n"
