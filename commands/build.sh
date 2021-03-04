@@ -86,12 +86,15 @@ yq_read_keys BUILD_ARGS_KEYS "build_args" && printf " ${GREEN}done${RESET}\n"
 echo "$DEFAULT_SERVICE" > "$DIR/default_service"
 
 BUILD_ARGS=()
-
-BUILD_ARGS+=("--build-arg BLUEPRINT_DIR=$BLUEPRINT_DIR")
-
 SCRIPT_VARS=()
-SCRIPT_VARS+=("BLUEPRINT_ENV_DIR=$ENV_DIR")
-SCRIPT_VARS+=("BLUEPRINT_DIR=$BLUEPRINT_DIR")
+
+add_variable() {
+    BUILD_ARGS+=("--build-arg $1=$2")
+    SCRIPT_VARS+=("BLUEPRINT_$1=$2")
+}
+
+add_variable "BLUEPRINT_DIR" "$BLUEPRINT_DIR"
+add_variable "ENV_DIR" "$ENV_DIR"
 
 for variable in ${BUILD_ARGS_KEYS[@]}; do
     yq_read_value value "build_args.$variable"
@@ -101,8 +104,7 @@ for variable in ${BUILD_ARGS_KEYS[@]}; do
         value="${!variable:-}"
     fi
 
-    BUILD_ARGS+=("--build-arg $variable=$value")
-    SCRIPT_VARS+=("BLUEPRINT_$variable=$value")
+    add_variable "$variable" "$value"
 done
 
 #
