@@ -81,9 +81,7 @@ fi
 printf "Reading configuration..."
 
 yq_read_value DEFAULT_SERVICE "default_service" && printf "."
-yq_read_keys DEPENDENCIES_KEYS "dependencies" && printf "."
-yq_read_keys BUILD_ARGS_KEYS "build_args" && printf "."
-yq_read_keys PURGE_KEYS "purge" && printf " ${GREEN}done${RESET}\n"
+yq_read_keys BUILD_ARGS_KEYS "build_args" && printf " ${GREEN}done${RESET}\n"
 
 echo "$DEFAULT_SERVICE" > "$DIR/default_service"
 
@@ -92,7 +90,7 @@ BUILD_ARGS=()
 BUILD_ARGS+=("--build-arg BLUEPRINT_DIR=$BLUEPRINT_DIR")
 
 SCRIPT_VARS=()
-SCRIPT_VARS+=("ENV_DIR=$ENV_DIR")
+SCRIPT_VARS+=("BLUEPRINT_ENV_DIR=$ENV_DIR")
 SCRIPT_VARS+=("BLUEPRINT_DIR=$BLUEPRINT_DIR")
 
 for variable in ${BUILD_ARGS_KEYS[@]}; do
@@ -104,7 +102,7 @@ for variable in ${BUILD_ARGS_KEYS[@]}; do
     fi
 
     BUILD_ARGS+=("--build-arg $variable=$value")
-    SCRIPT_VARS+=("$variable=$value")
+    SCRIPT_VARS+=("BLUEPRINT_$variable=$value")
 done
 
 #
@@ -157,43 +155,32 @@ done
 # Build dockerfile
 #
 
-printf "Building dockerfile..."
+printf "Building dockerfiles...\n"
 
-cp "$BLUEPRINT_DIR/templates/dockerfile" "$PWD/dockerfile"
+for dockerfile in $BLUEPRINT_DIR/[Dd]ockerfile*; do
+    # https://stackoverflow.com/a/43606356/2467106
+    # http://mywiki.wooledge.org/BashPitfalls#line-57
+    [ -e "$dockerfile" ] || continue
 
-CHUNK="$(yq read -p v $BLUEPRINT_FILE_FINAL 'stages.development[*]')"
-chunk="$CHUNK" perl -0 -i -pe 's/ *# \$DEVELOPMENT_COMMANDS/$ENV{"chunk"}/' \
-"$PWD/dockerfile"
+    env "${SCRIPT_VARS[@]}" bash $ENTRYPOINT process "$dockerfile"
 
-CHUNK="$(yq read -p v $BLUEPRINT_FILE_FINAL 'stages.production[*]')"
-chunk="$CHUNK" perl -0 -i -pe 's/ *# \$PRODUCTION_COMMANDS/$ENV{"chunk"}/' \
-"$PWD/dockerfile"
+    if [[ $? > 0 ]]; then
+        printf "\n${RED}ERROR${RESET}: There was an error processing $dockerfile\n"
+        exit 1
+    fi
 
-for key in "${DEPENDENCIES_KEYS[@]}"; do
-    read_array DEPS "dependencies.$key"
-    key=$(echo "$key" | tr [:lower:] [:upper:])
-    printf "."
+    CURRENT_DOCKERFILE="$PWD/$(basename $dockerfile)"
 
-    key="$key" chunk="${DEPS[*]}" \
-    perl -0 -i -pe 's/#\s*(.*)\$DEPS_$ENV{"key"}/$1$ENV{"chunk"}/g' \
-    "$PWD/dockerfile"
+    cp "$dockerfile.out" "$CURRENT_DOCKERFILE"
+
+    if [[ $? > 0 ]]; then
+        printf "\n${RED}ERROR${RESET}: Unable to copy processed file\n"
+        exit 1
+    fi
+
+    # Clean up after processing
+    rm -f "$dockerfile.out"
 done
-
-for key in "${PURGE_KEYS[@]}"; do
-    read_array PURGE "purge.$key"
-    key=$(echo "$key" | tr [:lower:] [:upper:])
-    printf "."
-
-    key="$key" chunk="${PURGE[*]}" \
-    perl -0 -i -pe 's/#\s*(.*)\$PURGE_$ENV{"key"}/$1$ENV{"chunk"}/g' \
-    "$PWD/dockerfile"
-done
-
-chunk="$BLUEPRINT_DIR" \
-perl -0 -i -pe 's/#\s*(.*)\$BLUEPRINT_DIR/$1$ENV{"chunk"}/g' \
-"$PWD/dockerfile"
-
-printf " ${GREEN}done${RESET}\n"
 
 #
 # Build containers
