@@ -4,18 +4,31 @@
 #
 # This command preprocesses dockerfile templates that are used in blueprints:
 #
-# 1) Substitutes all _special variables_ and uncomments the lines where they
-#    are used. If the variable is empty, the commented line is removed.
-# 2) Processes docker blueprint specific DIRECTIVES:
+# 1) Substitutes all environment variables prefixed with BLUEPRINT_ and
+#    uncomments the lines where they are used if such variable is defined.
+#    Blueprint variables have a different symbol in front of them in order
+#    to distinguish them from build arguments during the build.
+#
+#    For example the following input:
+#
+#    > # RUN echo "%BLUEPRINT_DIR" # this is a dockerfile template
+#
+#    Produces this output, since BLUEPRINT_DIR is always defined:
+#
+#    > RUN echo ".docker-blueprint/<path-to-the-blueprint-root>"
+#
+# 2) Processes docker blueprint specific directives:
 #    - `#include <resource>`
 #
-#      Include a dockerfile `partial` inside the current dockerfile template.
-#      Together with conditional expressions this allows to mix and match
-#      multiple parts of the dockerfile depending on currently active modules.
+#      Include a dockerfile _partial_ inside the current dockerfile template.
+#      Resource path can include blueprint variables. In this case they are
+#      resolved before trying to include the file.
 #
-#      The `<resource>` here is...
+#      If the file specified doesn't exist, then the line with this directive
+#      is removed from the final file.
 #
-#    - `#ifdef`
+#      Before inserting, the content of the file is also processed by this
+#      command. Because of this nested includes are possible.
 #
 
 shift
