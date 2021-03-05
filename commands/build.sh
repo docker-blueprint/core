@@ -107,6 +107,22 @@ for variable in ${BUILD_ARGS_KEYS[@]}; do
     add_variable "$variable" "$value"
 done
 
+yq_read_keys DEPENDENCIES_KEYS "dependencies" && printf "."
+
+for key in "${DEPENDENCIES_KEYS[@]}"; do
+    yq_read_array DEPS "dependencies.$key"
+    key="$(echo "$key" | tr [:lower:] [:upper:])"
+    add_variable "DEPS_$key" "${DEPS[*]}"
+done
+
+yq_read_keys PURGE_KEYS "purge" && printf "."
+
+for key in "${PURGE_KEYS[@]}"; do
+    yq_read_array PURGE "purge.$key"
+    key="$(echo "$key" | tr [:lower:] [:upper:])"
+    add_variable "PURGE_$key" "${PURGE[*]}"
+done
+
 #
 # Build docker-compose.yml
 #
