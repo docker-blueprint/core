@@ -18,7 +18,6 @@ if [[ "$(echo "$1" | cut -c1)" = "#" && "$(echo "$1" | cut -c2)" != " " ]]; then
         if [[ -f $file ]]; then
             printf "%s" "$(cat $file)"
             rm -f "$file" # Clean up after processing
-            export PARSER_VARIABLE=Fanter
             exit # The given path was read successfully
         fi
 
