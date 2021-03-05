@@ -35,7 +35,7 @@ fi
 export YQ_WARNING_SHOWN=true
 
 yq_merge() {
-    yq eval-all '. as $item ireduce ({}; . * $item )' $@
+    yq eval-all '. as $item ireduce ({}; . *+ $item )' $@
 }
 
 yq_read_value() {
