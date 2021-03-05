@@ -113,14 +113,8 @@ done
 
 printf "Building docker-compose files...\n"
 
-yq_read_keys STAGES "stages"
-
-for stage in "${STAGES[@]}"; do
-    DOCKER_COMPOSE_FILE="docker-compose.yml"
-
-    if [[ "$stage" != "base" ]]; then
-        DOCKER_COMPOSE_FILE="docker-compose.$stage.yml"
-    fi
+for file in $BLUEPRINT_DIR/docker-compose*.yml; do
+    DOCKER_COMPOSE_FILE=$(basename "$file")
 
     CURRENT_DOCKER_COMPOSE_FILE="$PWD/$DOCKER_COMPOSE_FILE"
 
