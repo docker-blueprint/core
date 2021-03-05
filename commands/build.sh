@@ -122,28 +122,27 @@ for file in $BLUEPRINT_DIR/docker-compose*.yml; do
         rm -f "$CURRENT_DOCKER_COMPOSE_FILE"
     elif [[ -f "$CURRENT_DOCKER_COMPOSE_FILE" ]]; then
         printf "${YELLOW}WARNING${RESET}: $DOCKER_COMPOSE_FILE already exists, skipping generation (run with --force to override).\n"
+        continue
     fi
 
-    if [[ -f "$file" ]] && [[ ! -f "$CURRENT_DOCKER_COMPOSE_FILE" ]]; then
-        cp -f "$file" "$CURRENT_DOCKER_COMPOSE_FILE"
+    cp -f "$file" "$CURRENT_DOCKER_COMPOSE_FILE"
 
-        for module in "${MODULES_TO_LOAD[@]}"; do
-            MODULE_DOCKER_COMPOSE_FILE="$BLUEPRINT_DIR/modules/$module/$DOCKER_COMPOSE_FILE"
+    for module in "${MODULES_TO_LOAD[@]}"; do
+        MODULE_DOCKER_COMPOSE_FILE="$BLUEPRINT_DIR/modules/$module/$DOCKER_COMPOSE_FILE"
 
-            if [[ -f "$MODULE_DOCKER_COMPOSE_FILE" ]]; then
-                printf -- "$(
-                    yq_merge \
-                    "$CURRENT_DOCKER_COMPOSE_FILE" "$MODULE_DOCKER_COMPOSE_FILE"
-                )" > "$CURRENT_DOCKER_COMPOSE_FILE"
-            fi
-        done
+        if [[ -f "$MODULE_DOCKER_COMPOSE_FILE" ]]; then
+            printf -- "$(
+                yq_merge \
+                "$CURRENT_DOCKER_COMPOSE_FILE" "$MODULE_DOCKER_COMPOSE_FILE"
+            )" > "$CURRENT_DOCKER_COMPOSE_FILE"
+        fi
+    done
 
-        # Remove empty lines
+    # Remove empty lines
 
-        sed -ri '/^\s*$/d' "$CURRENT_DOCKER_COMPOSE_FILE"
+    sed -ri '/^\s*$/d' "$CURRENT_DOCKER_COMPOSE_FILE"
 
-        printf "Generated ${YELLOW}$DOCKER_COMPOSE_FILE${RESET}\n"
-    fi
+    printf "Generated ${YELLOW}$DOCKER_COMPOSE_FILE${RESET}\n"
 done
 
 #
@@ -165,26 +164,25 @@ for file in $BLUEPRINT_DIR/[Dd]ockerfile*; do
         rm -f "$CURRENT_DOCKERFILE"
     elif [[ -f "$CURRENT_DOCKERFILE" ]]; then
         printf "${YELLOW}WARNING${RESET}: $DOCKER_FILE already exists, skipping generation (run with --force to override).\n"
+        continue
     fi
 
-    if [[ -f "$file" ]] && [[ ! -f "$CURRENT_DOCKERFILE" ]]; then
-        env "${SCRIPT_VARS[@]}" bash $ENTRYPOINT process "$file"
+    env "${SCRIPT_VARS[@]}" bash $ENTRYPOINT process "$file"
 
-        if [[ $? > 0 ]]; then
-            printf "\n${RED}ERROR${RESET}: There was an error processing $file\n"
-            exit 1
-        fi
-
-        cp "$file.out" "$CURRENT_DOCKERFILE"
-
-        if [[ $? > 0 ]]; then
-            printf "\n${RED}ERROR${RESET}: Unable to copy processed file\n"
-            exit 1
-        fi
-
-        # Clean up after processing
-        rm -f "$file.out"
+    if [[ $? > 0 ]]; then
+        printf "\n${RED}ERROR${RESET}: There was an error processing $file\n"
+        exit 1
     fi
+
+    cp "$file.out" "$CURRENT_DOCKERFILE"
+
+    if [[ $? > 0 ]]; then
+        printf "\n${RED}ERROR${RESET}: Unable to copy processed file\n"
+        exit 1
+    fi
+
+    # Clean up after processing
+    rm -f "$file.out"
 done
 
 #
