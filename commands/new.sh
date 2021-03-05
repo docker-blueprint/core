@@ -124,7 +124,7 @@ if ! [[ -f "$PWD/$BLUEPRINT_FILE_FINAL" ]]; then
 
     BLUEPRINT_QUALIFIED_NAME=$(AS_FUNCTION=true bash $ENTRYPOINT pull $BLUEPRINT --get-qualified-name)
 
-    printf "Pulling blueprint '$BLUEPRINT_QUALIFIED_NAME'..."
+    debug_newline_print "Pulling blueprint '$BLUEPRINT_QUALIFIED_NAME'..."
 
     BLUEPRINT_DIR=$(AS_FUNCTION=true bash $ENTRYPOINT pull $BLUEPRINT)
 
@@ -133,7 +133,7 @@ if ! [[ -f "$PWD/$BLUEPRINT_FILE_FINAL" ]]; then
         exit 1
     fi
 
-    printf " ${GREEN}done${RESET}\n"
+    non_debug_print " ${GREEN}done${RESET}\n"
 
     BLUEPRINT_FILE_TMP=$BLUEPRINT_DIR/blueprint.tmp
     BLUEPRINT_FILE_BASE=$BLUEPRINT_DIR/blueprint.yml
@@ -142,7 +142,7 @@ if ! [[ -f "$PWD/$BLUEPRINT_FILE_FINAL" ]]; then
         ENV_DIR=$BLUEPRINT_DIR/env/$ENV_NAME
     fi
 
-    printf "Generating blueprint file..."
+    debug_newline_print "Generating blueprint file..."
 
     if [[ ! -f "$BLUEPRINT_FILE_BASE" ]]; then
         printf "\n${RED}ERROR${RESET}: Base blueprint.yml doesn't exist.\n"
@@ -159,7 +159,7 @@ if ! [[ -f "$PWD/$BLUEPRINT_FILE_FINAL" ]]; then
 
     # Collect modules to load from temporary preset file and CLI arguments
 
-    yq_read_array MODULES "modules" "$BLUEPRINT_FILE_TMP" && printf "."
+    yq_read_array MODULES "modules" "$BLUEPRINT_FILE_TMP" && non_debug_print "."
 
     MODULES_TO_LOAD=()
 
@@ -228,7 +228,7 @@ if ! [[ -f "$PWD/$BLUEPRINT_FILE_FINAL" ]]; then
 
         ((i = i + 1))
 
-        printf "."
+        non_debug_print "."
 
     done
 
@@ -260,31 +260,31 @@ if ! [[ -f "$PWD/$BLUEPRINT_FILE_FINAL" ]]; then
             append_file_to_merge "$ENV_DIR/modules/$module/blueprint.yml"
         fi
 
-        printf "."
+        non_debug_print "."
     done
 
     FILES_TO_MERGE+=("$BLUEPRINT_FILE_TMP")
 
     if [[ -z "${FILES_TO_MERGE[1]}" ]]; then
-        printf -- "$(cat "${FILES_TO_MERGE[0]}")" >"$BLUEPRINT_FILE_FINAL" && printf "."
+        printf -- "$(cat "${FILES_TO_MERGE[0]}")" >"$BLUEPRINT_FILE_FINAL" && non_debug_print "."
     else
-        printf -- "$(yq_merge ${FILES_TO_MERGE[@]})" >"$BLUEPRINT_FILE_FINAL" && printf "."
+        printf -- "$(yq_merge ${FILES_TO_MERGE[@]})" >"$BLUEPRINT_FILE_FINAL" && non_debug_print "."
     fi
 
     # Remove the list of modules in order to fill it again
     # in the correct order and without duplicates
-    yq -i eval "del(.modules)" "$BLUEPRINT_FILE_FINAL" && printf "."
+    yq -i eval "del(.modules)" "$BLUEPRINT_FILE_FINAL" && non_debug_print "."
 
     for module in "${MODULES_TO_LOAD[@]}"; do
         yq -i eval ".modules += [\"$module\"]" "$BLUEPRINT_FILE_FINAL"
     done
 
     # Remove `depends_on` property, since it is only used for modules
-    yq -i eval "del(.depends_on)" "$BLUEPRINT_FILE_FINAL" && printf "."
+    yq -i eval "del(.depends_on)" "$BLUEPRINT_FILE_FINAL" && non_debug_print "."
 
     cd $BLUEPRINT_DIR
 
-    hash=$(git rev-parse HEAD) 2> /dev/null && printf "."
+    hash=$(git rev-parse HEAD) 2> /dev/null && non_debug_print "."
 
     if [[ $? > 0 ]]; then
         unset hash
@@ -293,13 +293,13 @@ if ! [[ -f "$PWD/$BLUEPRINT_FILE_FINAL" ]]; then
     cd $PROJECT_DIR
 
     if [[ -n $hash ]]; then
-        yq -i eval ".blueprint.version = \"$hash\"" "$BLUEPRINT_FILE_FINAL" && printf "."
+        yq -i eval ".blueprint.version = \"$hash\"" "$BLUEPRINT_FILE_FINAL" && non_debug_print "."
     fi
 
-    yq -i eval ".blueprint.name = \"$BLUEPRINT\"" "$BLUEPRINT_FILE_FINAL" && printf "."
+    yq -i eval ".blueprint.name = \"$BLUEPRINT\"" "$BLUEPRINT_FILE_FINAL" && non_debug_print "."
 
     if [[ -n $ENV_NAME ]]; then
-        yq -i eval ".blueprint.env = \"$ENV_NAME\"" "$BLUEPRINT_FILE_FINAL" && printf "."
+        yq -i eval ".blueprint.env = \"$ENV_NAME\"" "$BLUEPRINT_FILE_FINAL" && non_debug_print "."
     fi
 
     yq_read_keys BUILD_ARGS_KEYS 'build_args'
@@ -311,10 +311,10 @@ if ! [[ -f "$PWD/$BLUEPRINT_FILE_FINAL" ]]; then
             value="${!variable:-}"
         fi
 
-        yq -i eval ".build_args.$variable = \"$value\"" "$BLUEPRINT_FILE_FINAL" && printf "."
+        yq -i eval ".build_args.$variable = \"$value\"" "$BLUEPRINT_FILE_FINAL" && non_debug_print "."
     done
 
-    printf " ${GREEN}done${RESET}\n"
+    non_debug_print " ${GREEN}done${RESET}\n"
 fi
 
 rm -f "$BLUEPRINT_FILE_TMP"
