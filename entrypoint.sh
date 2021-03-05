@@ -3,6 +3,7 @@
 EXECUTABLE_NAME=$(basename "${BASH_SOURCE}")
 
 PROJECT_DIR=$PWD
+PROJECT_NAME=$(basename $PROJECT_DIR)
 DIR=.docker-blueprint
 REAL_DIR="$(readlink -f "$0")"
 ROOT_DIR="$(dirname "$REAL_DIR")"
@@ -49,9 +50,9 @@ if [[ -f "$ROOT_DIR/commands/$1.sh" ]]; then
 fi
 
 case $1 in
-    down|restart)
-        $DOCKER_COMPOSE "$1" ${@:2}
-        ;;
+    start | stop | restart | down)
+    $DOCKER_COMPOSE "$1" ${@:2}
+    ;;
 
     -h | --help)
         source "$ROOT_DIR/commands/help.sh"
