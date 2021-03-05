@@ -177,8 +177,7 @@ if ! [[ -f "$PWD/$BLUEPRINT_FILE_FINAL" ]]; then
 
     debug_print "Requested modules: ${MODULES_TO_LOAD[*]}"
 
-    # Rearrange modules according to depends_on
-    # such as dependencies always come first
+    # Resolve all modules and their dependencies
     # Notice: cyclic dependencies WILL cause undefined behavior
 
     i=0
@@ -208,7 +207,7 @@ if ! [[ -f "$PWD/$BLUEPRINT_FILE_FINAL" ]]; then
 
         FOUND=false
 
-        for entry in "${MODULE_STACK[@]}"; do
+        for entry in "${MODULES_TO_LOAD[@]}"; do
             if [[ $entry == $module ]]; then
                 FOUND=true; break
             fi
@@ -271,6 +270,8 @@ if ! [[ -f "$PWD/$BLUEPRINT_FILE_FINAL" ]]; then
         fi
     }
 
+    append_file_to_merge "$BLUEPRINT_FILE_TMP"
+
     for module in "${MODULES_TO_LOAD[@]}"; do
 
         # Each module can extend base blueprint
@@ -292,8 +293,6 @@ if ! [[ -f "$PWD/$BLUEPRINT_FILE_FINAL" ]]; then
 
         non_debug_print "."
     done
-
-    append_file_to_merge "$BLUEPRINT_FILE_TMP"
 
     debug_print "Merging files:"
     for file in "${FILES_TO_MERGE[@]#$BLUEPRINT_DIR/}"; do
