@@ -21,6 +21,7 @@ if [[ -z "$GID" ]]; then
 fi
 
 source "$ROOT_DIR/includes/colors.sh"
+source "$ROOT_DIR/includes/debug.sh"
 source "$ROOT_DIR/includes/yq.sh"
 
 source "$ROOT_DIR/includes/entrypoint/init-compose.sh"
