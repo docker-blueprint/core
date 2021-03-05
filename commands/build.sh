@@ -153,29 +153,40 @@ done
 
 printf "Building dockerfiles...\n"
 
-for dockerfile in $BLUEPRINT_DIR/[Dd]ockerfile*; do
+for file in $BLUEPRINT_DIR/[Dd]ockerfile*; do
     # https://stackoverflow.com/a/43606356/2467106
     # http://mywiki.wooledge.org/BashPitfalls#line-57
-    [ -e "$dockerfile" ] || continue
+    [ -e "$file" ] || continue
 
-    env "${SCRIPT_VARS[@]}" bash $ENTRYPOINT process "$dockerfile"
+    DOCKER_FILE=$(basename "$file")
 
-    if [[ $? > 0 ]]; then
-        printf "\n${RED}ERROR${RESET}: There was an error processing $dockerfile\n"
-        exit 1
+    CURRENT_DOCKERFILE="$PWD/$DOCKER_FILE"
+
+    if $MODE_FORCE; then
+        rm -f "$CURRENT_DOCKERFILE"
+    elif [[ -f "$CURRENT_DOCKERFILE" ]]; then
+        printf "${YELLOW}WARNING${RESET}: $DOCKER_FILE already exists, skipping generation (run with --force to override).\n"
     fi
 
-    CURRENT_DOCKERFILE="$PWD/$(basename $dockerfile)"
+    if [[ -f "$BLUEPRINT_DIR/$DOCKER_FILE" ]] && \
+        [[ ! -f "$CURRENT_DOCKERFILE" ]]; then
+        env "${SCRIPT_VARS[@]}" bash $ENTRYPOINT process "$file"
 
-    cp "$dockerfile.out" "$CURRENT_DOCKERFILE"
+        if [[ $? > 0 ]]; then
+            printf "\n${RED}ERROR${RESET}: There was an error processing $file\n"
+            exit 1
+        fi
 
-    if [[ $? > 0 ]]; then
-        printf "\n${RED}ERROR${RESET}: Unable to copy processed file\n"
-        exit 1
+        cp "$file.out" "$CURRENT_DOCKERFILE"
+
+        if [[ $? > 0 ]]; then
+            printf "\n${RED}ERROR${RESET}: Unable to copy processed file\n"
+            exit 1
+        fi
+
+        # Clean up after processing
+        rm -f "$file.out"
     fi
-
-    # Clean up after processing
-    rm -f "$dockerfile.out"
 done
 
 #
