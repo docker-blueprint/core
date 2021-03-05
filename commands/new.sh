@@ -151,8 +151,12 @@ if ! [[ -f "$PWD/$BLUEPRINT_FILE_FINAL" ]]; then
 
     # Merge environment preset with base preset
 
-    if [[ -n $ENV_DIR ]] && [[ -f "$ENV_DIR/blueprint.yml" ]]; then
-        printf -- "$(yq_merge $ENV_DIR/blueprint.yml $BLUEPRINT_FILE_BASE)" >"$BLUEPRINT_FILE_TMP"
+    debug_print "Using base blueprint: ${BLUEPRINT_FILE_BASE#$BLUEPRINT_DIR/}"
+
+    file="$ENV_DIR/blueprint.yml"
+    if [[ -n $ENV_DIR ]] && [[ -f "$file" ]]; then
+        debug_print "Using environment blueprint: ${file#$BLUEPRINT_DIR/}"
+        printf -- "$(yq_merge $file $BLUEPRINT_FILE_BASE)" >"$BLUEPRINT_FILE_TMP"
     else
         cp "$BLUEPRINT_FILE_BASE" "$BLUEPRINT_FILE_TMP"
     fi
@@ -171,16 +175,36 @@ if ! [[ -f "$PWD/$BLUEPRINT_FILE_FINAL" ]]; then
         MODULES_TO_LOAD+=($module)
     done
 
+    debug_print "Requested modules: ${MODULES_TO_LOAD[*]}"
+
     # Rearrange modules according to depends_on
     # such as dependencies always come first
     # Notice: cyclic dependencies WILL cause undefined behavior
 
     i=0
-    MODULE_STACK=()
 
     while [[ $i < ${#MODULES_TO_LOAD[@]} ]]; do
 
         module="${MODULES_TO_LOAD[i]}"
+
+        module_dirs=()
+
+        path="$BLUEPRINT_DIR/modules/$module"
+        if [[ -d "$path" ]]; then
+            debug_print "Found module '$module'"
+            module_dirs+=("$path")
+        fi
+
+        path="$ENV_DIR/modules/$module"
+        if [[ -d "$path" ]]; then
+            debug_print "Found environment module '$module'"
+            module_dirs+=("$path")
+        fi
+
+        if [[ ${#module_dirs[@]} -eq 0 ]]; then
+            printf "${RED}ERROR${RESET}: Module '$module' not found.\n"
+            exit 1
+        fi
 
         FOUND=false
 
@@ -190,41 +214,43 @@ if ! [[ -f "$PWD/$BLUEPRINT_FILE_FINAL" ]]; then
             fi
         done
 
-        if ! $FOUND; then
-            MODULE_STACK+=("$module")
-        fi
-
         # Read depends_on from each module file
 
-        if [[ -f "$BLUEPRINT_DIR/modules/$module/blueprint.yml" ]]; then
+        for dir in "${module_dirs[@]}"; do
+            file="$dir/blueprint.yml"
+            if [[ -f "$file" ]]; then
+                yq_read_array DEPENDS_ON 'depends_on' "$file"
 
-            yq_read_array DEPENDS_ON 'depends_on' "$BLUEPRINT_DIR/modules/$module/blueprint.yml"
+                debug_print "Module '$module' dependencies: ${DEPENDS_ON[*]}"
 
-            FOUND=false
-
-            # For each dependency, check whether it
-            # already has been added to the list
-
-            for dependency in "${DEPENDS_ON[@]}"; do
                 FOUND=false
 
-                for entry in "${MODULE_STACK[@]}"; do
-                    if [[ $entry == $dependency ]]; then
-                        FOUND=true; break
+                # For each dependency, check whether it
+                # already has been added to the list
+
+                for dependency in "${DEPENDS_ON[@]}"; do
+                    FOUND=false
+
+                    for entry in "${MODULES_TO_LOAD[@]}"; do
+                        if [[ $entry == $dependency ]]; then
+                            FOUND=true; break
+                        fi
+                    done
+
+                    # If dependency has not been already added,
+                    # replace current module with the dependency
+                    # and append module to the end of the list
+
+                    if ! $FOUND; then
+                        # Add missing dependencies for the current module
+                        # If those dependencies have their own dependencies,
+                        # they will also be checked and added on the next
+                        # iteration.
+                        MODULES_TO_LOAD+=("$dependency")
                     fi
                 done
-
-                # If dependency has not been already added,
-                # replace current module with the dependency
-                # and append module to the end of the list
-
-                if ! $FOUND; then
-                    stack_length=${#MODULE_STACK[@]}
-                    MODULE_STACK[stack_length - 1]="$dependency"
-                    MODULE_STACK+=("$module")
-                fi
-            done
-        fi
+            fi
+        done
 
         ((i = i + 1))
 
@@ -232,7 +258,7 @@ if ! [[ -f "$PWD/$BLUEPRINT_FILE_FINAL" ]]; then
 
     done
 
-    MODULES_TO_LOAD=("${MODULE_STACK[@]}")
+    debug_print "Resolved module list: ${MODULES_TO_LOAD[*]}"
 
     # Generate a list of YAML files to merge
     # depending on chosen modules
@@ -249,21 +275,30 @@ if ! [[ -f "$PWD/$BLUEPRINT_FILE_FINAL" ]]; then
 
         # Each module can extend base blueprint
 
-        if [[ -f "$BLUEPRINT_DIR/modules/$module/blueprint.yml" ]]; then
-            append_file_to_merge "$BLUEPRINT_DIR/modules/$module/blueprint.yml"
+        file="$BLUEPRINT_DIR/modules/$module/blueprint.yml"
+        if [[ -f "$file" ]]; then
+            debug_print "Using module blueprint: ${file#$BLUEPRINT_DIR/}"
+            append_file_to_merge "$file"
         fi
 
         # If environment is specified, additionally load module
         # blueprint files specific to the environment
 
-        if [[ -d "$ENV_DIR" && -f "$ENV_DIR/modules/$module/blueprint.yml" ]]; then
-            append_file_to_merge "$ENV_DIR/modules/$module/blueprint.yml"
+        file="$ENV_DIR/modules/$module/blueprint.yml"
+        if [[ -d "$ENV_DIR" ]] && [[ -f "$file" ]]; then
+            debug_print "Using environment module blueprint: ${file#$BLUEPRINT_DIR/}"
+            append_file_to_merge "$file"
         fi
 
         non_debug_print "."
     done
 
-    FILES_TO_MERGE+=("$BLUEPRINT_FILE_TMP")
+    append_file_to_merge "$BLUEPRINT_FILE_TMP"
+
+    debug_print "Merging files:"
+    for file in "${FILES_TO_MERGE[@]#$BLUEPRINT_DIR/}"; do
+        debug_print "- $file"
+    done
 
     if [[ -z "${FILES_TO_MERGE[1]}" ]]; then
         printf -- "$(cat "${FILES_TO_MERGE[0]}")" >"$BLUEPRINT_FILE_FINAL" && non_debug_print "."
@@ -315,6 +350,8 @@ if ! [[ -f "$PWD/$BLUEPRINT_FILE_FINAL" ]]; then
     done
 
     non_debug_print " ${GREEN}done${RESET}\n"
+
+    debug_print "Created blueprint file: $BLUEPRINT_FILE_FINAL"
 fi
 
 rm -f "$BLUEPRINT_FILE_TMP"
