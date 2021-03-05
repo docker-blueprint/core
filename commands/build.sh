@@ -89,7 +89,7 @@ BUILD_ARGS=()
 SCRIPT_VARS=()
 
 add_variable() {
-    BUILD_ARGS+=("--build-arg $1=$2")
+    BUILD_ARGS+=("--build-arg $1='$2'")
     SCRIPT_VARS+=("BLUEPRINT_$1=$2")
 }
 
@@ -188,4 +188,4 @@ done
 # Build containers
 #
 
-$DOCKER_COMPOSE build ${BUILD_ARGS[@]}
+eval "$DOCKER_COMPOSE build ${BUILD_ARGS[@]}"
