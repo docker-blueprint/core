@@ -124,9 +124,8 @@ for file in $BLUEPRINT_DIR/docker-compose*.yml; do
         printf "${YELLOW}WARNING${RESET}: $DOCKER_COMPOSE_FILE already exists, skipping generation (run with --force to override).\n"
     fi
 
-    if [[ -f "$BLUEPRINT_DIR/$DOCKER_COMPOSE_FILE" ]] && \
-        [[ ! -f "$CURRENT_DOCKER_COMPOSE_FILE" ]]; then
-        cp -f "$BLUEPRINT_DIR/$DOCKER_COMPOSE_FILE" "$CURRENT_DOCKER_COMPOSE_FILE"
+    if [[ -f "$file" ]] && [[ ! -f "$CURRENT_DOCKER_COMPOSE_FILE" ]]; then
+        cp -f "$file" "$CURRENT_DOCKER_COMPOSE_FILE"
 
         for module in "${MODULES_TO_LOAD[@]}"; do
             MODULE_DOCKER_COMPOSE_FILE="$BLUEPRINT_DIR/modules/$module/$DOCKER_COMPOSE_FILE"
@@ -168,8 +167,7 @@ for file in $BLUEPRINT_DIR/[Dd]ockerfile*; do
         printf "${YELLOW}WARNING${RESET}: $DOCKER_FILE already exists, skipping generation (run with --force to override).\n"
     fi
 
-    if [[ -f "$BLUEPRINT_DIR/$DOCKER_FILE" ]] && \
-        [[ ! -f "$CURRENT_DOCKERFILE" ]]; then
+    if [[ -f "$file" ]] && [[ ! -f "$CURRENT_DOCKERFILE" ]]; then
         env "${SCRIPT_VARS[@]}" bash $ENTRYPOINT process "$file"
 
         if [[ $? > 0 ]]; then
