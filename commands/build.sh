@@ -74,6 +74,8 @@ if [[ -n "$ENV_NAME" ]]; then
     fi
 fi
 
+source "$ROOT_DIR/includes/resolve-dependencies.sh" ${MODULES_TO_LOAD[@]}
+
 #
 # Read generated configuration
 #
