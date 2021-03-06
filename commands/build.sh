@@ -131,36 +131,84 @@ non_debug_print " ${GREEN}done${RESET}\n"
 
 printf "Building docker-compose files...\n"
 
-for file in $BLUEPRINT_DIR/docker-compose*.yml; do
-    DOCKER_COMPOSE_FILE=$(basename "$file")
+# Select all unique docker-compose files (even in disabled modules)
+FILE_NAMES=($(
+    find "$BLUEPRINT_DIR" -name "docker-compose*.yml" -type f | \
+    xargs basename -a | \
+    sort | \
+    uniq
+))
 
-    CURRENT_DOCKER_COMPOSE_FILE="$PWD/$DOCKER_COMPOSE_FILE"
+for name in ${FILE_NAMES[@]}; do
+    CURRENT_DOCKER_COMPOSE_FILE="$PWD/$name"
+
+    # Make sure file doesn't exist in the project directory,
+    # otherwise print a warning and skip it
 
     if $MODE_FORCE; then
         rm -f "$CURRENT_DOCKER_COMPOSE_FILE"
     elif [[ -f "$CURRENT_DOCKER_COMPOSE_FILE" ]]; then
-        printf "${YELLOW}WARNING${RESET}: $DOCKER_COMPOSE_FILE already exists, skipping generation (run with --force to override).\n"
+        printf "${YELLOW}WARNING${RESET}: $name already exists, skipping generation (run with --force to override).\n"
         continue
     fi
 
-    cp -f "$file" "$CURRENT_DOCKER_COMPOSE_FILE"
+    # Find all files with the same name
+    FILES=($(find "$BLUEPRINT_DIR" -name "$name" -type f))
 
-    for module in "${MODULES_TO_LOAD[@]}"; do
-        MODULE_DOCKER_COMPOSE_FILE="$BLUEPRINT_DIR/modules/$module/$DOCKER_COMPOSE_FILE"
+    FILTERED_FILES=()
 
-        if [[ -f "$MODULE_DOCKER_COMPOSE_FILE" ]]; then
+    # Add base file if it exists
+    file="$BLUEPRINT_DIR/$name"
+    if [[ -f "$file" ]]; then
+        FILTERED_FILES+=("$file")
+    fi
+
+    # For each enabled module check whether
+    # the file needs to get merged
+    for module in ${MODULES_TO_LOAD[@]}; do
+        for item in ${FILES[@]}; do
+            # If the file doesn't belong to the given module then skip it
+            if [[ -z "$(echo "$item" | grep "modules/$module")" ]]; then
+                continue
+            fi
+
+            # If the file is in an environment directory
+            if [[ -n "$(echo "$item" | grep "env/")" ]]; then
+                # And if the current environment is empty
+                # or the given directory is not for the current environment
+                if [[ -z $ENV_NAME ]] ||
+                   [[ -z "$(echo "$item" | grep "env/$ENV_NAME")" ]]; then
+                    # Then skip the file
+                    continue
+                fi
+            fi
+
+            FILTERED_FILES+=("$item")
+        done
+    done
+
+    debug_print "Merging files:"
+
+    for file in ${FILTERED_FILES[@]}; do
+        debug_print "- ${file#$BLUEPRINT_DIR/}"
+        if [[ ! -f "$CURRENT_DOCKER_COMPOSE_FILE" ]]; then
+            cp -f "$file" "$CURRENT_DOCKER_COMPOSE_FILE"
+        else
             printf -- "$(
                 yq_merge \
-                "$CURRENT_DOCKER_COMPOSE_FILE" "$MODULE_DOCKER_COMPOSE_FILE"
+                "$CURRENT_DOCKER_COMPOSE_FILE" "$file"
             )" > "$CURRENT_DOCKER_COMPOSE_FILE"
         fi
     done
 
-    # Remove empty lines
+    if [[ -f "$CURRENT_DOCKER_COMPOSE_FILE" ]]; then
+        # Remove empty lines
+        sed -ri '/^\s*$/d' "$CURRENT_DOCKER_COMPOSE_FILE"
 
-    sed -ri '/^\s*$/d' "$CURRENT_DOCKER_COMPOSE_FILE"
+        debug_print "Created docker-compose file: '$name':"
 
-    printf "Generated ${YELLOW}$DOCKER_COMPOSE_FILE${RESET}\n"
+        printf "Generated ${YELLOW}$name${RESET}\n"
+    fi
 done
 
 #
