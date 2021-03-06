@@ -38,8 +38,8 @@ source "$ROOT_DIR/includes/entrypoint/init-compose.sh"
 init_default_service() {
     DEFAULT_SERVICE=$(cat $DIR/default_service 2>/dev/null)
 
-    if [[ -z $DEFAULT_SERVICE ]] && [[ -f docker-blueprint.yml ]]; then
-        yq_read_value DEFAULT_SERVICE "default_service" docker-blueprint.yml
+    if [[ -z $DEFAULT_SERVICE ]] && [[ -f "$BLUEPRINT_FILE_FINAL" ]]; then
+        yq_read_value DEFAULT_SERVICE "default_service" "$BLUEPRINT_FILE_FINAL"
         echo "$DEFAULT_SERVICE" > "$DIR/default_service"
     fi
 }
