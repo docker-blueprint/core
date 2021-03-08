@@ -6,6 +6,8 @@ shift
 # Read arguments
 #
 
+MODE_NO_CHOWN=false
+
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         -h|--help)
@@ -13,7 +15,15 @@ while [[ "$#" -gt 0 ]]; do
             printf "\t\t\t\t"
             printf "Synchronize development environment container\n"
 
+            printf "  ${FLG_COL}--no-chown${RESET}"
+            printf "\t\t\tDo not attempt to chown home directory\n"
+            printf "\t\t\t\t(useful when there are a lot of local files)\n"
+
             exit
+
+            ;;
+        --no-chown)
+            MODE_NO_CHOWN=true
 
             ;;
     esac
@@ -34,11 +44,16 @@ if [[ -n "$SYNC_USER" ]]; then
     $DOCKER_COMPOSE exec "$DEFAULT_SERVICE" usermod -u "$UID" "$SYNC_USER"
     $DOCKER_COMPOSE exec "$DEFAULT_SERVICE" groupmod -g "$GID" "$SYNC_USER"
 
-    HOME_DIR="$($DOCKER_COMPOSE exec --user="$SYNC_USER" "$DEFAULT_SERVICE" env | grep '^HOME=' | sed -r 's/^HOME=(.*)/\1/' | sed 's/\r//' | sed 's/\n//')"
-
-    echo "Chowning home directory '$HOME_DIR'..."
-
-    $DOCKER_COMPOSE exec "$DEFAULT_SERVICE" chown -R "$SYNC_USER" "$HOME_DIR"
+    if ! $MODE_NO_CHOWN;  then
+        HOME_DIR="$($DOCKER_COMPOSE exec --user="$SYNC_USER" "$DEFAULT_SERVICE" env | grep '^HOME=' | sed -r 's/^HOME=(.*)/\1/' | sed 's/\r//' | sed 's/\n//')"
+        if [[ -n "$HOME_DIR" ]];  then
+            echo "Recursively chowning home directory '$HOME_DIR'..."
+            $DOCKER_COMPOSE exec "$DEFAULT_SERVICE" chown -R "$SYNC_USER" "$HOME_DIR"
+        else
+            printf "${YELLOW}WARNING${RESET}: Unable to detect home directory.\n"
+            echo "Is HOME_DIR defined inside the container?"
+        fi
+    fi
 fi
 
 if [[ -n "$MAKE_DIRS" ]]; then
