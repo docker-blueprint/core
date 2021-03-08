@@ -67,10 +67,11 @@ if [[ -n "$MAKE_DIRS" ]]; then
 fi
 
 for command in "${POSTBUILD_COMMANDS[@]}"; do
-    echo "Running '$command'..."
     if [[ -z "$SYNC_USER" ]]; then
+        echo "Running '$command'..."
         $DOCKER_COMPOSE exec "$DEFAULT_SERVICE" $command
     else
+        echo "Running '$command' as user '$SYNC_USER'..."
         $DOCKER_COMPOSE exec --user="$SYNC_USER" "$DEFAULT_SERVICE" $command
     fi
 done
