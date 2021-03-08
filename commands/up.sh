@@ -7,6 +7,7 @@ shift
 #
 
 ARGS=()
+MODE_SYNC=false
 SYNC_ARGS=()
 MODE_NO_BUILD=false
 BUILD_ARGS=()
@@ -19,6 +20,9 @@ while [[ "$#" -gt 0 ]]; do
             printf "Bring up docker containers and initialize them\n"
             printf "\t\t\t\t"
             printf "You can use any of the options options for a regular docker-compose command\n"
+
+            printf "  ${FLG_COL}--sync${RESET}"
+            printf "\t\t\tAttempt to sync service container with the local environment\n"
 
             printf "  ${FLG_COL}--no-chown${RESET}"
             printf "\t\t\tPass --no-chown to 'sync' command\n"
@@ -46,6 +50,10 @@ while [[ "$#" -gt 0 ]]; do
             SYNC_ARGS+=('--no-chown')
 
             ;;
+        --sync)
+            MODE_SYNC=true
+
+            ;;
         *)
             ARGS+=($1)
     esac
@@ -63,4 +71,6 @@ if [[ $? > 0 ]]; then
     exit 1
 fi
 
-bash $ENTRYPOINT sync ${SYNC_ARGS[@]}
+if $MODE_SYNC; then
+    bash $ENTRYPOINT sync ${SYNC_ARGS[@]}
+fi
