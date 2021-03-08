@@ -8,6 +8,7 @@ shift
 
 ARGS=()
 SYNC_ARGS=()
+MODE_NO_BUILD=false
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
@@ -21,7 +22,14 @@ while [[ "$#" -gt 0 ]]; do
             printf "  ${FLG_COL}--no-chown${RESET}"
             printf "\t\t\tPass --no-chown to 'sync' command\n"
 
+            printf "  ${FLG_COL}--no-build${RESET}"
+            printf "\t\t\tDon't attempt to build the blueprint\n"
+
             exit
+
+            ;;
+        --no-build)
+            MODE_NO_BUILD=true
 
             ;;
         --no-chown)
@@ -34,6 +42,10 @@ while [[ "$#" -gt 0 ]]; do
 
     shift
 done
+
+if ! $MODE_NO_BUILD; then
+    bash $ENTRYPOINT build
+fi
 
 eval "$DOCKER_COMPOSE up -d ${ARGS[@]}"
 
