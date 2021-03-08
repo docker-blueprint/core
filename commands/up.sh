@@ -9,6 +9,7 @@ shift
 ARGS=()
 SYNC_ARGS=()
 MODE_NO_BUILD=false
+BUILD_ARGS=()
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
@@ -25,7 +26,16 @@ while [[ "$#" -gt 0 ]]; do
             printf "  ${FLG_COL}--no-build${RESET}"
             printf "\t\t\tDon't attempt to build the blueprint\n"
 
+            printf "  ${FLG_COL}-f${RESET}, ${FLG_COL}--force${RESET}"
+            printf "\t\t\tPass --force to 'build' command\n"
+            printf "\t\t\t\tThis will force to regenerate new docker files\n"
+            printf "\t\t\t\tpotentially overwriting current ones\n"
+
             exit
+
+            ;;
+        -f|--force)
+            BUILD_ARGS+=('--force')
 
             ;;
         --no-build)
@@ -44,7 +54,7 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 if ! $MODE_NO_BUILD; then
-    bash $ENTRYPOINT build
+    bash $ENTRYPOINT build ${BUILD_ARGS[@]}
 fi
 
 eval "$DOCKER_COMPOSE up -d ${ARGS[@]}"
