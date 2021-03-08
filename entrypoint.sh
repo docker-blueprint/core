@@ -57,42 +57,67 @@ if [[ -f "$ROOT_DIR/commands/$1.sh" ]]; then
     exit
 fi
 
-case $1 in
-    start | stop | restart | down)
-    $DOCKER_COMPOSE "$1" ${@:2}
-    ;;
+MODE_NO_TTY=false
 
-    -h | --help)
-        source "$ROOT_DIR/commands/help.sh"
-        ;;
+if [[ $# -eq 0 ]]; then
+    source "$ROOT_DIR/commands/help.sh"
+    exit
+fi
 
-    -v | --version)
-        AS_FUNCTION=false
-        source "$ROOT_DIR/commands/version.sh"
-        ;;
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+        start | stop | restart | down)
+            $DOCKER_COMPOSE "$1" ${@:2}
+            exit
+            ;;
 
-    *)
-        if [[ ! -z "$1" ]]; then
-            if [[ ! -z "$2" ]] && [[ "$2" == "sudo" ]]; then
-                COMMAND="$DOCKER_COMPOSE exec $1 ${@:3}"
-            elif [[ "$1" == "sudo" ]]; then
-                COMMAND="$DOCKER_COMPOSE exec $DEFAULT_SERVICE ${@:2}"
-            elif [[ ! -z "$2" ]] && [[ "$2" == "exec" ]]; then
-                COMMAND="$DOCKER_COMPOSE exec --user=$UID:$GID $1 ${@:3}"
-            elif [[ "$1" == "exec" ]]; then
-                COMMAND="$DOCKER_COMPOSE exec --user=$UID:$GID $DEFAULT_SERVICE ${@:2}"
-            else
-                COMMAND="$DOCKER_COMPOSE exec --user=$UID:$GID $DEFAULT_SERVICE $@"
-            fi
-
-            if [[ -z "$DEFAULT_SERVICE" ]]; then
-                echo "Cannot execute command against default service - no default service specified."
-                exit 1
-            else
-                $COMMAND
-            fi
-        else
+        -h | --help)
             source "$ROOT_DIR/commands/help.sh"
-        fi
-        ;;
-esac
+            exit
+            ;;
+
+        -v | --version)
+            AS_FUNCTION=false
+            source "$ROOT_DIR/commands/version.sh"
+            exit
+            ;;
+
+        -T)
+            MODE_NO_TTY=true
+            ;;
+
+        *)
+            if [[ ! -z "$1" ]]; then
+                COMMAND=("$DOCKER_COMPOSE exec")
+
+                if $MODE_NO_TTY; then
+                    COMMAND+=("-T")
+                fi
+
+                if [[ ! -z "$2" ]] && [[ "$2" == "sudo" ]]; then
+                    COMMAND+=("$1 ${@:3}")
+                elif [[ "$1" == "sudo" ]]; then
+                    COMMAND+=("$DEFAULT_SERVICE ${@:2}")
+                elif [[ ! -z "$2" ]] && [[ "$2" == "exec" ]]; then
+                    COMMAND+=("--user=$UID:$GID $1 ${@:3}")
+                elif [[ "$1" == "exec" ]]; then
+                    COMMAND+=("--user=$UID:$GID $DEFAULT_SERVICE ${@:2}")
+                else
+                    COMMAND+=("--user=$UID:$GID $DEFAULT_SERVICE $@")
+                fi
+
+                if [[ -z "$DEFAULT_SERVICE" ]]; then
+                    echo "Cannot execute command against default service - no default service specified."
+                    exit 1
+                else
+                    eval "${COMMAND[@]}"
+                fi
+            else
+                source "$ROOT_DIR/commands/help.sh"
+            fi
+
+            exit
+    esac
+
+    shift
+done
