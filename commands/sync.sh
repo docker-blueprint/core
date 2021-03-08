@@ -79,5 +79,7 @@ done
 # Restart container to apply chown
 #
 
-echo "Restarting container '$DEFAULT_SERVICE'..."
-$DOCKER_COMPOSE restart "$DEFAULT_SERVICE"
+if ! $MODE_NO_CHOWN;  then
+    echo "Restarting container '$DEFAULT_SERVICE'..."
+    $DOCKER_COMPOSE restart "$DEFAULT_SERVICE"
+fi
