@@ -6,18 +6,30 @@ shift
 # Read arguments
 #
 
-case $1 in
--h | --help)
-    printf "${CMD_COL}run${RESET} ${ARG_COL}<command>${RESET}"
-    printf "\t\t\tRun a command in specified environment\n"
+while [[ "$#" -gt 0 ]]; do
+    case $1 in
+    -h | --help)
+        printf "${CMD_COL}run${RESET} ${ARG_COL}<command>${RESET}"
+        printf "\t\t\tRun a command in specified environment\n"
 
-    exit
+        printf "  ${FLG_COL}-T${RESET}"
+        printf "\t\t\t\tForce enable no TTY mode\n"
+        printf "\t\t\t\tBy default 'docker-compose exec' allocates a TTY\n"
 
-    ;;
-*)
-    COMMAND=$1
-    ;;
-esac
+        exit
+
+        ;;
+    -T)
+        MODE_NO_TTY='true'
+        ;;
+    *)
+        COMMAND=$1
+        break
+        ;;
+    esac
+
+    shift
+done
 
 yq_read_keys POSSIBLE_COMMANDS "commands" "$BLUEPRINT_FILE_FINAL"
 
@@ -25,9 +37,9 @@ if [[ -z "$COMMAND" ]]; then
     bash $ENTRYPOINT run --help
 
     if [[ ${#POSSIBLE_COMMANDS[@]} > 0 ]]; then
-        printf "${GREEN}Possible commands${RESET}:"
+        printf "${GREEN}Possible commands${RESET}:\n"
         for key in "${POSSIBLE_COMMANDS[@]}"; do
-            printf " $key"
+            printf -- "- $key\n"
         done
         printf "\n"
     else
@@ -78,7 +90,7 @@ for arg in "${@:2}"; do
     debug_print "Setting argument as environment variable: ARG_$i=\"$arg\""
 done
 
-ENV_PREFIX+=("COMMAND_NAME=$COMMAND")
+ENV_PREFIX+=("COMMAND_NAME=\"$COMMAND\"")
 
 yq_read_value RUNTIME "$COMMAND_ROOT.runtime" "$BLUEPRINT_FILE_FINAL"
 
@@ -88,12 +100,21 @@ fi
 
 debug_print "Runtime: $RUNTIME"
 
-yq_read_value MODE_NO_TTY "$COMMAND_ROOT.no_tty" "$BLUEPRINT_FILE_FINAL"
-MODE_NO_TTY="$(echo $MODE_NO_TTY | grep -P '^yes|true|1$')"
+if [[ -z $MODE_NO_TTY ]]; then
+    yq_read_value MODE_NO_TTY "$COMMAND_ROOT.no_tty" "$BLUEPRINT_FILE_FINAL"
+    MODE_NO_TTY="$(echo $MODE_NO_TTY | grep -P '^yes|true|1$')"
+fi
 
 if [[ -n "$MODE_NO_TTY" ]]; then
     ENTRYPOINT_ARGS+=('-T')
 fi
+
+COMMAND_VERB="exec"
+
+yq_read_value MODE_AS_SUDO "$COMMAND_ROOT.as_sudo" "$BLUEPRINT_FILE_FINAL"
+MODE_AS_SUDO="$(echo $MODE_AS_SUDO | grep -P '^yes|true|1$')"
+
+[[ -n "$MODE_AS_SUDO" ]] && COMMAND_VERB="sudo"
 
 yq_read_value SERVICE "$COMMAND_ROOT.service" "$BLUEPRINT_FILE_FINAL"
 
@@ -124,7 +145,7 @@ command="env ${ENV_PREFIX[*]} $RUNTIME \"$PROGRAM\""
 debug_print "Program to run:\n$PROGRAM"
 debug_print "Running..."
 
-bash $ENTRYPOINT ${ENTRYPOINT_ARGS[*]} $SERVICE exec "$command"
+bash $ENTRYPOINT ${ENTRYPOINT_ARGS[*]} $SERVICE $COMMAND_VERB "$command"
 
 for key in "${ENVIRONMENT_KEYS[@]}"; do
     unset $key
