@@ -58,7 +58,7 @@ if [[ -z "$PROGRAM" ]]; then
     exit 1
 fi
 
-echo "Setting up command to run..."
+debug_print "Setting up command to run..."
 
 ENV_PREFIX=()
 ENTRYPOINT_ARGS=()
