@@ -18,3 +18,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ### Updated
 - Upgraded yq to version 4 (removed undocumented dependency on jq)
+- Updated run command to be more sophisticated
