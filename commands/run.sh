@@ -111,10 +111,10 @@ fi
 
 COMMAND_VERB="exec"
 
-yq_read_value MODE_AS_SUDO "$COMMAND_ROOT.as_sudo" "$BLUEPRINT_FILE_FINAL"
-MODE_AS_SUDO="$(echo $MODE_AS_SUDO | grep -P '^yes|true|1$')"
+yq_read_value MODE_AS_ROOT "$COMMAND_ROOT.as_root" "$BLUEPRINT_FILE_FINAL"
+MODE_AS_ROOT="$(echo $MODE_AS_ROOT | grep -P '^yes|true|1$')"
 
-[[ -n "$MODE_AS_SUDO" ]] && COMMAND_VERB="sudo"
+[[ -n "$MODE_AS_ROOT" ]] && COMMAND_VERB="sudo"
 
 yq_read_value SERVICE "$COMMAND_ROOT.service" "$BLUEPRINT_FILE_FINAL"
 
