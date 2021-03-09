@@ -12,7 +12,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added dockerfile preprocessor
 - Added dockerfile blueprint variable substitution
 - Added dockerfile directives
-- Added proxy for common docker-compose commands such as `up`, `down`, `start`, etc
+- Added proxy for common docker-compose commands: `start`, `stop`, `restart` and `down`
 - Added nested dependency resolvement during both initialization & build stages
 - Added project configuration (name and context)
 
