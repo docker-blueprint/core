@@ -9,7 +9,7 @@ shift
 case $1 in
 -h | --help)
     printf "${CMD_COL}run${RESET} ${ARG_COL}<command>${RESET}"
-    printf "\t\t\tRun a command in specified environemnt\n"
+    printf "\t\t\tRun a command in specified environment\n"
 
     exit
 
