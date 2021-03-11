@@ -103,7 +103,7 @@ while [[ "$#" -gt 0 ]]; do
                 elif [[ "$1" == "exec" ]]; then
                     COMMAND+=("--user=$UID:$GID $DEFAULT_SERVICE ${@:2}")
                 else
-                    COMMAND+=("--user=$UID:$GID $1 ${@:2}")
+                    COMMAND+=("--user=$UID:$GID $DEFAULT_SERVICE ${@:1}")
                 fi
 
                 if [[ -z "$DEFAULT_SERVICE" ]]; then
