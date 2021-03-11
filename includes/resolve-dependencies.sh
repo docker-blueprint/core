@@ -87,5 +87,3 @@ while [[ $i -le ${#MODULES_TO_LOAD[@]} ]]; do
 done
 
 debug_print "Resolved module list: ${MODULES_TO_LOAD[*]}"
-
-# export RET="${MODULES_TO_LOAD[*]}"
