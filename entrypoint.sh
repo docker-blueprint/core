@@ -3,7 +3,8 @@
 EXECUTABLE_NAME=$(basename "${BASH_SOURCE}")
 
 PROJECT_DIR=$PWD
-[[ -z $PROJECT_NAME ]] && PROJECT_NAME=$(basename $PROJECT_DIR)
+[[ -n $PROJECT_NAME ]] && GOT_PROJECT_NAME_FROM_ENV=true
+[[ -z $GOT_PROJECT_NAME_FROM_ENV ]] && PROJECT_NAME=$(basename $PROJECT_DIR)
 DIR=.docker-blueprint
 REAL_DIR="$(readlink -f "$0")"
 ROOT_DIR="$(dirname "$REAL_DIR")"
@@ -32,7 +33,7 @@ if [[ -f "$BLUEPRINT_FILE_FINAL" ]]; then
     yq_read_value PROJECT_CONTEXT "project.context" "$BLUEPRINT_FILE_FINAL"
 
     yq_read_value name "project.name" "$BLUEPRINT_FILE_FINAL"
-    [[ -n $name ]] && export PROJECT_NAME="$name"
+    [[ -z $GOT_PROJECT_NAME_FROM_ENV && -n $name ]] && export PROJECT_NAME="$name"
 fi
 
 source "$ROOT_DIR/includes/entrypoint/init-compose.sh"
