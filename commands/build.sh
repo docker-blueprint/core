@@ -74,7 +74,11 @@ if [[ -n "$ENV_NAME" ]]; then
     fi
 fi
 
+debug_newline_print "Resolving dependencies..."
+
 source "$ROOT_DIR/includes/resolve-dependencies.sh" ${MODULES_TO_LOAD[@]}
+
+non_debug_print " ${GREEN}done${RESET}\n"
 
 #
 # Read generated configuration
