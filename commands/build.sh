@@ -132,6 +132,10 @@ done
 
 env_name="$(echo "$ENV_NAME" | tr [:lower:] [:upper:] | tr - _)"
 
+if [[ -n "$ENV_NAME" ]]; then
+    add_variable "ENV_${env_name}_DIR" "$ENV_DIR"
+fi
+
 for module in "${MODULES_TO_LOAD[@]}"; do
     module_name="$(echo "$module" | tr [:lower:] [:upper:] | tr "/-" _)"
 
