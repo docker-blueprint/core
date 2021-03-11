@@ -97,6 +97,7 @@ add_variable() {
 
 add_variable "BLUEPRINT_DIR" "$BLUEPRINT_DIR"
 add_variable "ENV_DIR" "$ENV_DIR"
+add_variable "ENV_NAME" "$ENV_NAME"
 
 for variable in ${BUILD_ARGS_KEYS[@]}; do
     yq_read_value value "build_args.$variable" && non_debug_print "."
