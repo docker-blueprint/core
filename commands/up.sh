@@ -65,7 +65,7 @@ if ! $MODE_NO_BUILD; then
     bash $ENTRYPOINT build ${BUILD_ARGS[@]}
 fi
 
-eval "$DOCKER_COMPOSE up -d ${ARGS[@]}"
+eval "$DOCKER_COMPOSE up -d --remove-orphans ${ARGS[@]}"
 
 if [[ $? > 0 ]]; then
     exit 1
