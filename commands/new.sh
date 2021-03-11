@@ -172,7 +172,18 @@ if ! [[ -f "$PWD/$BLUEPRINT_FILE_FINAL" ]]; then
     done
 
     for module in "${ARG_WITH[@]}"; do
-        MODULES_TO_LOAD+=($module)
+        ALREADY_DEFINED=false
+
+        for defined_module in "${MODULES_TO_LOAD[@]}"; do
+            if [[ "$module" = "$defined_module" ]]; then
+                ALREADY_DEFINED=true
+                break
+            fi
+        done
+
+        if ! $ALREADY_DEFINED; then
+            MODULES_TO_LOAD+=($module)
+        fi
     done
 
     source "$ROOT_DIR/includes/resolve-dependencies.sh" ${MODULES_TO_LOAD[@]}
