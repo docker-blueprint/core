@@ -125,6 +125,22 @@ for key in "${PURGE_KEYS[@]}"; do
     add_variable "PURGE_$key" "${PURGE[*]}"
 done
 
+env_name="$(echo "$ENV_NAME" | tr [:lower:] [:upper:] | tr - _)"
+
+for module in "${MODULES_TO_LOAD[@]}"; do
+    module_name="$(echo "$module" | tr [:lower:] [:upper:] | tr "/-" _)"
+
+    path="$BLUEPRINT_DIR/modules/$module"
+    if [[ -d "$path" ]]; then
+        add_variable "MODULE_${module_name}_DIR" "$path"
+    fi
+
+    path="$ENV_DIR/modules/$module"
+    if [[ -d "$path" ]]; then
+        add_variable "ENV_${env_name}_MODULE_${module_name}_DIR" "$path"
+    fi
+done
+
 non_debug_print " ${GREEN}done${RESET}\n"
 
 #
