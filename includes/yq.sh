@@ -45,7 +45,7 @@ yq_read_value() {
         FILE="$3"
     fi
 
-    printf -v "$1" "$(yq eval ".$2 // \"\"" "$FILE" 2>/dev/null)"
+    printf -v "$1" "%s" "$(yq eval ".$2 // \"\"" "$FILE" 2>/dev/null)"
 }
 
 yq_read_array() {
