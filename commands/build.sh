@@ -232,6 +232,23 @@ for name in ${FILE_NAMES[@]}; do
         # Remove empty lines
         sed -ri '/^\s*$/d' "$CURRENT_DOCKER_COMPOSE_FILE"
 
+        substitute_vars() {
+            env "${SCRIPT_VARS[@]}" \
+            bash "$ROOT_DIR/includes/preprocessor/substitute-vars.sh" $@
+        }
+
+        temp_file="$TEMP_DIR/$name"
+        mkdir -p "$(dirname "$temp_file")"
+
+        OLD_IFS="$IFS" # Source https://stackoverflow.com/a/18055300/2467106
+        IFS=
+        while read -r line || [[ -n "$line" ]]; do
+            echo $(substitute_vars "$line" "~")
+        done <"$CURRENT_DOCKER_COMPOSE_FILE" > "$temp_file"
+        IFS="$OLD_IFS"
+
+        mv -f "$temp_file" "$CURRENT_DOCKER_COMPOSE_FILE"
+
         debug_print "Created docker-compose file: '$name':"
 
         printf "Generated ${YELLOW}$name${RESET}\n"
