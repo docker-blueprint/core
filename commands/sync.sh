@@ -31,7 +31,6 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 yq_read_value SYNC_USER "user"
-yq_read_array MAKE_DIRS "make_dirs"
 yq_read_array POSTBUILD_COMMANDS "postbuild_commands"
 
 #
@@ -52,16 +51,6 @@ if [[ -n "$SYNC_USER" ]]; then
             echo "Is HOME defined inside the container?"
         fi
     fi
-fi
-
-if [[ -n "$MAKE_DIRS" ]]; then
-    for dir in "${MAKE_DIRS[@]}"; do
-        echo "Making directory '$dir'..."
-        $DOCKER_COMPOSE exec "$DEFAULT_SERVICE" mkdir -p "$dir"
-        if [[ -n "$SYNC_USER" ]]; then
-            $DOCKER_COMPOSE exec "$DEFAULT_SERVICE" chown -R "$SYNC_USER" "$dir"
-        fi
-    done
 fi
 
 for command in "${POSTBUILD_COMMANDS[@]}"; do
