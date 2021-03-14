@@ -284,10 +284,10 @@ fi
 
 rm -f "$BLUEPRINT_FILE_TMP"
 
-INVOKE="$ENTRYPOINT build"
+COMMAND="$ENTRYPOINT build"
 
 if $FORCE_GENERATE; then
-    INVOKE="$INVOKE --force"
+    COMMAND="$COMMAND --force"
 fi
 
-bash $INVOKE
+bash $COMMAND
