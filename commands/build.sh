@@ -183,6 +183,8 @@ for name in ${FILE_NAMES[@]}; do
         continue
     fi
 
+    debug_newline_print "Generating ${YELLOW}$name${RESET}..."
+
     # Find all files with the same name
     FILES=($(find "$BLUEPRINT_DIR" -name "$name" -type f))
 
@@ -230,6 +232,8 @@ for name in ${FILE_NAMES[@]}; do
                 "$CURRENT_DOCKER_COMPOSE_FILE" "$file"
             )" > "$CURRENT_DOCKER_COMPOSE_FILE"
         fi
+
+        non_debug_print "."
     done
 
     if [[ -f "$CURRENT_DOCKER_COMPOSE_FILE" ]]; then
@@ -243,19 +247,21 @@ for name in ${FILE_NAMES[@]}; do
 
         temp_file="$TEMP_DIR/$name"
         mkdir -p "$(dirname "$temp_file")"
+        rm -f "$temp_file" && touch "$temp_file"
 
         OLD_IFS="$IFS" # Source https://stackoverflow.com/a/18055300/2467106
         IFS=
         while read -r line || [[ -n "$line" ]]; do
-            echo $(substitute_vars "$line" "~")
-        done <"$CURRENT_DOCKER_COMPOSE_FILE" > "$temp_file"
+            echo $(substitute_vars "$line" "~") >> "$temp_file"
+            non_debug_print "."
+        done <"$CURRENT_DOCKER_COMPOSE_FILE"
         IFS="$OLD_IFS"
 
         mv -f "$temp_file" "$CURRENT_DOCKER_COMPOSE_FILE"
 
         debug_print "Created docker-compose file: '$name':"
 
-        printf "Generated ${YELLOW}$name${RESET}\n"
+        non_debug_print " ${GREEN}done${RESET}\n"
     fi
 done
 

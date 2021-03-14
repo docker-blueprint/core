@@ -106,25 +106,34 @@ substitute_vars() {
     source "$ROOT_DIR/includes/preprocessor/substitute-vars.sh" "$1"
 }
 
+temp_file="$DOCKERFILE.tmp"
+
 # Parse dockerfile directives
 
+rm -f "$temp_file" && touch "$temp_file"
 while read -r line || [[ -n "$line" ]]; do
     result="$(parse_directive "$line")"
     if [[ $? -eq 0 ]]; then
-        echo "$result"
+        echo "$result" >> "$temp_file"
     fi
-done <"$OUTPUT_FILE" >"$OUTPUT_FILE.tmp"
+
+    non_debug_print "."
+done <"$OUTPUT_FILE"
 # https://stackoverflow.com/a/4160535/2467106
 
-mv -f "$OUTPUT_FILE.tmp" "$OUTPUT_FILE"
+mv -f "$temp_file" "$OUTPUT_FILE"
 
 # Substitute blueprint variables
 
+rm -f "$temp_file" && touch "$temp_file"
 while read -r line || [[ -n "$line" ]]; do
-    echo "$(substitute_vars "$line")"
-done <"$OUTPUT_FILE" >"$OUTPUT_FILE.tmp"
+    echo "$(substitute_vars "$line")" >> "$temp_file"
 
-mv -f "$OUTPUT_FILE.tmp" "$OUTPUT_FILE"
+    non_debug_print "."
+done <"$OUTPUT_FILE"
+
+mv -f "$temp_file" "$OUTPUT_FILE"
+rm -f "$temp_file"
 
 if ! $AS_FUNCTION; then
     printf " ${GREEN}done${RESET}\n"
