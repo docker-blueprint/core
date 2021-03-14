@@ -31,7 +31,6 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 yq_read_value SYNC_USER "user"
-yq_read_array POSTBUILD_COMMANDS "postbuild_commands"
 
 #
 # Synchronize container user with the current host
@@ -52,16 +51,6 @@ if [[ -n "$SYNC_USER" ]]; then
         fi
     fi
 fi
-
-for command in "${POSTBUILD_COMMANDS[@]}"; do
-    if [[ -z "$SYNC_USER" ]]; then
-        echo "Running '$command'..."
-        $DOCKER_COMPOSE exec "$DEFAULT_SERVICE" $command
-    else
-        echo "Running '$command' as user '$SYNC_USER'..."
-        $DOCKER_COMPOSE exec --user="$SYNC_USER" "$DEFAULT_SERVICE" $command
-    fi
-done
 
 #
 # Restart container to apply chown
