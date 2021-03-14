@@ -43,6 +43,10 @@ yq_read_array MODULES_TO_LOAD 'modules' && printf "."
 
 BLUEPRINT_DIR=$(AS_FUNCTION=true bash $ENTRYPOINT pull $BLUEPRINT)
 
+# Remove working directory prefix, making the path relative
+# since docker can copy files on from the current directory.
+BLUEPRINT_DIR=${BLUEPRINT_DIR#$PWD/}
+
 if [[ $? -ne 0 ]]; then
     printf "\n${RED}ERROR${RESET}: Unable to pull blueprint '$BLUEPRINT'.\n"
     exit 1
