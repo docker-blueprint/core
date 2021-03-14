@@ -38,6 +38,8 @@ yq_read_value SYNC_USER "user"
 
 if [[ -n "$SYNC_USER" ]]; then
     echo "Synchronizing user '$SYNC_USER'..."
+
+    echo "Setting UID to $UID..."
     $DOCKER_COMPOSE exec "$DEFAULT_SERVICE" usermod -u "$UID" "$SYNC_USER"
 
     if ! $MODE_NO_CHOWN;  then
