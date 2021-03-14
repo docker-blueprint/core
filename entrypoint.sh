@@ -36,6 +36,27 @@ if [[ -f "$BLUEPRINT_FILE_FINAL" ]]; then
     [[ -z $GOT_PROJECT_NAME_FROM_ENV && -n $name ]] && export PROJECT_NAME="$name"
 fi
 
+# Parse global arguments
+for arg in $@; do
+    case $arg in
+        -c|--context)
+            if [[ -z $2 ]]; then
+                printf "${RED}ERROR${RESET}: Context name is required\n"
+                exit 1
+            fi
+
+            PROJECT_CONTEXT="$2"
+            shift 2
+
+            if [[ ! -f "docker-compose.$PROJECT_CONTEXT.yml" ]]; then
+                printf "${RED}ERROR${RESET}: No docker-compose file found for context ${YELLOW}$PROJECT_CONTEXT${RESET}\n"
+                exit 1
+            fi
+
+            ;;
+    esac
+done
+
 source "$ROOT_DIR/includes/entrypoint/init-compose.sh"
 
 init_default_service() {
@@ -50,28 +71,6 @@ init_default_service() {
 if [[ -z "$DEFAULT_SERVICE" ]]; then
     init_default_service
 fi
-
-for arg in $@; do
-    case $arg in
-        -c|--context)
-            if [[ -z $2 ]]; then
-                printf "${RED}ERROR${RESET}: Context name is required\n"
-                exit 1
-            fi
-
-            export PROJECT_CONTEXT="$2"
-            shift 2
-
-            source "$ROOT_DIR/includes/entrypoint/init-compose.sh"
-
-            if [[ ! -f "docker-compose.$PROJECT_CONTEXT.yml" ]]; then
-                printf "${RED}ERROR${RESET}: No docker-compose file found for context ${YELLOW}$PROJECT_CONTEXT${RESET}\n"
-                exit 1
-            fi
-
-            ;;
-    esac
-done
 
 if [[ -f "$ROOT_DIR/commands/$1.sh" ]]; then
     if [[ -z $AS_FUNCTION ]]; then
