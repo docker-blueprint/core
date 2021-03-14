@@ -179,7 +179,7 @@ for name in ${FILE_NAMES[@]}; do
     if $MODE_FORCE; then
         rm -f "$CURRENT_DOCKER_COMPOSE_FILE"
     elif [[ -f "$CURRENT_DOCKER_COMPOSE_FILE" ]]; then
-        printf "${YELLOW}WARNING${RESET}: $name already exists, skipping generation (run with --force to override).\n"
+        printf "${BLUE}INFO${RESET}: ${YELLOW}$name${RESET} already exists, skipping generation (run with --force to override).\n"
         continue
     fi
 
@@ -283,7 +283,7 @@ for file in $BLUEPRINT_DIR/[Dd]ockerfile*; do
     if $MODE_FORCE; then
         rm -f "$CURRENT_DOCKERFILE"
     elif [[ -f "$CURRENT_DOCKERFILE" ]]; then
-        printf "${YELLOW}WARNING${RESET}: $DOCKER_FILE already exists, skipping generation (run with --force to override).\n"
+        printf "${BLUE}INFO${RESET}: ${YELLOW}$DOCKER_FILE${RESET} already exists, skipping generation (run with --force to override).\n"
         continue
     fi
 

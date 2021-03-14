@@ -113,7 +113,7 @@ done
 if $FORCE_GENERATE; then
     rm -f "$PWD/$BLUEPRINT_FILE_FINAL"
 elif [[ -f "$PWD/$BLUEPRINT_FILE_FINAL" ]]; then
-    printf "${YELLOW}WARNING${RESET}: $BLUEPRINT_FILE_FINAL already exists, skipping generation (run with --force to override).\n"
+    printf "${BLUE}INFO${RESET}: ${YELLOW}$BLUEPRINT_FILE_FINAL${RESET} already exists, skipping generation (run with --force to override).\n"
 fi
 
 if ! [[ -f "$PWD/$BLUEPRINT_FILE_FINAL" ]]; then
