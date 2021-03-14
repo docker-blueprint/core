@@ -17,7 +17,7 @@ while [[ "$#" -gt 0 ]]; do
             printf "\t\tBuild containerized technology stack defined in docker-blueprint.yml\n"
 
             printf "  ${FLG_COL}-f${RESET}, ${FLG_COL}--force${RESET}"
-            printf "\t\t\tAlways generate new docker files\n"
+            printf "\t\t\tAlways generate new docker files. This ${RED}WILL OVERWRITE${RESET} existing files\n"
 
             exit
 

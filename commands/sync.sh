@@ -16,8 +16,7 @@ while [[ "$#" -gt 0 ]]; do
             printf "Synchronize development environment container\n"
 
             printf "  ${FLG_COL}--no-chown${RESET}"
-            printf "\t\t\tDo not attempt to chown home directory\n"
-            printf "\t\t\t\t(useful when there are a lot of local files)\n"
+            printf "\t\t\tDo not attempt to chown home directory (i.e. when there are a lot of local files)\n"
 
             exit
 

@@ -13,8 +13,7 @@ while [[ "$#" -gt 0 ]]; do
         printf "\t\t\tRun a command in specified environment\n"
 
         printf "  ${FLG_COL}-T${RESET}"
-        printf "\t\t\t\tForce enable no TTY mode\n"
-        printf "\t\t\t\tBy default 'docker-compose exec' allocates a TTY\n"
+        printf "\t\t\t\tDisable pseudo-tty allocation. Propagates -T to 'docker-compose exec'\n"
 
         exit
 
