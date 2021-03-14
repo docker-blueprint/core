@@ -42,7 +42,6 @@ yq_read_array POSTBUILD_COMMANDS "postbuild_commands"
 if [[ -n "$SYNC_USER" ]]; then
     echo "Synchronizing user '$SYNC_USER'..."
     $DOCKER_COMPOSE exec "$DEFAULT_SERVICE" usermod -u "$UID" "$SYNC_USER"
-    $DOCKER_COMPOSE exec "$DEFAULT_SERVICE" groupmod -g "$GID" "$SYNC_USER"
 
     if ! $MODE_NO_CHOWN;  then
         HOME_DIR="$($DOCKER_COMPOSE exec --user="$SYNC_USER" "$DEFAULT_SERVICE" env | grep '^HOME=' | sed -r 's/^HOME=(.*)/\1/' | sed 's/\r//' | sed 's/\n//')"
@@ -51,7 +50,7 @@ if [[ -n "$SYNC_USER" ]]; then
             $DOCKER_COMPOSE exec "$DEFAULT_SERVICE" chown -R "$SYNC_USER" "$HOME_DIR"
         else
             printf "${YELLOW}WARNING${RESET}: Unable to detect home directory.\n"
-            echo "Is HOME_DIR defined inside the container?"
+            echo "Is HOME defined inside the container?"
         fi
     fi
 fi
