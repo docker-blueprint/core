@@ -89,7 +89,7 @@ debug_newline_print "Reading configuration..."
 yq_read_value DEFAULT_SERVICE "default_service" && non_debug_print "."
 yq_read_keys BUILD_ARGS_KEYS "build_args" && non_debug_print "."
 
-echo "$DEFAULT_SERVICE" > "$DIR/default_service"
+echo "$DEFAULT_SERVICE" > "$LOCAL_DIR/default_service"
 
 BUILD_ARGS=()
 SCRIPT_VARS=()

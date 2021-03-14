@@ -4,10 +4,10 @@
 # Update .gitignore to exclude .docker-blueprint
 #
 
-CONTENT="$DIR\n"
+CONTENT="$LOCAL_DIR\n"
 
 if [[ -f .gitignore ]]; then
-    if [[ -z $(cat .gitignore | grep "$DIR") ]]; then
+    if [[ -z $(cat .gitignore | grep "$LOCAL_DIR") ]]; then
         printf "$CONTENT" >> .gitignore
     fi
 else

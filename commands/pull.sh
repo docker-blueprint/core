@@ -112,10 +112,10 @@ fi
 #
 
 if [[ -d $BLUEPRINT ]] && [[ $BLUEPRINT =~ "/" || $BLUEPRINT =~ "." || $BLUEPRINT =~ ".." ]]; then
-    mkdir -p "$DIR/blueprints/.local"
+    mkdir -p "$LOCAL_DIR/blueprints/.local"
 
     HASH=$(echo -n "$BLUEPRINT" | openssl dgst -sha1 | sed 's/^.* //')
-    BLUEPRINT_DIR="$DIR/blueprints/.local/$HASH"
+    BLUEPRINT_DIR="$LOCAL_DIR/blueprints/.local/$HASH"
 
     if ! $AS_FUNCTION; then
         echo "Copying '$BLUEPRINT'..."
@@ -129,9 +129,9 @@ else
     #
 
     if [[ $BLUEPRINT_MAINTAINER = "docker-blueprint" ]]; then
-        BLUEPRINT_DIR="$DIR/blueprints/_/$BLUEPRINT_NAME"
+        BLUEPRINT_DIR="$LOCAL_DIR/blueprints/_/$BLUEPRINT_NAME"
     else
-        BLUEPRINT_DIR="$DIR/blueprints/$BLUEPRINT_MAINTAINER/$BLUEPRINT_NAME"
+        BLUEPRINT_DIR="$LOCAL_DIR/blueprints/$BLUEPRINT_MAINTAINER/$BLUEPRINT_NAME"
     fi
 
     PREVIOUS_DIR=$PWD

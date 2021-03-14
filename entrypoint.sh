@@ -5,15 +5,15 @@ EXECUTABLE_NAME=$(basename "${BASH_SOURCE}")
 PROJECT_DIR=$PWD
 [[ -n $PROJECT_NAME ]] && GOT_PROJECT_NAME_FROM_ENV=true
 [[ -z $GOT_PROJECT_NAME_FROM_ENV ]] && PROJECT_NAME=$(basename $PROJECT_DIR)
-DIR=.docker-blueprint
+DIR_NAME=.docker-blueprint
 REAL_DIR="$(readlink -f "$0")"
 ROOT_DIR="$(dirname "$REAL_DIR")"
-LOCAL_DIR="$PROJECT_DIR/$DIR"
+LOCAL_DIR="$PROJECT_DIR/$DIR_NAME"
 TEMP_DIR="$LOCAL_DIR/tmp"
 ENTRYPOINT="$ROOT_DIR/$(basename "$REAL_DIR")"
 BLUEPRINT_FILE_FINAL=docker-blueprint.yml
 
-mkdir -p $DIR
+mkdir -p $LOCAL_DIR
 source "$ROOT_DIR/includes/update-gitignore.sh"
 
 if [[ -z $UID ]]; then
@@ -39,11 +39,11 @@ fi
 source "$ROOT_DIR/includes/entrypoint/init-compose.sh"
 
 init_default_service() {
-    DEFAULT_SERVICE=$(cat $DIR/default_service 2>/dev/null)
+    DEFAULT_SERVICE=$(cat $LOCAL_DIR/default_service 2>/dev/null)
 
     if [[ -z $DEFAULT_SERVICE ]] && [[ -f "$BLUEPRINT_FILE_FINAL" ]]; then
         yq_read_value DEFAULT_SERVICE "default_service" "$BLUEPRINT_FILE_FINAL"
-        echo "$DEFAULT_SERVICE" > "$DIR/default_service"
+        echo "$DEFAULT_SERVICE" > "$LOCAL_DIR/default_service"
     fi
 }
 
