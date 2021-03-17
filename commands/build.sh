@@ -36,9 +36,9 @@ done
 
 printf "Loading blueprint..."
 
-yq_read_value BLUEPRINT 'blueprint.name' && printf "."
-yq_read_value CHECKPOINT 'blueprint.version' && printf "."
-yq_read_value ENV_NAME 'blueprint.env' && printf "."
+yq_read_value BLUEPRINT 'name' && printf "."
+yq_read_value CHECKPOINT 'version' && printf "."
+yq_read_value ENV_NAME 'environment' && printf "."
 yq_read_array MODULES_TO_LOAD 'modules' && printf "."
 
 BLUEPRINT_DIR=$(AS_FUNCTION=true bash $ENTRYPOINT pull $BLUEPRINT)

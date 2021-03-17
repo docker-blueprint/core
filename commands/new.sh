@@ -256,13 +256,13 @@ if ! [[ -f "$PWD/$BLUEPRINT_FILE_FINAL" ]]; then
     cd $PROJECT_DIR
 
     if [[ -n $hash ]]; then
-        yq -i eval ".blueprint.version = \"$hash\"" "$BLUEPRINT_FILE_FINAL" && non_debug_print "."
+        yq -i eval ".version = \"$hash\"" "$BLUEPRINT_FILE_FINAL" && non_debug_print "."
     fi
 
-    yq -i eval ".blueprint.name = \"$BLUEPRINT\"" "$BLUEPRINT_FILE_FINAL" && non_debug_print "."
+    yq -i eval ".name = \"$BLUEPRINT\"" "$BLUEPRINT_FILE_FINAL" && non_debug_print "."
 
     if [[ -n $ENV_NAME ]]; then
-        yq -i eval ".blueprint.env = \"$ENV_NAME\"" "$BLUEPRINT_FILE_FINAL" && non_debug_print "."
+        yq -i eval ".environment = \"$ENV_NAME\"" "$BLUEPRINT_FILE_FINAL" && non_debug_print "."
     fi
 
     yq_read_keys BUILD_ARGS_KEYS 'build_args'
