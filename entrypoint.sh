@@ -54,6 +54,10 @@ for arg in $@; do
             fi
 
             ;;
+        --)
+            shift
+            break
+            ;;
     esac
 done
 

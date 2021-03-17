@@ -144,7 +144,7 @@ command="env ${ENV_PREFIX[*]} $RUNTIME \"$PROGRAM\""
 debug_print "Program to run:\n$PROGRAM"
 debug_print "Running..."
 
-bash $ENTRYPOINT ${ENTRYPOINT_ARGS[*]} $SERVICE $COMMAND_VERB "$command"
+bash $ENTRYPOINT ${ENTRYPOINT_ARGS[*]} -- $SERVICE $COMMAND_VERB "$command"
 
 for key in "${ENVIRONMENT_KEYS[@]}"; do
     unset $key
