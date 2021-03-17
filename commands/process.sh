@@ -117,7 +117,7 @@ while read -r line || [[ -n "$line" ]]; do
         echo "$result" >> "$temp_file"
     fi
 
-    non_debug_print "."
+    ! $AS_FUNCTION && non_debug_print "."
 done <"$OUTPUT_FILE"
 # https://stackoverflow.com/a/4160535/2467106
 
@@ -129,7 +129,7 @@ rm -f "$temp_file" && touch "$temp_file"
 while read -r line || [[ -n "$line" ]]; do
     echo "$(substitute_vars "$line")" >> "$temp_file"
 
-    non_debug_print "."
+    ! $AS_FUNCTION && non_debug_print "."
 done <"$OUTPUT_FILE"
 
 mv -f "$temp_file" "$OUTPUT_FILE"
