@@ -34,6 +34,12 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
+if [[ ! -f "$PWD/$BLUEPRINT_FILE_FINAL" ]]; then
+    printf "${RED}ERROR${RESET}: docker-blueprint.yml doesn't exist.\n"
+    printf "Create one by running: ${BLUE}docker-blueprint ${GREEN}new${RESET}\n"
+    exit 1
+fi
+
 #
 # Initialize path variables
 #
