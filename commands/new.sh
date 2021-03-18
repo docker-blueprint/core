@@ -116,13 +116,13 @@ done
 #
 
 if $FORCE_GENERATE; then
-    rm -f "$PWD/$BLUEPRINT_FILE_FINAL"
-elif [[ -f "$PWD/$BLUEPRINT_FILE_FINAL" ]]; then
-    printf "${RED}ERROR${RESET}: ${YELLOW}$BLUEPRINT_FILE_FINAL${RESET} already exists (run with --force to override).\n"
+    rm -f "$PWD/$PROJECT_BLUEPRINT_FILE"
+elif [[ -f "$PWD/$PROJECT_BLUEPRINT_FILE" ]]; then
+    printf "${RED}ERROR${RESET}: ${YELLOW}$PROJECT_BLUEPRINT_FILE${RESET} already exists (run with --force to override).\n"
     exit 1
 fi
 
-if ! [[ -f "$PWD/$BLUEPRINT_FILE_FINAL" ]]; then
+if ! [[ -f "$PWD/$PROJECT_BLUEPRINT_FILE" ]]; then
 
     BLUEPRINT_HASH="$(printf "%s" "$BLUEPRINT$(date +%s)" | openssl dgst -sha1 | sed 's/^.* //')"
     BLUEPRINT_PATH="$TEMP_DIR/blueprint-$BLUEPRINT_HASH"
@@ -134,7 +134,7 @@ if ! [[ -f "$PWD/$BLUEPRINT_FILE_FINAL" ]]; then
     # Populate project blueprint
 
     # Create empty YAML file
-    echo "---" > "$BLUEPRINT_FILE_FINAL"
+    echo "---" >"$PROJECT_BLUEPRINT_FILE"
 
     fields_to_set=(
         'from'
@@ -149,7 +149,7 @@ if ! [[ -f "$PWD/$BLUEPRINT_FILE_FINAL" ]]; then
         value="$(yq eval ".$field // \"\"" "$BLUEPRINT_PATH")"
 
         if [[ -n "$value" ]]; then
-            yq eval ".$field = \"$value\"" -i "$BLUEPRINT_FILE_FINAL"
+            yq eval ".$field = \"$value\"" -i "$PROJECT_BLUEPRINT_FILE"
         fi
     done
 
@@ -162,12 +162,12 @@ if ! [[ -f "$PWD/$BLUEPRINT_FILE_FINAL" ]]; then
     # Merge blueprint key-value fields
     for field in ${fields_to_merge[@]}; do
         yq eval-all ".$field = ((.$field // {}) as \$item ireduce ({}; . *+ \$item)) | select(fi == 0)" -i \
-            "$BLUEPRINT_FILE_FINAL" "$BLUEPRINT_PATH"
+            "$PROJECT_BLUEPRINT_FILE" "$BLUEPRINT_PATH"
     done
 
     # Append modules that were defined with `--with` option
     for module in "${ARG_WITH[@]}"; do
-        yq eval ".modules = ((.modules // []) + [\"$module\"])" -i "$BLUEPRINT_FILE_FINAL"
+        yq eval ".modules = ((.modules // []) + [\"$module\"])" -i "$PROJECT_BLUEPRINT_FILE"
     done
 
     rm -f "$BLUEPRINT_PATH"

@@ -11,7 +11,7 @@ ROOT_DIR="$(dirname "$REAL_DIR")"
 LOCAL_DIR="$PROJECT_DIR/$DIR_NAME"
 TEMP_DIR="$LOCAL_DIR/tmp"
 ENTRYPOINT="$ROOT_DIR/$(basename "$REAL_DIR")"
-BLUEPRINT_FILE_FINAL=docker-blueprint.yml
+PROJECT_BLUEPRINT_FILE=docker-blueprint.yml
 
 # Delete temporary files older than 5 minutes
 mkdir -p "$TEMP_DIR"
@@ -32,11 +32,11 @@ source "$ROOT_DIR/includes/colors.sh"
 source "$ROOT_DIR/includes/debug.sh"
 source "$ROOT_DIR/includes/yq.sh"
 
-if [[ -f "$BLUEPRINT_FILE_FINAL" ]]; then
+if [[ -f "$PROJECT_BLUEPRINT_FILE" ]]; then
     [[ -z $PROJECT_CONTEXT ]] && \
-    yq_read_value PROJECT_CONTEXT "project.context" "$BLUEPRINT_FILE_FINAL"
+    yq_read_value PROJECT_CONTEXT "project.context" "$PROJECT_BLUEPRINT_FILE"
 
-    yq_read_value name "project.name" "$BLUEPRINT_FILE_FINAL"
+    yq_read_value name "project.name" "$PROJECT_BLUEPRINT_FILE"
     [[ -z $GOT_PROJECT_NAME_FROM_ENV && -n $name ]] && export PROJECT_NAME="$name"
 fi
 
@@ -70,9 +70,9 @@ source "$ROOT_DIR/includes/entrypoint/init-compose.sh"
 init_default_service() {
     DEFAULT_SERVICE=$(cat $LOCAL_DIR/default_service 2>/dev/null)
 
-    if [[ -z $DEFAULT_SERVICE ]] && [[ -f "$BLUEPRINT_FILE_FINAL" ]]; then
-        yq_read_value DEFAULT_SERVICE "default_service" "$BLUEPRINT_FILE_FINAL"
-        echo "$DEFAULT_SERVICE" > "$LOCAL_DIR/default_service"
+    if [[ -z $DEFAULT_SERVICE ]] && [[ -f "$PROJECT_BLUEPRINT_FILE" ]]; then
+        yq_read_value DEFAULT_SERVICE "default_service" "$PROJECT_BLUEPRINT_FILE"
+        echo "$DEFAULT_SERVICE" >"$LOCAL_DIR/default_service"
     fi
 }
 

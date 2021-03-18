@@ -25,7 +25,7 @@ BLUEPRINT_FILE_TMP=$BLUEPRINT_DIR/blueprint.tmp
 BLUEPRINT_FILE_BASE=$BLUEPRINT_DIR/blueprint.yml
 
 if [[ -z "$ENV_NAME" ]]; then
-    yq_read_value ENV_NAME "environment" "$BLUEPRINT_FILE_FINAL"
+    yq_read_value ENV_NAME "environment" "$PROJECT_BLUEPRINT_FILE"
 fi
 
 if [[ -n "$ENV_NAME" ]]; then
@@ -55,9 +55,9 @@ fi
 
 # Merge project blueprint
 
-if [[ -f "$BLUEPRINT_FILE_FINAL" ]]; then
-    debug_print "Using project blueprint: ${BLUEPRINT_FILE_FINAL}"
-    printf -- "$(yq_merge $BLUEPRINT_FILE_TMP $BLUEPRINT_FILE_FINAL)" >"$BLUEPRINT_FILE_TMP"
+if [[ -f "$PROJECT_BLUEPRINT_FILE" ]]; then
+    debug_print "Using project blueprint: ${PROJECT_BLUEPRINT_FILE}"
+    printf -- "$(yq_merge $BLUEPRINT_FILE_TMP $PROJECT_BLUEPRINT_FILE)" >"$BLUEPRINT_FILE_TMP"
 fi
 
 # Collect modules to load from temporary preset file and CLI arguments

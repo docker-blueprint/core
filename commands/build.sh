@@ -42,7 +42,7 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
-if [[ ! -f "$PWD/$BLUEPRINT_FILE_FINAL" ]]; then
+if [[ ! -f "$PWD/$PROJECT_BLUEPRINT_FILE" ]]; then
     printf "${RED}ERROR${RESET}: docker-blueprint.yml doesn't exist.\n"
     printf "Create one by running: ${BLUE}docker-blueprint ${GREEN}new${RESET}\n"
     exit 1

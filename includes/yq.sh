@@ -40,7 +40,7 @@ yq_merge() {
 
 yq_read_value() {
     if [[ -z "$3" ]]; then
-        FILE="$BLUEPRINT_FILE_FINAL"
+        FILE="$PROJECT_BLUEPRINT_FILE"
     else
         FILE="$3"
     fi
@@ -50,7 +50,7 @@ yq_read_value() {
 
 yq_read_array() {
     if [[ -z "$3" ]]; then
-        FILE="$BLUEPRINT_FILE_FINAL"
+        FILE="$PROJECT_BLUEPRINT_FILE"
     else
         FILE="$3"
     fi
@@ -60,7 +60,7 @@ yq_read_array() {
 
 yq_read_keys() {
     if [[ -z "$3" ]]; then
-        FILE="$BLUEPRINT_FILE_FINAL"
+        FILE="$PROJECT_BLUEPRINT_FILE"
     else
         FILE="$3"
     fi
