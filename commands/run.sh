@@ -1,5 +1,7 @@
 #!/bin/bash
 
+DEBUG_PREFIX="RUN"
+
 shift
 
 #

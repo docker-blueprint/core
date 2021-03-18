@@ -1,5 +1,9 @@
 #!/bin/bash
 
+DEBUG_PREFIX="NEW"
+
+debug_print "Running the command..."
+
 # Blueprint NEW command
 #
 # This command generates `docker-blueprint.yml` file and uses it to further
@@ -125,6 +129,7 @@ if ! [[ -f "$PWD/$BLUEPRINT_FILE_FINAL" ]]; then
     BLUEPRINT_DIR="$(dirname "$BLUEPRINT_PATH")"
 
     source "$ROOT_DIR/includes/blueprint/compile.sh" $BLUEPRINT 2>"$BLUEPRINT_PATH"
+    DEBUG_PREFIX="NEW"
 
     # Populate project blueprint
 

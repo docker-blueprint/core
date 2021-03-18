@@ -1,5 +1,9 @@
 #!/bin/bash
 
+DEBUG_PREFIX="COMPILE"
+
+debug_print "Running the command..."
+
 BLUEPRINT="$1"
 
 # Get blueprint fully-qualified name to show to the user

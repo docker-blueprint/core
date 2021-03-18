@@ -1,5 +1,11 @@
 #!/bin/bash
 
+DEBUG_PREFIX="PROCESS"
+
+if ! $AS_FUNCTION; then
+    debug_print "Running the command..."
+fi
+
 # Blueprint PROCESS command
 #
 # This command preprocesses dockerfile templates that are used in blueprints:
@@ -82,7 +88,7 @@ if $AS_FUNCTION; then
 fi
 
 if ! $AS_FUNCTION; then
-    printf "Processing $(basename $DOCKERFILE)..."
+    debug_newline_print "Processing $(basename $DOCKERFILE)..."
 fi
 
 if [[ ! -f $DOCKERFILE ]]; then
@@ -113,11 +119,19 @@ temp_file="$DOCKERFILE.tmp"
 rm -f "$temp_file" && touch "$temp_file"
 while read -r line || [[ -n "$line" ]]; do
     result="$(parse_directive "$line")"
-    if [[ $? -eq 0 ]]; then
-        echo "$result" >> "$temp_file"
+
+    if ! $AS_FUNCTION; then
+        non_debug_print "."
+        debug_print "${LIGHT_GRAY}<<<${RESET} %s\n" "$line"
     fi
 
-    ! $AS_FUNCTION && non_debug_print "."
+    if [[ $? -eq 0 ]]; then
+        echo "$result" >> "$temp_file"
+
+        if ! $AS_FUNCTION && [[ "$result" != "$line" ]]; then
+            debug_print "${RED}>>>${RESET} %s\n" "$result"
+        fi
+    fi
 done <"$OUTPUT_FILE"
 # https://stackoverflow.com/a/4160535/2467106
 

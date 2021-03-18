@@ -1,5 +1,9 @@
 #!/bin/bash
 
+DEBUG_PREFIX="UP"
+
+debug_print "Running the command..."
+
 shift
 
 #

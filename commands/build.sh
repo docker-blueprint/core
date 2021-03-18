@@ -1,5 +1,9 @@
 #!/bin/bash
 
+DEBUG_PREFIX="BUILD"
+
+debug_print "Running the command..."
+
 # Blueprint BUILD command
 
 shift
@@ -48,6 +52,7 @@ BLUEPRINT_PATH="$TEMP_DIR/blueprint-$BLUEPRINT_HASH"
 BLUEPRINT_DIR="$(dirname "$BLUEPRINT_PATH")"
 
 source "$ROOT_DIR/includes/blueprint/compile.sh" $BLUEPRINT 2>"$BLUEPRINT_PATH"
+DEBUG_PREFIX="BUILD"
 
 if [[ $? -ne 0 ]]; then
     printf "\n${RED}ERROR${RESET}: Unable to compile blueprint '$BLUEPRINT'.\n"
