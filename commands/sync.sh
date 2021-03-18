@@ -1,5 +1,9 @@
 #!/bin/bash
 
+DEBUG_PREFIX="SYNC"
+
+debug_print "Running the command..."
+
 shift
 
 #
@@ -37,6 +41,8 @@ yq_read_value SYNC_USER "user"
 #
 
 if [[ -n "$SYNC_USER" ]]; then
+    debug_print "SYNC_USER is defined"
+
     echo "Synchronizing user '$SYNC_USER'..."
 
     echo "Setting UID to $UID..."
