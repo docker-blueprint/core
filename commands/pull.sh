@@ -172,9 +172,9 @@ else
         fi
     else
         PREVIOUS_DIR="$PWD"
-        cd "$PWD/$BLUEPRINT_DIR"
+        cd "$BLUEPRINT_DIR"
         git fetch > /dev/null
-        cd $PREVIOUS_DIR
+        cd "$PREVIOUS_DIR"
     fi
 fi
 
