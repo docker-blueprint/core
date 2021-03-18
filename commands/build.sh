@@ -54,12 +54,14 @@ fi
 
 printf "Loading blueprint..."
 
+# Use base metadata from `docker-blueprint.yml` in order to derive full blueprint
+
 yq_read_value BLUEPRINT 'from' && printf "."
 yq_read_value CHECKPOINT 'version' && printf "."
 yq_read_value ENV_NAME 'environment' && printf "."
 yq_read_array MODULES_TO_LOAD 'modules' && printf "."
 
-BLUEPRINT_DIR=$(AS_FUNCTION=true bash $ENTRYPOINT pull $BLUEPRINT)
+printf " ${GREEN}done${RESET}\n"
 
 BLUEPRINT_HASH="$(printf "%s" "$BLUEPRINT$(date +%s)" | openssl dgst -sha1 | sed 's/^.* //')"
 BLUEPRINT_PATH="$TEMP_DIR/blueprint-$BLUEPRINT_HASH"
@@ -73,12 +75,10 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
-printf " ${GREEN}done${RESET}\n"
-
 # Set the blueprint repository to the version specified.
 # This allows to always safely reproduce previous versions of the blueprint.
 if [[ -n $CHECKPOINT ]]; then
-    cd $BLUEPRINT_DIR
+    cd "$BLUEPRINT_DIR"
     git checkout $CHECKPOINT 2> /dev/null
     if [[ $? -eq 0 ]]; then
         printf "Version: ${CYAN}$CHECKPOINT${RESET}\n"
@@ -86,7 +86,7 @@ if [[ -n $CHECKPOINT ]]; then
         printf "${RED}ERROR${RESET}: Unable to checkout version $CHECKPOINT\n"
         exit 1
     fi
-    cd $PROJECT_DIR
+    cd "$PROJECT_DIR"
 fi
 
 # Set the project environment directory
