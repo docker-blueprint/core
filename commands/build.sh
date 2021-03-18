@@ -36,19 +36,21 @@ done
 
 printf "Loading blueprint..."
 
-yq_read_value BLUEPRINT 'name' && printf "."
+yq_read_value BLUEPRINT 'from' && printf "."
 yq_read_value CHECKPOINT 'version' && printf "."
 yq_read_value ENV_NAME 'environment' && printf "."
 yq_read_array MODULES_TO_LOAD 'modules' && printf "."
 
 BLUEPRINT_DIR=$(AS_FUNCTION=true bash $ENTRYPOINT pull $BLUEPRINT)
 
-# Remove working directory prefix, making the path relative
-# since docker can copy files on from the current directory.
-BLUEPRINT_DIR=${BLUEPRINT_DIR#$PWD/}
+BLUEPRINT_HASH="$(printf "%s" "$BLUEPRINT$(date +%s)" | openssl dgst -sha1 | sed 's/^.* //')"
+BLUEPRINT_PATH="$TEMP_DIR/blueprint-$BLUEPRINT_HASH"
+BLUEPRINT_DIR="$(dirname "$BLUEPRINT_PATH")"
+
+source "$ROOT_DIR/includes/blueprint/compile.sh" $BLUEPRINT 2>"$BLUEPRINT_PATH"
 
 if [[ $? -ne 0 ]]; then
-    printf "\n${RED}ERROR${RESET}: Unable to pull blueprint '$BLUEPRINT'.\n"
+    printf "\n${RED}ERROR${RESET}: Unable to compile blueprint '$BLUEPRINT'.\n"
     exit 1
 fi
 
@@ -90,8 +92,10 @@ non_debug_print " ${GREEN}done${RESET}\n"
 
 debug_newline_print "Reading configuration..."
 
-yq_read_value DEFAULT_SERVICE "default_service" && non_debug_print "."
-yq_read_keys BUILD_ARGS_KEYS "build_args" && non_debug_print "."
+# Read values from merged blueprint
+
+yq_read_value DEFAULT_SERVICE "default_service" "$BLUEPRINT_PATH" && non_debug_print "."
+yq_read_keys BUILD_ARGS_KEYS "build_args" "$BLUEPRINT_PATH" && non_debug_print "."
 
 echo "$DEFAULT_SERVICE" > "$LOCAL_DIR/default_service"
 
@@ -108,7 +112,7 @@ add_variable "ENV_DIR" "${ENV_DIR#"$PWD/"}"
 add_variable "ENV_NAME" "$ENV_NAME"
 
 for variable in ${BUILD_ARGS_KEYS[@]}; do
-    yq_read_value value "build_args.$variable" && non_debug_print "."
+    yq_read_value value "build_args.$variable" "$BLUEPRINT_PATH" && non_debug_print "."
 
     # Replace build argument value with env variable value if it is set
     if [[ -n ${!variable+x} ]]; then
@@ -118,18 +122,18 @@ for variable in ${BUILD_ARGS_KEYS[@]}; do
     add_variable "$variable" "$value" && non_debug_print "."
 done
 
-yq_read_keys DEPENDENCIES_KEYS "dependencies" && non_debug_print "."
+yq_read_keys DEPENDENCIES_KEYS "dependencies" "$BLUEPRINT_PATH" && non_debug_print "."
 
 for key in "${DEPENDENCIES_KEYS[@]}"; do
-    yq_read_array DEPS "dependencies.$key" && non_debug_print "."
+    yq_read_array DEPS "dependencies.$key" "$BLUEPRINT_PATH" && non_debug_print "."
     key="$(echo "$key" | tr [:lower:] [:upper:])"
     add_variable "DEPS_$key" "${DEPS[*]}"
 done
 
-yq_read_keys PURGE_KEYS "purge" && non_debug_print "."
+yq_read_keys PURGE_KEYS "purge" "$BLUEPRINT_PATH" && non_debug_print "."
 
 for key in "${PURGE_KEYS[@]}"; do
-    yq_read_array PURGE "purge.$key" && non_debug_print "."
+    yq_read_array PURGE "purge.$key" "$BLUEPRINT_PATH" && non_debug_print "."
     key="$(echo "$key" | tr [:lower:] [:upper:])"
     add_variable "PURGE_$key" "${PURGE[*]}"
 done

@@ -105,184 +105,69 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 #
-# Build custom blueprint file
+# Build project blueprint file
 #
-# Generate only when file is not present
-# or force rebuild when the flag is supplied
+# Generate only when the file is not present
+# or force rebuild when the FORCE flag is supplied
+#
 
 if $FORCE_GENERATE; then
     rm -f "$PWD/$BLUEPRINT_FILE_FINAL"
 elif [[ -f "$PWD/$BLUEPRINT_FILE_FINAL" ]]; then
-    printf "${BLUE}INFO${RESET}: ${YELLOW}$BLUEPRINT_FILE_FINAL${RESET} already exists, skipping generation (run with --force to override).\n"
+    printf "${RED}ERROR${RESET}: ${YELLOW}$BLUEPRINT_FILE_FINAL${RESET} already exists (run with --force to override).\n"
+    exit 1
 fi
 
 if ! [[ -f "$PWD/$BLUEPRINT_FILE_FINAL" ]]; then
 
-    #
-    # Initialize path variables
-    #
+    BLUEPRINT_HASH="$(printf "%s" "$BLUEPRINT$(date +%s)" | openssl dgst -sha1 | sed 's/^.* //')"
+    BLUEPRINT_PATH="$TEMP_DIR/blueprint-$BLUEPRINT_HASH"
+    BLUEPRINT_DIR="$(dirname "$BLUEPRINT_PATH")"
 
-    BLUEPRINT_QUALIFIED_NAME=$(AS_FUNCTION=true bash $ENTRYPOINT pull $BLUEPRINT --get-qualified-name)
+    source "$ROOT_DIR/includes/blueprint/compile.sh" $BLUEPRINT 2>"$BLUEPRINT_PATH"
 
-    debug_newline_print "Pulling blueprint '$BLUEPRINT_QUALIFIED_NAME'..."
+    # Populate project blueprint
 
-    BLUEPRINT_DIR=$(AS_FUNCTION=true bash $ENTRYPOINT pull $BLUEPRINT)
+    # Create empty YAML file
+    echo "---" > "$BLUEPRINT_FILE_FINAL"
 
-    if [[ $? -ne 0 ]]; then
-        printf "\n${RED}ERROR${RESET}: Unable to pull blueprint '$BLUEPRINT'.\n"
-        exit 1
-    fi
+    fields_to_set=(
+        'from'
+        'user'
+        'version'
+        'environment'
+        'default_service'
+    )
 
-    non_debug_print " ${GREEN}done${RESET}\n"
+    # Set blueprint field values
+    for field in ${fields_to_set[@]}; do
+        value="$(yq eval ".$field // \"\"" "$BLUEPRINT_PATH")"
 
-    BLUEPRINT_FILE_TMP=$BLUEPRINT_DIR/blueprint.tmp
-    BLUEPRINT_FILE_BASE=$BLUEPRINT_DIR/blueprint.yml
-
-    if [[ -n "$ENV_NAME" ]]; then
-        ENV_DIR=$BLUEPRINT_DIR/env/$ENV_NAME
-    fi
-
-    debug_newline_print "Generating blueprint file..."
-
-    if [[ ! -f "$BLUEPRINT_FILE_BASE" ]]; then
-        printf "\n${RED}ERROR${RESET}: Base blueprint.yml doesn't exist.\n"
-        exit 1
-    fi
-
-    # Merge environment preset with base preset
-
-    debug_print "Using base blueprint: ${BLUEPRINT_FILE_BASE#$BLUEPRINT_DIR/}"
-
-    file="$ENV_DIR/blueprint.yml"
-    if [[ -n $ENV_DIR ]] && [[ -f "$file" ]]; then
-        debug_print "Using environment blueprint: ${file#$BLUEPRINT_DIR/}"
-        printf -- "$(yq_merge $file $BLUEPRINT_FILE_BASE)" >"$BLUEPRINT_FILE_TMP"
-    else
-        cp "$BLUEPRINT_FILE_BASE" "$BLUEPRINT_FILE_TMP"
-    fi
-
-    # Collect modules to load from temporary preset file and CLI arguments
-
-    yq_read_array MODULES "modules" "$BLUEPRINT_FILE_TMP" && non_debug_print "."
-
-    MODULES_TO_LOAD=()
-
-    for module in "${MODULES[@]}"; do
-        MODULES_TO_LOAD+=($module)
+        if [[ -n "$value" ]]; then
+            yq eval ".$field = \"$value\"" -i "$BLUEPRINT_FILE_FINAL"
+        fi
     done
 
+    fields_to_merge=(
+        'build_args'
+        'project'
+        'commands'
+    )
+
+    # Merge blueprint key-value fields
+    for field in ${fields_to_merge[@]}; do
+        yq eval-all ".$field = ((.$field // {}) as \$item ireduce ({}; . *+ \$item)) | select(fi == 0)" -i \
+            "$BLUEPRINT_FILE_FINAL" "$BLUEPRINT_PATH"
+    done
+
+    # Append modules that were defined with `--with` option
     for module in "${ARG_WITH[@]}"; do
-        ALREADY_DEFINED=false
-
-        for defined_module in "${MODULES_TO_LOAD[@]}"; do
-            if [[ "$module" = "$defined_module" ]]; then
-                ALREADY_DEFINED=true
-                break
-            fi
-        done
-
-        if ! $ALREADY_DEFINED; then
-            MODULES_TO_LOAD+=($module)
-        fi
+        yq eval ".modules = ((.modules // []) + [\"$module\"])" -i "$BLUEPRINT_FILE_FINAL"
     done
 
-    source "$ROOT_DIR/includes/resolve-dependencies.sh" ${MODULES_TO_LOAD[@]}
+    rm -f "$BLUEPRINT_PATH"
 
-    # Generate a list of YAML files to merge
-    # depending on chosen modules
-
-    FILES_TO_MERGE=()
-
-    function append_file_to_merge {
-        if [[ -f "$1" ]]; then
-            FILES_TO_MERGE+=("$1")
-        fi
-    }
-
-    append_file_to_merge "$BLUEPRINT_FILE_TMP"
-
-    for module in "${MODULES_TO_LOAD[@]}"; do
-
-        # Each module can extend base blueprint
-
-        file="$BLUEPRINT_DIR/modules/$module/blueprint.yml"
-        if [[ -f "$file" ]]; then
-            debug_print "Using module blueprint: ${file#$BLUEPRINT_DIR/}"
-            append_file_to_merge "$file"
-        fi
-
-        # If environment is specified, additionally load module
-        # blueprint files specific to the environment
-
-        file="$ENV_DIR/modules/$module/blueprint.yml"
-        if [[ -d "$ENV_DIR" ]] && [[ -f "$file" ]]; then
-            debug_print "Using environment module blueprint: ${file#$BLUEPRINT_DIR/}"
-            append_file_to_merge "$file"
-        fi
-
-        non_debug_print "."
-    done
-
-    debug_print "Merging files:"
-    for file in "${FILES_TO_MERGE[@]#$BLUEPRINT_DIR/}"; do
-        debug_print "- $file"
-    done
-
-    if [[ -z "${FILES_TO_MERGE[1]}" ]]; then
-        printf -- "$(cat "${FILES_TO_MERGE[0]}")" >"$BLUEPRINT_FILE_FINAL" && non_debug_print "."
-    else
-        printf -- "$(yq_merge ${FILES_TO_MERGE[@]})" >"$BLUEPRINT_FILE_FINAL" && non_debug_print "."
-    fi
-
-    # Remove the list of modules in order to fill it again
-    # in the correct order and without duplicates
-    yq -i eval "del(.modules)" "$BLUEPRINT_FILE_FINAL" && non_debug_print "."
-
-    for module in "${MODULES_TO_LOAD[@]}"; do
-        yq -i eval ".modules += [\"$module\"]" "$BLUEPRINT_FILE_FINAL"
-    done
-
-    # Remove `depends_on` property, since it is only used for modules
-    yq -i eval "del(.depends_on)" "$BLUEPRINT_FILE_FINAL" && non_debug_print "."
-
-    cd $BLUEPRINT_DIR
-
-    hash=$(git rev-parse HEAD) 2> /dev/null && non_debug_print "."
-
-    if [[ $? > 0 ]]; then
-        unset hash
-    fi
-
-    cd $PROJECT_DIR
-
-    if [[ -n $hash ]]; then
-        yq -i eval ".version = \"$hash\"" "$BLUEPRINT_FILE_FINAL" && non_debug_print "."
-    fi
-
-    yq -i eval ".name = \"$BLUEPRINT\"" "$BLUEPRINT_FILE_FINAL" && non_debug_print "."
-
-    if [[ -n $ENV_NAME ]]; then
-        yq -i eval ".environment = \"$ENV_NAME\"" "$BLUEPRINT_FILE_FINAL" && non_debug_print "."
-    fi
-
-    yq_read_keys BUILD_ARGS_KEYS 'build_args'
-
-    for variable in ${BUILD_ARGS_KEYS[@]}; do
-        yq_read_value value "build_args.$variable"
-
-        if [[ -n ${!variable+x} ]]; then
-            value="${!variable:-}"
-        fi
-
-        yq -i eval ".build_args.$variable = \"$value\"" "$BLUEPRINT_FILE_FINAL" && non_debug_print "."
-    done
-
-    non_debug_print " ${GREEN}done${RESET}\n"
-
-    debug_print "Created blueprint file: $BLUEPRINT_FILE_FINAL"
 fi
-
-rm -f "$BLUEPRINT_FILE_TMP"
 
 COMMAND="$ENTRYPOINT build"
 
