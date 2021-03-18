@@ -25,7 +25,11 @@ else
     chmod +x "$PROJECT_DIR/entrypoint.sh"
 fi
 
-if [[ -z $(which docker-blueprint) ]]; then
+SUDO="$(which sudo)"
+
+which docker-blueprint >/dev/null
+
+if [[ $? > 0 ]]; then
 
     BIN_DIRS=(
         /usr/local/bin
@@ -36,8 +40,8 @@ if [[ -z $(which docker-blueprint) ]]; then
         if [[ -d "$DIR" ]]; then
             echo "Creating link in '$DIR'..."
 
-            sudo ln -s "$PROJECT_DIR/entrypoint.sh" "$DIR/docker-blueprint"
-            sudo ln -s "$PROJECT_DIR/entrypoint.sh" "$DIR/dob"
+            $SUDO ln -s "$PROJECT_DIR/entrypoint.sh" "$DIR/docker-blueprint"
+            $SUDO ln -s "$PROJECT_DIR/entrypoint.sh" "$DIR/dob"
 
             if [[ $? -eq 0 ]]; then
                 echo "Installed successuflly."
