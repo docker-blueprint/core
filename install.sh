@@ -25,7 +25,7 @@ else
     chmod +x "$PROJECT_DIR/entrypoint.sh"
 fi
 
-SUDO="$(which sudo)"
+SUDO="$(which sudo 2>/dev/null)"
 
 which docker-blueprint >/dev/null
 

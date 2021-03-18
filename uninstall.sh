@@ -1,8 +1,8 @@
 #!/bin/bash
 
-SUDO="$(which sudo)"
+SUDO="$(which sudo 2>/dev/null)"
 PROJECT_DIR=~/.docker-blueprint
-EXEC_PATH=$(which docker-blueprint)
+EXEC_PATH=$(which docker-blueprint 2>/dev/null)
 
 if [[ -n $EXEC_PATH ]]; then
     printf "Removing link..."
