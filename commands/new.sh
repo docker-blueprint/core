@@ -134,7 +134,7 @@ if ! [[ -f "$PWD/$PROJECT_BLUEPRINT_FILE" ]]; then
     # Populate project blueprint
 
     # Create empty YAML file
-    echo "---" >"$PROJECT_BLUEPRINT_FILE"
+    echo "---" >"$PWD/$PROJECT_BLUEPRINT_FILE"
 
     fields_to_set=(
         'from'
@@ -161,8 +161,12 @@ if ! [[ -f "$PWD/$PROJECT_BLUEPRINT_FILE" ]]; then
 
     # Merge blueprint key-value fields
     for field in ${fields_to_merge[@]}; do
-        yq eval-all ".$field = ((.$field // {}) as \$item ireduce ({}; . *+ \$item)) | select(fi == 0)" -i \
-            "$PROJECT_BLUEPRINT_FILE" "$BLUEPRINT_PATH"
+        value="$(yq eval ".$field // \"\"" "$BLUEPRINT_PATH")"
+
+        if [[ -n "$value" ]]; then
+            yq eval-all ".$field = ((.$field // {}) as \$item ireduce ({}; . *+ \$item)) | select(fi == 0)" -i \
+                "$PROJECT_BLUEPRINT_FILE" "$BLUEPRINT_PATH"
+        fi
     done
 
     # Append modules that were defined with `--with` option
