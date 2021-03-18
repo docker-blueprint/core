@@ -15,7 +15,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added proxy for common docker-compose commands: `start`, `stop`, `restart` and `down`
 - Added nested dependency resolvement during both initialization & build stages
 - Added project configuration (name and context)
+- Added JIT blueprint "compilation" from `docker-blueprint.yml`
 
 ### Updated
+- Changed branch & tag naming to be in line with the semantic versioning
 - Upgraded yq to version 4 (removed undocumented dependency on jq)
 - Updated run command to be more sophisticated
+- Updated module format: now they are always directories that contain their own
+  blueprint files that get merged together
+- Updated `docker-blueprint.yml` file format to store minimal required information
