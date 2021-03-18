@@ -40,8 +40,8 @@ if [[ $? > 0 ]]; then
         if [[ -d "$DIR" ]]; then
             echo "Creating link in '$DIR'..."
 
-            $SUDO ln -s "$PROJECT_DIR/entrypoint.sh" "$DIR/docker-blueprint"
-            $SUDO ln -s "$PROJECT_DIR/entrypoint.sh" "$DIR/dob"
+            $SUDO ln "$PROJECT_DIR/entrypoint.sh" "$DIR/docker-blueprint"
+            $SUDO ln "$PROJECT_DIR/entrypoint.sh" "$DIR/dob"
 
             if [[ $? -eq 0 ]]; then
                 echo "Installed successuflly."
