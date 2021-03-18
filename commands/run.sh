@@ -52,7 +52,7 @@ fi
 
 COMMAND_ROOT="commands.[\"$COMMAND\"]"
 
-yq_read_value PROGRAM "$COMMAND_ROOT.command"
+yq_read_value PROGRAM "$COMMAND_ROOT.script"
 
 if [[ -z "$PROGRAM" ]]; then
     printf "${YELLOW}No command '$COMMAND'\n"
