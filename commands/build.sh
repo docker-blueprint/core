@@ -13,6 +13,8 @@ shift
 #
 
 MODE_FORCE=false
+MODE_SKIP_COMPOSE=false
+MODE_SKIP_DOCKERFILE=false
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
@@ -28,6 +30,12 @@ while [[ "$#" -gt 0 ]]; do
             ;;
         -f|--force)
             MODE_FORCE=true
+            ;;
+        --skip-compose)
+            MODE_SKIP_COMPOSE=true
+            ;;
+        --skip-dockerfile)
+            MODE_SKIP_DOCKERFILE=true
             ;;
     esac
 
@@ -178,12 +186,14 @@ non_debug_print " ${GREEN}done${RESET}\n"
 printf "Building docker-compose files...\n"
 
 # Select all unique docker-compose files (even in disabled modules)
-FILE_NAMES=($(
-    find "$BLUEPRINT_DIR" -name "docker-compose*.yml" -type f | \
-    xargs basename -a | \
-    sort | \
-    uniq
-))
+if ! $MODE_SKIP_COMPOSE; then
+    FILE_NAMES=($(
+        find "$BLUEPRINT_DIR" -name "docker-compose*.yml" -type f | \
+        xargs basename -a | \
+        sort | \
+        uniq
+    ))
+fi
 
 for name in ${FILE_NAMES[@]}; do
     CURRENT_DOCKER_COMPOSE_FILE="$PWD/$name"
@@ -294,6 +304,10 @@ for file in $BLUEPRINT_DIR/[Dd]ockerfile*; do
     DOCKER_FILE=$(basename "$file")
 
     CURRENT_DOCKERFILE="$PWD/$DOCKER_FILE"
+
+    if $MODE_SKIP_DOCKERFILE; then
+        continue
+    fi
 
     if $MODE_FORCE; then
         rm -f "$CURRENT_DOCKERFILE"
