@@ -1,5 +1,9 @@
 #!/bin/bash
 
+DEBUG_PREFIX="SYNC"
+
+debug_print "Running the command..."
+
 shift
 
 #
@@ -37,6 +41,8 @@ yq_read_value SYNC_USER "user"
 #
 
 if [[ -n "$SYNC_USER" ]]; then
+    debug_print "SYNC_USER is defined"
+
     echo "Synchronizing user '$SYNC_USER'..."
 
     echo "Setting UID to $UID..."
@@ -52,6 +58,37 @@ if [[ -n "$SYNC_USER" ]]; then
             echo "Is HOME defined inside the container?"
         fi
     fi
+fi
+
+if [[ -f .env ]]; then
+    debug_print "Found .env file in the project directory"
+    debug_print "Looking for docker-compose files..."
+
+    temp_file="$TEMP_DIR/docker-compose.env"
+    for file in docker-compose*; do
+        debug_print "Found file: $file"
+
+        if [[ ! -f "$temp_file" ]]; then
+            debug_print "$temp_file doesn't exist - copying the first file..."
+            cp -f "$file" "$temp_file"
+        else
+            debug_print "$temp_file exists - merging files..."
+            printf -- "$(yq_merge $temp_file $file)" >"$temp_file"
+        fi
+    done
+
+    readarray -t VARIABLES < <(yq eval '.services.*.environment | select(. != null) | keys | .[]' "$temp_file")
+
+    for variable in "${VARIABLES[@]}"; do
+        debug_print "Commenting '$variable'..."
+
+        v="${variable#'environment.'}" \
+            perl -i -pe 's/^(?!#)(\s*$ENV{v})/# $1/' .env
+    done
+
+    rm -f "$temp_file"
+
+    echo "Commented environment variables used by docker-compose"
 fi
 
 #

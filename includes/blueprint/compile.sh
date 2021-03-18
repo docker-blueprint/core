@@ -21,6 +21,22 @@ fi
 
 non_debug_print " ${GREEN}done${RESET}\n"
 
+yq_read_value CHECKPOINT 'version'
+
+# Set the blueprint repository to the version specified.
+# This allows to always safely reproduce previous versions of the blueprint.
+if [[ -n $CHECKPOINT ]]; then
+    cd "$BLUEPRINT_DIR"
+    git checkout $CHECKPOINT 2> /dev/null
+    if [[ $? -eq 0 ]]; then
+        printf "Version: ${CYAN}$CHECKPOINT${RESET}\n"
+    else
+        printf "${RED}ERROR${RESET}: Unable to checkout version $CHECKPOINT\n"
+        exit 1
+    fi
+    cd "$PROJECT_DIR"
+fi
+
 BLUEPRINT_FILE_TMP=$BLUEPRINT_DIR/blueprint.tmp
 BLUEPRINT_FILE_BASE=$BLUEPRINT_DIR/blueprint.yml
 
@@ -178,7 +194,7 @@ non_debug_print " ${GREEN}done${RESET}\n"
 debug_print "Created blueprint file: $BLUEPRINT_FILE_TMP"
 
 # Output compiled blueprint content to stderr,
-# since stdout is used progress reporting
+# since stdout is used for progress reporting
 cat "$BLUEPRINT_FILE_TMP" >&2
 
 rm -f "$BLUEPRINT_FILE_TMP"
