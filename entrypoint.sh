@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -o allexport
+
 EXECUTABLE_NAME=$(basename "${BASH_SOURCE}")
 
 PROJECT_DIR=$PWD
