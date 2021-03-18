@@ -149,15 +149,15 @@ cd $PROJECT_DIR
 
 # ... and store it for the version lock
 if [[ -n $hash ]]; then
-    yq -i eval ".version = \"$hash\"" "$BLUEPRINT_FILE_TMP" && non_debug_print "."
+    yq -i eval ".version = \"$hash\" | .version style=\"double\"" "$BLUEPRINT_FILE_TMP" && non_debug_print "."
 fi
 
 # Store blueprint name
-yq -i eval ".from = \"$BLUEPRINT\"" "$BLUEPRINT_FILE_TMP" && non_debug_print "."
+yq -i eval ".from = \"$BLUEPRINT\" | .from style=\"double\"" "$BLUEPRINT_FILE_TMP" && non_debug_print "."
 
 # Store blueprint environment
 if [[ -n $ENV_NAME ]]; then
-    yq -i eval ".environment = \"$ENV_NAME\"" "$BLUEPRINT_FILE_TMP" && non_debug_print "."
+    yq -i eval ".environment = \"$ENV_NAME\" | .environment style=\"double\"" "$BLUEPRINT_FILE_TMP" && non_debug_print "."
 fi
 
 # Save build arguments to give the user ability to overwrite them later
