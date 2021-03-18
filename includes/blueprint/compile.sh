@@ -178,7 +178,7 @@ non_debug_print " ${GREEN}done${RESET}\n"
 debug_print "Created blueprint file: $BLUEPRINT_FILE_TMP"
 
 # Output compiled blueprint content to stderr,
-# since stdout is used progress reporting
+# since stdout is used for progress reporting
 cat "$BLUEPRINT_FILE_TMP" >&2
 
 rm -f "$BLUEPRINT_FILE_TMP"
