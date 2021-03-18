@@ -174,7 +174,7 @@ if ! [[ -f "$PWD/$BLUEPRINT_FILE_FINAL" ]]; then
 
 fi
 
-COMMAND="$ENTRYPOINT build"
+COMMAND="$ENTRYPOINT up"
 
 if $FORCE_GENERATE; then
     COMMAND="$COMMAND --force"
