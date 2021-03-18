@@ -6,11 +6,10 @@ PROJECT_DIR=$PWD
 [[ -n $PROJECT_NAME ]] && GOT_PROJECT_NAME_FROM_ENV=true
 [[ -z $GOT_PROJECT_NAME_FROM_ENV ]] && PROJECT_NAME=$(basename $PROJECT_DIR)
 DIR_NAME=.docker-blueprint
-REAL_DIR="$(readlink -f "$0")"
-ROOT_DIR="$(dirname "$REAL_DIR")"
+ROOT_DIR=~/.docker-blueprint
 LOCAL_DIR="$PROJECT_DIR/$DIR_NAME"
 TEMP_DIR="$LOCAL_DIR/tmp"
-ENTRYPOINT="$ROOT_DIR/$(basename "$REAL_DIR")"
+ENTRYPOINT="$ROOT_DIR/entrypoint.sh"
 PROJECT_BLUEPRINT_FILE=docker-blueprint.yml
 
 # Delete temporary files older than 5 minutes
