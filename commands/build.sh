@@ -103,8 +103,8 @@ add_variable() {
     SCRIPT_VARS+=("BLUEPRINT_$1=$2")
 }
 
-add_variable "BLUEPRINT_DIR" "$BLUEPRINT_DIR"
-add_variable "ENV_DIR" "$ENV_DIR"
+add_variable "BLUEPRINT_DIR" "${BLUEPRINT_DIR#"$PWD/"}"
+add_variable "ENV_DIR" "${ENV_DIR#"$PWD/"}"
 add_variable "ENV_NAME" "$ENV_NAME"
 
 for variable in ${BUILD_ARGS_KEYS[@]}; do
@@ -143,12 +143,12 @@ fi
 for module in "${MODULES_TO_LOAD[@]}"; do
     module_name="$(echo "$module" | tr [:lower:] [:upper:] | tr "/-" _)"
 
-    path="$BLUEPRINT_DIR/modules/$module"
+    path="${BLUEPRINT_DIR#"$PWD/"}/modules/$module"
     if [[ -d "$path" ]]; then
         add_variable "MODULE_${module_name}_DIR" "$path"
     fi
 
-    path="$ENV_DIR/modules/$module"
+    path="${ENV_DIR#"$PWD/"}/modules/$module"
     if [[ -d "$path" ]]; then
         add_variable "ENV_${env_name}_MODULE_${module_name}_DIR" "$path"
     fi
