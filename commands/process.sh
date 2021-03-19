@@ -118,18 +118,18 @@ temp_file="$DOCKERFILE.tmp"
 
 rm -f "$temp_file" && touch "$temp_file"
 while read -r line || [[ -n "$line" ]]; do
-    result="$(parse_directive "$line")"
-
     if ! $AS_FUNCTION; then
         non_debug_print "."
         debug_print "${LIGHT_GRAY}<<<${RESET} %s\n" "$line"
     fi
 
+    result="$(parse_directive "$line")"
+
     if [[ $? -eq 0 ]]; then
         echo "$result" >> "$temp_file"
 
         if ! $AS_FUNCTION && [[ "$result" != "$line" ]]; then
-            debug_print "${RED}>>>${RESET} %s\n" "$result"
+            debug_print "${RED}>>>${RESET}\n%s\n" "$result"
         fi
     fi
 done <"$OUTPUT_FILE"
@@ -154,7 +154,7 @@ if ! $AS_FUNCTION; then
 fi
 
 if $MODE_INLINE; then
-    echo "$(cat "$OUTPUT_FILE")"
+    cat "$OUTPUT_FILE"
     rm -f "$OUTPUT_FILE"
 else
     if $AS_FUNCTION; then
