@@ -1,7 +1,7 @@
 #!/bin/bash
 
 substitute_vars() {
-    source "$ROOT_DIR/includes/preprocessor/substitute-vars.sh" "$1"
+    bash "$ROOT_DIR/includes/preprocessor/substitute-vars.sh" "$1"
 }
 
 # Line starts with a comment symbol with a non-whitespace

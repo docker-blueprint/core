@@ -105,11 +105,11 @@ cp -f "$DOCKERFILE" "$OUTPUT_FILE"
 # Process the dockerfile
 
 parse_directive() {
-    source "$ROOT_DIR/includes/preprocessor/parse-directive.sh" "$1"
+    bash "$ROOT_DIR/includes/preprocessor/parse-directive.sh" "$1"
 }
 
 substitute_vars() {
-    source "$ROOT_DIR/includes/preprocessor/substitute-vars.sh" "$1"
+    bash "$ROOT_DIR/includes/preprocessor/substitute-vars.sh" "$1"
 }
 
 temp_file="$DOCKERFILE.tmp"

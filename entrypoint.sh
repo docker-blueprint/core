@@ -1,18 +1,17 @@
 #!/bin/bash
 
-set -o allexport
 
-EXECUTABLE_NAME=$(basename "${BASH_SOURCE}")
+export EXECUTABLE_NAME=$(basename "${BASH_SOURCE}")
 
-PROJECT_DIR=$PWD
+export PROJECT_DIR=$PWD
 [[ -n $PROJECT_NAME ]] && GOT_PROJECT_NAME_FROM_ENV=true
 [[ -z $GOT_PROJECT_NAME_FROM_ENV ]] && PROJECT_NAME=$(basename $PROJECT_DIR)
-DIR_NAME=.docker-blueprint
-ROOT_DIR=~/.docker-blueprint
-LOCAL_DIR="$PROJECT_DIR/$DIR_NAME"
-TEMP_DIR="$LOCAL_DIR/tmp"
-ENTRYPOINT="$ROOT_DIR/entrypoint.sh"
-PROJECT_BLUEPRINT_FILE=docker-blueprint.yml
+export DIR_NAME=.docker-blueprint
+export ROOT_DIR=~/.docker-blueprint
+export LOCAL_DIR="$PROJECT_DIR/$DIR_NAME"
+export TEMP_DIR="$LOCAL_DIR/tmp"
+export ENTRYPOINT="$ROOT_DIR/entrypoint.sh"
+export PROJECT_BLUEPRINT_FILE=docker-blueprint.yml
 
 # Delete temporary files older than 5 minutes
 mkdir -p "$TEMP_DIR"

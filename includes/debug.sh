@@ -19,12 +19,14 @@ debug_print() {
         fi
     fi
 }
+export -f debug_print
 
 non_debug_print() {
     if [[ -z $DEBUG || $DEBUG -eq 0 ]]; then
         printf -- "$1"
     fi
 }
+export -f non_debug_print
 
 debug_newline_print() {
     if [[ -z $DEBUG || $DEBUG -eq 0 ]]; then
@@ -33,3 +35,4 @@ debug_newline_print() {
         printf -- "$1\n"
     fi
 }
+export -f debug_newline_print
