@@ -1,6 +1,5 @@
 #!/bin/bash
 
-
 export EXECUTABLE_NAME=$(basename "${BASH_SOURCE}")
 
 export PROJECT_DIR=$PWD
