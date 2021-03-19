@@ -185,3 +185,5 @@ if $FORCE_GENERATE; then
 fi
 
 bash $COMMAND
+
+bash $ENTRYPOINT sync
