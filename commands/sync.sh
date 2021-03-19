@@ -89,7 +89,12 @@ if [[ -f .env ]]; then
         # remove trailing whitespace characters
         value="${value%"${value##*[![:space:]]}"}"
 
-        # debug_print "Setting '$variable' to '$value'..."
+        # Check if value is a substituion
+        if [[ "$value" =~ "$" ]]; then
+            debug_print "Value of variable '$variable' is a substitution - replacing..."
+            value="$(echo "$value" | sed -E 's/\$\{.+:\-(.*)\}/\1/')"
+            debug_print "${RED}>>>${RESET} %s\n" "$value"
+        fi
 
         while read -r line || [[ -n "$line" ]]; do
             # Parse each line into the parts before and after equal sign
@@ -103,6 +108,9 @@ if [[ -f .env ]]; then
                 elif [[ "$after" = "$value" ]]; then
                     # Check if the value is the same
                     debug_print "Variable '$variable' has the same value - skipping"
+                elif [[ "$value" =~ "$" ]]; then
+                    # Check if value is a substituion
+                    debug_print "Variable '$variable' value is a substitution - skipping"
                 else
                     debug_print "Setting '$variable' to '$value'"
                     echo "$before=$value # Value replaced by docker-blueprint: $after" >&2
