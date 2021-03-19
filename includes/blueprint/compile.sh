@@ -41,7 +41,7 @@ BLUEPRINT_FILE_TMP=$BLUEPRINT_DIR/blueprint.tmp
 BLUEPRINT_FILE_BASE=$BLUEPRINT_DIR/blueprint.yml
 
 if [[ -z "$ENV_NAME" ]]; then
-    yq_read_value ENV_NAME "environment" "$PROJECT_BLUEPRINT_FILE"
+    yq_read_value ENV_NAME "environment"
 fi
 
 if [[ -n "$ENV_NAME" ]]; then
