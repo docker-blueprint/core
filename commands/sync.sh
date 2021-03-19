@@ -79,13 +79,46 @@ if [[ -f .env ]]; then
 
     readarray -t VARIABLES < <(yq eval '.services.*.environment | select(. != null) | keys | .[]' "$temp_file")
 
-    for variable in "${VARIABLES[@]}"; do
-        debug_print "Commenting '$variable'..."
+    temp_env_file="$TEMP_DIR/.env"
+    cp -f ".env" "$temp_env_file"
 
-        v="${variable#'environment.'}" \
-            perl -i -pe 's/^(?!#)(\s*$ENV{v})/# $1/' .env
+    for variable in "${VARIABLES[@]}"; do
+        value="$(yq eval ".services.*.environment.\"$variable\" // \"\"" "$temp_file")"
+        # remove leading whitespace characters
+        value="${value#"${value%%[![:space:]]*}"}"
+        # remove trailing whitespace characters
+        value="${value%"${value##*[![:space:]]}"}"
+
+        # debug_print "Setting '$variable' to '$value'..."
+
+        while read -r line || [[ -n "$line" ]]; do
+            # Parse each line into the parts before and after equal sign
+            before="${line%=*}"
+            after="${line#*=}"
+
+            if [[ "$before" = "$variable" ]]; then
+                if [[ "$after" =~ "#" ]]; then
+                    # Check if there is already a comment on this line
+                    debug_print "Variable '$variable' has a comment - skipping"
+                elif [[ "$after" = "$value" ]]; then
+                    # Check if the value is the same
+                    debug_print "Variable '$variable' has the same value - skipping"
+                else
+                    debug_print "Setting '$variable' to '$value'"
+                    echo "$before=$value # Value replaced by docker-blueprint: $after" >&2
+                    continue
+                fi
+            fi
+
+            echo "$line" >&2
+        done <"$temp_env_file" 2>"$temp_env_file.copy"
+
+        mv -f "$temp_env_file.copy" "$temp_env_file"
     done
 
+    cp -f "$temp_env_file" ".env"
+
+    rm -f "$temp_env_file"
     rm -f "$temp_file"
 
     echo "Commented environment variables used by docker-compose"
