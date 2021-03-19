@@ -4,19 +4,6 @@ DEBUG_PREFIX="NEW"
 
 debug_print "Running the command..."
 
-# Blueprint NEW command
-#
-# This command generates `docker-blueprint.yml` file and uses it to further
-# generate `docker-compose.yml` & `dockerfile` and call `docker-compose` to
-# build the container and bring up all the required services.
-#
-# Apart from service building this command also does:
-# - Post build container initialization by calling commands from
-# `postbuild_commands` section
-# - Optional directory chowning to keep it in sync with local project
-# - Commenting out .env directives that are already defined in
-# `docker-compose.yml`
-
 shift
 
 if [[ -z "$1" ]]; then
