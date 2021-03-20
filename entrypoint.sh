@@ -42,13 +42,13 @@ fi
 # Parse global arguments
 for arg in $@; do
     case $arg in
-        -c|--context)
+        --context)
             if [[ -z $2 ]]; then
                 printf "${RED}ERROR${RESET}: Context name is required\n"
                 exit 1
             fi
 
-            PROJECT_CONTEXT="$2"
+            export PROJECT_CONTEXT="$2"
             shift 2
 
             if [[ ! -f "docker-compose.$PROJECT_CONTEXT.yml" ]]; then
