@@ -47,7 +47,12 @@ FILES=("$ROOT_DIR/commands/"*.sh)
 for file in "${FILES[@]}"; do
     command=$(basename "$file" .sh)
 
-    if [[ $command != "help" ]]; then
+    case "$command" in
+    help | module | env)
+        continue
+        ;;
+    *)
         printf "$(bash $ENTRYPOINT $command --help | pr -To 2)\n"
-    fi
+        ;;
+    esac
 done
