@@ -32,7 +32,16 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
-yq_read_keys POSSIBLE_COMMANDS "commands"
+yq_read_value BLUEPRINT 'from'
+
+BLUEPRINT_HASH="$(printf "%s" "$BLUEPRINT$(date +%s)" | openssl dgst -sha1 | sed 's/^.* //')"
+BLUEPRINT_PATH="$TEMP_DIR/blueprint-$BLUEPRINT_HASH"
+BLUEPRINT_DIR="$(dirname "$BLUEPRINT_PATH")"
+
+source "$ROOT_DIR/includes/blueprint/compile.sh" $BLUEPRINT 2>"$BLUEPRINT_PATH"
+DEBUG_PREFIX="BUILD"
+
+yq_read_keys POSSIBLE_COMMANDS "commands" "$BLUEPRINT_PATH"
 
 if [[ -z "$COMMAND" ]]; then
     bash $ENTRYPOINT run --help
@@ -52,7 +61,7 @@ fi
 
 COMMAND_ROOT="commands.[\"$COMMAND\"]"
 
-yq_read_value PROGRAM "$COMMAND_ROOT.script"
+yq_read_value PROGRAM "$COMMAND_ROOT.script" "$BLUEPRINT_PATH"
 
 if [[ -z "$PROGRAM" ]]; then
     printf "${YELLOW}No command '$COMMAND'\n"
@@ -64,10 +73,10 @@ debug_print "Setting up command to run..."
 ENV_PREFIX=()
 ENTRYPOINT_ARGS=()
 
-yq_read_keys ENVIRONMENT_KEYS "$COMMAND_ROOT.environment"
+yq_read_keys ENVIRONMENT_KEYS "$COMMAND_ROOT.environment" "$BLUEPRINT_PATH"
 
 for key in "${ENVIRONMENT_KEYS[@]}"; do
-    yq_read_value value "$COMMAND_ROOT.environment.$key"
+    yq_read_value value "$COMMAND_ROOT.environment.$key" "$BLUEPRINT_PATH"
 
     # If there is already an environment variable
     # defined in the current environemnt
@@ -93,7 +102,7 @@ done
 
 ENV_PREFIX+=("COMMAND_NAME=\"$COMMAND\"")
 
-yq_read_value RUNTIME "$COMMAND_ROOT.runtime"
+yq_read_value RUNTIME "$COMMAND_ROOT.runtime" "$BLUEPRINT_PATH"
 
 if [[ -z "$RUNTIME" ]]; then
     RUNTIME='sh -c'
@@ -102,7 +111,7 @@ fi
 debug_print "Runtime: $RUNTIME"
 
 if [[ -z $MODE_NO_TTY ]]; then
-    yq_read_value MODE_NO_TTY "$COMMAND_ROOT.no_tty"
+    yq_read_value MODE_NO_TTY "$COMMAND_ROOT.no_tty" "$BLUEPRINT_PATH"
     MODE_NO_TTY="$(echo $MODE_NO_TTY | grep -P '^yes|true|1$')"
 fi
 
@@ -112,12 +121,12 @@ fi
 
 COMMAND_VERB="exec"
 
-yq_read_value MODE_AS_ROOT "$COMMAND_ROOT.as_root"
+yq_read_value MODE_AS_ROOT "$COMMAND_ROOT.as_root" "$BLUEPRINT_PATH"
 MODE_AS_ROOT="$(echo $MODE_AS_ROOT | grep -P '^yes|true|1$')"
 
 [[ -n "$MODE_AS_ROOT" ]] && COMMAND_VERB="sudo"
 
-yq_read_value SERVICE "$COMMAND_ROOT.service"
+yq_read_value SERVICE "$COMMAND_ROOT.service" "$BLUEPRINT_PATH"
 
 if [[ -z "$SERVICE" ]]; then
     SERVICE="$DEFAULT_SERVICE"
@@ -125,7 +134,7 @@ fi
 
 debug_print "Service: $SERVICE"
 
-yq_read_value CONTEXT "$COMMAND_ROOT.context"
+yq_read_value CONTEXT "$COMMAND_ROOT.context" "$BLUEPRINT_PATH"
 
 if [[ -n "$CONTEXT" ]]; then
     export PROJECT_CONTEXT=$CONTEXT
