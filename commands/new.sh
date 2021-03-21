@@ -133,7 +133,7 @@ if ! [[ -f "$PWD/$PROJECT_BLUEPRINT_FILE" ]]; then
 
     # Set blueprint field values
     for field in ${fields_to_set[@]}; do
-        value="$(yq eval ".$field // \"\"" "$BLUEPRINT_PATH")"
+        yq_read_value value "$field" "$BLUEPRINT_PATH"
 
         if [[ -n "$value" ]]; then
             yq eval ".$field = \"$value\" | .$field style=\"double\"" -i "$PROJECT_BLUEPRINT_FILE"
@@ -147,7 +147,7 @@ if ! [[ -f "$PWD/$PROJECT_BLUEPRINT_FILE" ]]; then
 
     # Merge blueprint key-value fields
     for field in ${fields_to_merge[@]}; do
-        value="$(yq eval ".$field // \"\"" "$BLUEPRINT_PATH")"
+        yq_read_value value "$field" "$BLUEPRINT_PATH"
 
         if [[ -n "$value" ]]; then
             yq eval-all ".$field = ((.$field // {}) as \$item ireduce ({}; . *+ \$item)) | select(fi == 0)" -i \
