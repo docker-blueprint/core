@@ -147,6 +147,26 @@ while read -r line || [[ -n "$line" ]]; do
 done <"$OUTPUT_FILE"
 
 mv -f "$temp_file" "$OUTPUT_FILE"
+
+# Remove lines with non-substituted variables
+
+rm -f "$temp_file" && touch "$temp_file"
+while read -r line || [[ -n "$line" ]]; do
+    if [[ "$line" =~ "%" ]]; then
+        replaced="$(echo "$line" | sed -E "s/#\s*(.*%.+)//g")"
+
+        if [[ -n "$replaced" ]]; then
+            echo "$replaced" >> "$temp_file"
+        fi
+    else
+        echo "$line" >> "$temp_file"
+    fi
+
+    ! $AS_FUNCTION && non_debug_print "."
+done <"$OUTPUT_FILE"
+
+mv -f "$temp_file" "$OUTPUT_FILE"
+
 rm -f "$temp_file"
 
 if ! $AS_FUNCTION; then
