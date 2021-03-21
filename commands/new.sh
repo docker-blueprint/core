@@ -143,7 +143,6 @@ if ! [[ -f "$PWD/$PROJECT_BLUEPRINT_FILE" ]]; then
     fields_to_merge=(
         'build_args'
         'project'
-        'commands'
     )
 
     # Merge blueprint key-value fields
