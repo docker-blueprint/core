@@ -48,6 +48,16 @@ yq_read_value() {
     printf -v "$1" "%s" "$(yq eval ".$2 // \"\"" "$FILE" 2>/dev/null)"
 }
 
+yq_write_value() {
+    if [[ -z "$3" ]]; then
+        FILE="$PROJECT_BLUEPRINT_FILE"
+    else
+        FILE="$3"
+    fi
+
+    yq eval ".$1 = \"$2\" | .$1 style=\"double\"" -i "$FILE"
+}
+
 yq_read_array() {
     if [[ -z "$3" ]]; then
         FILE="$PROJECT_BLUEPRINT_FILE"

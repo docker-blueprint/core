@@ -136,7 +136,7 @@ if ! [[ -f "$PWD/$PROJECT_BLUEPRINT_FILE" ]]; then
         yq_read_value value "$field" "$BLUEPRINT_PATH"
 
         if [[ -n "$value" ]]; then
-            yq eval ".$field = \"$value\" | .$field style=\"double\"" -i "$PROJECT_BLUEPRINT_FILE"
+            yq_write_value "$field" "$value" "$PROJECT_BLUEPRINT_FILE"
         fi
     done
 
