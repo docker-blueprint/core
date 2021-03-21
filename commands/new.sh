@@ -140,6 +140,11 @@ if ! [[ -f "$PWD/$PROJECT_BLUEPRINT_FILE" ]]; then
         fi
     done
 
+    environment="$(yq_read_value "environment" "$BLUEPRINT_PATH")"
+    if [[ -n "$environment" ]]; then
+        bash $ENTRYPOINT environment set "$environment" --quiet
+    fi
+
     fields_to_merge=(
         'build_args'
         'project'
