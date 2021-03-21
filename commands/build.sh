@@ -324,7 +324,3 @@ done
 #
 
 eval "$DOCKER_COMPOSE build ${BUILD_ARGS[@]}"
-
-if [[ $? -eq 0 ]]; then
-    bash $ENTRYPOINT up --no-build
-fi
