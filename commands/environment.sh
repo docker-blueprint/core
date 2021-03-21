@@ -8,9 +8,8 @@ MODE_QUIET=false
 while [[ "$#" -gt 0 ]]; do
     case $1 in
     -h | --help)
-        printf "${CMD_COL}environment clear${RESET}\t\tRemove current specified environemnt\n"
-        printf "${CMD_COL}environment${RESET} ${ARG_COL}<name>${RESET}"
-        printf "\t\tSet blueprint environment\n"
+        printf "${CMD_COL}environment ${ARG_COL}<name> | clear${RESET}"
+        printf "\tSet or clear current specified environemnt\n"
         exit
 
         ;;
