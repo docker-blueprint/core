@@ -158,7 +158,7 @@ if ! [[ -f "$PWD/$PROJECT_BLUEPRINT_FILE" ]]; then
 
     # Append modules that were defined with `--with` option
     for module in "${ARG_WITH[@]}"; do
-        yq eval ".modules = ((.modules // []) + [\"$module\"])" -i "$PROJECT_BLUEPRINT_FILE"
+        bash $ENTRYPOINT modules add "$module" --quiet
     done
 
     rm -f "$BLUEPRINT_PATH"
