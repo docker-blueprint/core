@@ -20,6 +20,7 @@ AVAILABLE_ACTIONS=(
 MODULES=()
 
 MODE_FORCE=false
+MODE_QUIET=false
 MODE_NO_SCRIPTS=false
 
 while [[ "$#" -gt 0 ]]; do
@@ -33,6 +34,10 @@ while [[ "$#" -gt 0 ]]; do
         ;;
     -f | --force)
         MODE_FORCE=true
+
+        ;;
+    -q | --quiet)
+        MODE_QUIET=true
 
         ;;
     --no-scripts)
@@ -218,16 +223,16 @@ for MODULE in "${MODULES[@]}"; do
     esac
 done
 
-
-
-if ! $MODE_FORCE; then
-    printf "Do you want to rebuild the project? (run with ${FLG_COL}--force${RESET} to always build)\n"
-    printf "${YELLOW}WARNING${RESET}: This will ${RED}overwrite${RESET} existing docker files [y/N] "
-    read -n 1 -r
-    if [[ $REPLY =~ ^[Yy]$ ]]; then
-        echo ""
+if ! $MODE_QUIET; then
+    if ! $MODE_FORCE; then
+        printf "Do you want to rebuild the project? (run with ${FLG_COL}--force${RESET} to always build)\n"
+        printf "${YELLOW}WARNING${RESET}: This will ${RED}overwrite${RESET} existing docker files [y/N] "
+        read -n 1 -r
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            echo ""
+            bash $ENTRYPOINT build --force
+        fi
+    else
         bash $ENTRYPOINT build --force
     fi
-else
-    bash $ENTRYPOINT build --force
 fi
