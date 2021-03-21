@@ -158,6 +158,11 @@ if ! [[ -f "$PWD/$PROJECT_BLUEPRINT_FILE" ]]; then
     # Append modules that were defined with `--with` option
     for module in "${ARG_WITH[@]}"; do
         bash $ENTRYPOINT modules add "$module" --quiet
+
+        if [[ $? > 0 ]]; then
+            printf "${RED}ERROR${RESET}: The was an error while adding module '$module'\n"
+            exit 1
+        fi
     done
 
     rm -f "$BLUEPRINT_PATH"
