@@ -14,6 +14,7 @@ ACTION=""
 MODULES=()
 
 MODE_FORCE=false
+MODE_NO_SCRIPTS=false
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
@@ -26,6 +27,10 @@ while [[ "$#" -gt 0 ]]; do
         ;;
     -f | --force)
         MODE_FORCE=true
+
+        ;;
+    --no-scripts)
+        MODE_NO_SCRIPTS=true
 
         ;;
     *)
@@ -154,6 +159,42 @@ else
 fi
 
 for MODULE in "${MODULES[@]}"; do
+    if ! $MODE_NO_SCRIPTS; then
+        script_paths=()
+
+        # Add base blueprint module scripts first
+        path="$BLUEPRINT_DIR/modules/$MODULE/scripts/$ACTION.sh"
+        if [[ -f "$path" ]]; then
+            script_paths+=("$path")
+        fi
+
+        # Then add environment module scripts
+        path="$ENV_DIR/modules/$MODULE/scripts/$ACTION.sh"
+        if [[ -f "$path" ]]; then
+            script_paths+=("$path")
+        fi
+
+        status=0
+
+        for path in "${script_paths[@]}"; do
+            printf "Running script for module '$MODULE'...\n"
+            debug_print "Running script: ${path#$BLUEPRINT_DIR/}"
+            command="bash -c \"$(cat "$path")\""
+            bash $ENTRYPOINT $DEFAULT_SERVICE exec "$command"
+
+            status=$?
+
+            if [[ $status > 0 ]]; then
+                break
+            fi
+        done
+
+        if [[ $status > 0 ]]; then
+            printf -- "${RED}ERROR${RESET}: Module script returned non-zero code: ${path#$BLUEPRINT_DIR/}\n"
+            exit $status
+        fi
+    fi
+
     case "$ACTION" in
     add)
         exists="$(yq eval ".modules[] | select(. == \"$MODULE\")" "$PROJECT_BLUEPRINT_FILE")"
