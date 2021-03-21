@@ -11,6 +11,12 @@ shift
 #
 
 ACTION=""
+
+AVAILABLE_ACTIONS=(
+    'add'
+    'remove'
+)
+
 MODULES=()
 
 MODE_FORCE=false
@@ -45,11 +51,6 @@ while [[ "$#" -gt 0 ]]; do
 
     shift
 done
-
-AVAILABLE_ACTIONS=(
-    'add'
-    'remove'
-)
 
 if [[ -z "$ACTION" ]]; then
     bash $ENTRYPOINT modules --help
