@@ -55,6 +55,10 @@ while [[ "$#" -gt 0 ]]; do
             MODE_NO_BUILD=true
 
             ;;
+        --no-cache)
+            BUILD_ARGS+=("--no-cache")
+
+            ;;
         --no-scripts)
             MODE_NO_SCRIPTS=true
 
@@ -115,7 +119,10 @@ if ! $MODE_NO_SCRIPTS; then
 
     for path in "${script_paths[@]}"; do
         debug_print "Running script: ${path#$BLUEPRINT_DIR/}"
-        command="bash -c \"$(cat "$path")\""
+
+        PROGRAM="$(source "$ROOT_DIR/includes/script/prepare.sh" "$(cat "$path")")"
+
+        command="bash -c \"$PROGRAM\""
         bash $ENTRYPOINT $DEFAULT_SERVICE exec "$command"
 
         status=$?

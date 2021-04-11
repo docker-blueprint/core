@@ -175,7 +175,10 @@ for MODULE in "${MODULES[@]}"; do
         for path in "${script_paths[@]}"; do
             printf "Running script for module '$MODULE'...\n"
             debug_print "Running script: ${path#$BLUEPRINT_DIR/}"
-            command="bash -c \"$(cat "$path")\""
+
+            PROGRAM="$(source "$ROOT_DIR/includes/script/prepare.sh" "$(cat "$path")")"
+
+            command="bash -c \"$PROGRAM\""
             bash $ENTRYPOINT $DEFAULT_SERVICE exec "$command"
 
             status=$?
