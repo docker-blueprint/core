@@ -39,6 +39,9 @@ while [[ "$#" -gt 0 ]]; do
             printf "  ${FLG_COL}--no-scripts${RESET}"
             printf "\t\t\tDon't attempt to run scripts\n"
 
+            printf "  ${FLG_COL}--no-cache${RESET}"
+            printf "\t\t\tDon't use docker image cache\n"
+
             printf "  ${FLG_COL}-f${RESET}, ${FLG_COL}--force${RESET}"
             printf "\t\t\tPass --force to 'build' command\n"
             printf "\t\t\t\tThis will force to regenerate new docker files\n"

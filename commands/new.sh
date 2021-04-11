@@ -81,6 +81,15 @@ while [[ "$#" -gt 0 ]]; do
             printf "  ${FLG_COL}--clean${RESET}"
             printf "\t\t\tRemove all files in current directory before building a blueprint\n"
 
+            printf "  ${FLG_COL}--no-cache${RESET}"
+            printf "\t\t\tDon't use docker image cache\n"
+
+            printf "  ${FLG_COL}--no-chown${RESET}"
+            printf "\t\t\tPass --no-chown to 'sync' command\n"
+
+            printf "  ${FLG_COL}--no-scripts${RESET}"
+            printf "\t\t\tDon't attempt to run scripts\n"
+
             exit
 
             ;;

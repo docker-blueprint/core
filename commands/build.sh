@@ -27,6 +27,15 @@ while [[ "$#" -gt 0 ]]; do
             printf "  ${FLG_COL}-f${RESET}, ${FLG_COL}--force${RESET}"
             printf "\t\t\tAlways generate new docker files. This ${RED}WILL OVERWRITE${RESET} existing files\n"
 
+            printf "  ${FLG_COL}--skip-compose${RESET}"
+            printf "\t\t\tDon't generate docker-compose files\n"
+
+            printf "  ${FLG_COL}--skip-dockerfile${RESET}"
+            printf "\t\t\tDon't generate dockerfiles\n"
+
+            printf "  ${FLG_COL}--no-cache${RESET}"
+            printf "\t\t\tDon't use docker image cache\n"
+
             exit
 
             ;;
