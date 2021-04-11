@@ -105,8 +105,6 @@ function append_file_to_merge() {
     fi
 }
 
-append_file_to_merge "$BLUEPRINT_FILE_TMP"
-
 for module in "${MODULES_TO_LOAD[@]}"; do
 
     # Each module can extend base blueprint
@@ -128,6 +126,9 @@ for module in "${MODULES_TO_LOAD[@]}"; do
 
     ! $SILENT && non_debug_print "."
 done
+
+# Merge user-provided blueprint file last to overwrite all the properties
+append_file_to_merge "$BLUEPRINT_FILE_TMP"
 
 debug_print "Merging files:"
 for file in "${FILES_TO_MERGE[@]#$BLUEPRINT_DIR/}"; do
