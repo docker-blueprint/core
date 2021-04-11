@@ -134,7 +134,22 @@ while [[ "$#" -gt 0 ]]; do
                 elif [[ "$1" == "exec" ]]; then
                     COMMAND+=("--user=$UID:$GID $DEFAULT_SERVICE ${@:2}")
                 else
-                    COMMAND+=("--user=$UID:$GID $DEFAULT_SERVICE ${@:1}")
+                    CURRENT_SERVICE="$DEFAULT_SERVICE"
+
+                    # Get currently available docker-compose project services.
+                    # NOTICE: This adds significant execution delay.
+
+                    # SERVICE_LIST=($(eval "$DOCKER_COMPOSE ps --services"))
+
+                    # for service in "${SERVICE_LIST[@]}"; do
+                    #     if [[ "$1" = "$service" ]]; then
+                    #         CURRENT_SERVICE="$service"
+                    #         shift
+                    #         break
+                    #     fi
+                    # done
+
+                    COMMAND+=("--user=$UID:$GID $CURRENT_SERVICE ${@:1}")
                 fi
 
                 if [[ -z "$DEFAULT_SERVICE" ]]; then
