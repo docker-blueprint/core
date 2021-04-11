@@ -23,12 +23,16 @@ MODULES=()
 MODE_FORCE=false
 MODE_QUIET=false
 MODE_NO_SCRIPTS=false
+MODE_PRINT_ACTIVE_ONLY=false
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
     -h | --help)
         printf "${CMD_COL}modules${RESET} ${ARG_COL}<action>${RESET} [${ARG_COL}<module>${RESET}]"
-        printf "\tAdd a module from the base blueprint to the current project\n"
+        printf "\tAdd or remove a modules from the base blueprint to the current project\n"
+
+        printf "  ${FLG_COL}-a${RESET}, ${FLG_COL}--active${RESET}"
+        printf "\t\tOnly list active modules\n"
 
         exit
 
@@ -43,6 +47,10 @@ while [[ "$#" -gt 0 ]]; do
         ;;
     --no-scripts)
         MODE_NO_SCRIPTS=true
+
+        ;;
+    -a | --active)
+        MODE_PRINT_ACTIVE_ONLY=true
 
         ;;
     *)
@@ -85,6 +93,11 @@ fi
 
 source "$ROOT_DIR/includes/blueprint/populate_env.sh" ""
 
+yq_read_array MODULES_TO_LOAD 'modules'
+EXPLICIT_MODULES_LIST=(${MODULES_TO_LOAD[@]})
+source "$ROOT_DIR/includes/resolve-dependencies.sh" ${MODULES_TO_LOAD[@]}
+ACTIVE_MODULES_LIST=(${MODULES_TO_LOAD[@]})
+
 MODULES_LIST=()
 ENV_MODULES_LIST=()
 BASE_MODULES_LIST=()
@@ -110,6 +123,8 @@ if [[ ${#MODULES[@]} -eq 0 ]] || [[ "$ACTION" = "list" ]]; then
         for module in "${MODULES_LIST[@]}"; do
             IS_ENV_MODULE=false
             IS_BASE_MODULE=false
+            IS_ACTIVE_MODULE=false
+            IS_EXPLICIT_MODULE=false
 
             for env_module in "${ENV_MODULES_LIST[@]}"; do
                 if [[ "$module" = "$env_module" ]]; then
@@ -125,13 +140,59 @@ if [[ ${#MODULES[@]} -eq 0 ]] || [[ "$ACTION" = "list" ]]; then
                 fi
             done
 
+            for active_module in "${ACTIVE_MODULES_LIST[@]}"; do
+                if [[ "$module" = "$active_module" ]]; then
+                    IS_ACTIVE_MODULE=true
+                    break
+                fi
+            done
+
+            for explicit_module in "${EXPLICIT_MODULES_LIST[@]}"; do
+                if [[ "$module" = "$explicit_module" ]]; then
+                    IS_EXPLICIT_MODULE=true
+                    break
+                fi
+            done
+
+            attributes=()
+
             if $IS_BASE_MODULE && $IS_ENV_MODULE; then
-                printf -- "- %s (${YELLOW}extended${RESET} by $ENV_NAME)\n" "$module"
+                attributes+=("${YELLOW}extended${RESET} by $ENV_NAME")
             elif ! $IS_BASE_MODULE && $IS_ENV_MODULE; then
-                printf -- "- %s (${CYAN}provided${RESET} by $ENV_NAME)\n" "$module"
-            else
-                printf -- "- %s\n" "$module"
+                attributes+=("${CYAN}provided${RESET} by $ENV_NAME")
             fi
+
+            if $IS_EXPLICIT_MODULE; then
+                attributes+=("specified in ${BLUE}docker-blueprint.yml${RESET}")
+            fi
+
+            attribute_text=""
+
+            if [[ ${#attributes[@]} > 0 ]]; then
+                attribute_text+="("
+
+                i=1
+
+                for attribute in "${attributes[@]}"; do
+                    attribute_text+="$attribute"
+                    if [[ $i < ${#attributes[@]} ]]; then
+                        attribute_text+=", "
+                    fi
+                    ((i = i + 1))
+                done
+
+                attribute_text+=")"
+            fi
+
+            icon="$ICON_EMPTY"
+
+            if $IS_ACTIVE_MODULE; then
+                icon="$ICON_CHECK"
+            elif $MODE_PRINT_ACTIVE_ONLY; then
+                continue
+            fi
+
+            printf -- "$icon %s $attribute_text\n" "$module"
         done
     else
         printf "The base blueprint '${YELLOW}$BLUEPRINT_QUALIFIED_NAME${RESET}' has no modules.\n"

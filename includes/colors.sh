@@ -33,3 +33,6 @@ export CMD_COL=$GREEN
 export ARG_COL=$RESET
 export FLG_COL=$RED
 export FLG_VAL_COL=$RESET
+
+export ICON_EMPTY=" "
+export ICON_CHECK="\xE2\x9C\x94"
