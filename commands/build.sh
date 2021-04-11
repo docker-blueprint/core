@@ -16,6 +16,7 @@ MODE_FORCE=false
 MODE_NO_UP=false
 MODE_SKIP_COMPOSE=false
 MODE_SKIP_DOCKERFILE=false
+MODE_NO_CACHE=false
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
@@ -40,6 +41,9 @@ while [[ "$#" -gt 0 ]]; do
             ;;
         --skip-dockerfile)
             MODE_SKIP_DOCKERFILE=true
+            ;;
+        --no-cache)
+            MODE_NO_CACHE=true
             ;;
     esac
 
@@ -317,6 +321,10 @@ done
 #
 # Build containers
 #
+
+if $MODE_NO_CACHE; then
+    BUILD_ARGS+=("--no-cache")
+fi
 
 command="$DOCKER_COMPOSE build ${BUILD_ARGS[@]}"
 

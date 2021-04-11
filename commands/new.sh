@@ -85,6 +85,16 @@ while [[ "$#" -gt 0 ]]; do
 
             ;;
 
+        --no-cache)
+            UP_ARGS+=("--no-cache")
+
+            ;;
+
+        --no-chown)
+            UP_ARGS+=("--no-chown")
+
+            ;;
+
         --no-scripts)
             UP_ARGS+=("--no-scripts")
 
