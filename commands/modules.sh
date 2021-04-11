@@ -13,6 +13,7 @@ shift
 ACTION=""
 
 AVAILABLE_ACTIONS=(
+    'list'
     'add'
     'remove'
 )
@@ -111,7 +112,7 @@ for module in $BLUEPRINT_DIR/modules/*; do
     MODULES_LIST+=("$name")
 done
 
-if [[ ${#MODULES[@]} -eq 0 ]]; then
+if [[ ${#MODULES[@]} -eq 0 ]] || [[ "$ACTION" = "list" ]]; then
     bash $ENTRYPOINT modules --help
 
     if [[ ${#MODULES_LIST[@]} > 0 ]]; then
