@@ -13,7 +13,6 @@ shift
 #
 
 MODE_FORCE=false
-MODE_NO_UP=false
 MODE_SKIP_COMPOSE=false
 MODE_SKIP_DOCKERFILE=false
 MODE_NO_CACHE=false
@@ -41,9 +40,6 @@ while [[ "$#" -gt 0 ]]; do
             ;;
         -f|--force)
             MODE_FORCE=true
-            ;;
-        --no-up)
-            MODE_NO_UP=true
             ;;
         --skip-compose)
             MODE_SKIP_COMPOSE=true
