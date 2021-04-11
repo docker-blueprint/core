@@ -74,6 +74,14 @@ while [[ "$#" -gt 0 ]]; do
             MODE_SYNC=true
 
             ;;
+        --skip-compose|--no-compose)
+            BUILD_ARGS+=("--skip-compose")
+
+            ;;
+        --skip-dockerfile|--no-dockerfile)
+            BUILD_ARGS+=("--skip-dockerfile")
+
+            ;;
         *)
             ARGS+=($1)
     esac
