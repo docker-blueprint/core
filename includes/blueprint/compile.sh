@@ -21,6 +21,14 @@ fi
 
 non_debug_print " ${GREEN}done${RESET}\n"
 
+if [[ -z "$ENV_NAME" ]]; then
+    yq_read_value ENV_NAME "environment"
+fi
+
+if [[ -n "$ENV_NAME" ]]; then
+    ENV_DIR=$BLUEPRINT_DIR/env/$ENV_NAME
+fi
+
 yq_read_value CHECKPOINT 'version'
 
 # Set the blueprint repository to the version specified.
@@ -35,6 +43,11 @@ if [[ -n $CHECKPOINT ]]; then
         exit 1
     fi
     cd "$PROJECT_DIR"
+
+    if [[ ! -d "$ENV_DIR" ]]; then
+        printf "${RED}ERROR${RESET}: Environment '$ENV_NAME' does not exist for version $CHECKPOINT\n"
+        exit 1
+    fi
 fi
 
 BLUEPRINT_FILE_TMP=$BLUEPRINT_DIR/blueprint.tmp
