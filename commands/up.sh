@@ -16,6 +16,8 @@ SYNC_ARGS=()
 MODE_NO_BUILD=false
 BUILD_ARGS=('--no-up')
 
+MODE_NO_SCRIPTS=false
+
 while [[ "$#" -gt 0 ]]; do
     case $1 in
         -h|--help)
@@ -34,6 +36,9 @@ while [[ "$#" -gt 0 ]]; do
             printf "  ${FLG_COL}--no-build${RESET}"
             printf "\t\t\tDon't attempt to build the blueprint\n"
 
+            printf "  ${FLG_COL}--no-scripts${RESET}"
+            printf "\t\t\tDon't attempt to run scripts\n"
+
             printf "  ${FLG_COL}-f${RESET}, ${FLG_COL}--force${RESET}"
             printf "\t\t\tPass --force to 'build' command\n"
             printf "\t\t\t\tThis will force to regenerate new docker files\n"
@@ -48,6 +53,10 @@ while [[ "$#" -gt 0 ]]; do
             ;;
         --no-build)
             MODE_NO_BUILD=true
+
+            ;;
+        --no-scripts)
+            MODE_NO_SCRIPTS=true
 
             ;;
         --no-chown)
@@ -81,4 +90,43 @@ fi
 
 if $MODE_SYNC; then
     bash $ENTRYPOINT sync ${SYNC_ARGS[@]}
+fi
+
+script_paths=()
+
+source "$ROOT_DIR/includes/blueprint/populate_env.sh" ""
+
+# Add base blueprint module scripts first
+path="$BLUEPRINT_DIR/scripts/up.sh"
+if [[ -f "$path" ]]; then
+    script_paths+=("$path")
+fi
+
+# Then add environment module scripts
+path="$ENV_DIR/scripts/up.sh"
+if [[ -f "$path" ]]; then
+    script_paths+=("$path")
+fi
+
+status=0
+
+if ! $MODE_NO_SCRIPTS; then
+    printf "Running up scripts...\n"
+
+    for path in "${script_paths[@]}"; do
+        debug_print "Running script: ${path#$BLUEPRINT_DIR/}"
+        command="bash -c \"$(cat "$path")\""
+        bash $ENTRYPOINT $DEFAULT_SERVICE exec "$command"
+
+        status=$?
+
+        if [[ $status > 0 ]]; then
+            break
+        fi
+    done
+fi
+
+if [[ $status > 0 ]]; then
+    printf -- "${RED}ERROR${RESET}: Up script returned non-zero code: ${path#$BLUEPRINT_DIR/}\n"
+    exit $status
 fi

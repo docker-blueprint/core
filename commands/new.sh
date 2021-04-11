@@ -13,6 +13,8 @@ fi
 
 FORCE_GENERATE=false
 
+UP_ARGS=()
+
 #
 # Read arguments
 #
@@ -80,6 +82,11 @@ while [[ "$#" -gt 0 ]]; do
             printf "\t\t\tRemove all files in current directory before building a blueprint\n"
 
             exit
+
+            ;;
+
+        --no-scripts)
+            UP_ARGS+=("--no-scripts")
 
             ;;
 
@@ -161,7 +168,7 @@ if ! [[ -f "$PWD/$PROJECT_BLUEPRINT_FILE" ]]; then
 
     # Append modules that were defined with `--with` option
     for module in "${ARG_WITH[@]}"; do
-        bash $ENTRYPOINT modules add "$module" --quiet
+        bash $ENTRYPOINT modules add "$module" --quiet --no-scripts
 
         if [[ $? > 0 ]]; then
             printf "${RED}ERROR${RESET}: The was an error while adding module '$module'\n"
@@ -173,7 +180,7 @@ if ! [[ -f "$PWD/$PROJECT_BLUEPRINT_FILE" ]]; then
 
 fi
 
-COMMAND="$ENTRYPOINT up"
+COMMAND="$ENTRYPOINT up ${UP_ARGS[@]}"
 
 if $FORCE_GENERATE; then
     COMMAND="$COMMAND --force"
