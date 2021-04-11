@@ -41,10 +41,10 @@ while [[ "$#" -gt 0 ]]; do
         -f|--force)
             MODE_FORCE=true
             ;;
-        --skip-compose)
+        --skip-compose|--no-compose)
             MODE_SKIP_COMPOSE=true
             ;;
-        --skip-dockerfile)
+        --skip-dockerfile|--no-dockerfile)
             MODE_SKIP_DOCKERFILE=true
             ;;
         --no-cache)
