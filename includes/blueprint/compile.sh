@@ -6,28 +6,11 @@ debug_print "Running the command..."
 
 BLUEPRINT="$1"
 
-# Get blueprint fully-qualified name to show to the user
-BLUEPRINT_QUALIFIED_NAME=$(AS_FUNCTION=true bash $ENTRYPOINT pull $BLUEPRINT --get-qualified-name)
-
-debug_newline_print "Pulling blueprint '$BLUEPRINT_QUALIFIED_NAME'..."
-
-# Try to pull the blueprint and get the returned directory path
-BLUEPRINT_DIR=$(AS_FUNCTION=true bash $ENTRYPOINT pull $BLUEPRINT)
-
-if [[ $? -ne 0 ]]; then
-    printf "\n${RED}ERROR${RESET}: Unable to pull blueprint '$BLUEPRINT'.\n"
-    exit 1
+if [[ -z $SILENT ]]; then
+    SILENT=false
 fi
 
-non_debug_print " ${GREEN}done${RESET}\n"
-
-if [[ -z "$ENV_NAME" ]]; then
-    yq_read_value ENV_NAME "environment"
-fi
-
-if [[ -n "$ENV_NAME" ]]; then
-    ENV_DIR=$BLUEPRINT_DIR/env/$ENV_NAME
-fi
+SILENT=$SILENT source "$ROOT_DIR/includes/blueprint/populate_env.sh" $BLUEPRINT
 
 yq_read_value CHECKPOINT 'version'
 

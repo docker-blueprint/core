@@ -83,18 +83,7 @@ if ! $VALID_ACTION; then
     exit 1
 fi
 
-yq_read_value BLUEPRINT 'from'
-BLUEPRINT_QUALIFIED_NAME=$(AS_FUNCTION=true bash $ENTRYPOINT pull $BLUEPRINT --get-qualified-name)
-
-BLUEPRINT_DIR=$(AS_FUNCTION=true bash $ENTRYPOINT pull $BLUEPRINT)
-
-if [[ -z "$ENV_NAME" ]]; then
-    yq_read_value ENV_NAME "environment"
-fi
-
-if [[ -n "$ENV_NAME" ]]; then
-    ENV_DIR=$BLUEPRINT_DIR/env/$ENV_NAME
-fi
+source "$ROOT_DIR/includes/blueprint/populate_env.sh" ""
 
 MODULES_LIST=()
 ENV_MODULES_LIST=()

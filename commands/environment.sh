@@ -30,14 +30,7 @@ while [[ "$#" -gt 0 ]]; do
 done
 
 if [[ "$ENVIRONMENT" != "clear" ]]; then
-    yq_read_value BLUEPRINT "from"
-    BLUEPRINT_DIR=$(AS_FUNCTION=true bash $ENTRYPOINT pull $BLUEPRINT)
-    BLUEPRINT_QUALIFIED_NAME=$(AS_FUNCTION=true bash $ENTRYPOINT pull $BLUEPRINT --get-qualified-name)
-
-    if [[ $? -ne 0 ]]; then
-        printf "${RED}ERROR${RESET}: Unable to pull blueprint '$BLUEPRINT'.\n"
-        exit 1
-    fi
+    source "$ROOT_DIR/includes/blueprint/populate_env.sh" ""
 
     if [[ -z "$ENVIRONMENT" ]]; then
         if [[ -d "$BLUEPRINT_DIR/env" ]]; then

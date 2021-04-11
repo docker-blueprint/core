@@ -113,9 +113,8 @@ if ! [[ -f "$PWD/$PROJECT_BLUEPRINT_FILE" ]]; then
 
     BLUEPRINT_HASH="$(printf "%s" "$BLUEPRINT$(date +%s)" | openssl dgst -sha1 | sed 's/^.* //')"
     BLUEPRINT_PATH="$TEMP_DIR/blueprint-$BLUEPRINT_HASH"
-    BLUEPRINT_DIR="$(dirname "$BLUEPRINT_PATH")"
 
-    source "$ROOT_DIR/includes/blueprint/compile.sh" $BLUEPRINT 2>"$BLUEPRINT_PATH"
+    SILENT=false source "$ROOT_DIR/includes/blueprint/compile.sh" $BLUEPRINT 2>"$BLUEPRINT_PATH"
     DEBUG_PREFIX="NEW"
 
     # Populate project blueprint

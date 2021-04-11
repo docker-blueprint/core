@@ -68,25 +68,15 @@ printf " ${GREEN}done${RESET}\n"
 
 BLUEPRINT_HASH="$(printf "%s" "$BLUEPRINT$(date +%s)" | openssl dgst -sha1 | sed 's/^.* //')"
 BLUEPRINT_PATH="$TEMP_DIR/blueprint-$BLUEPRINT_HASH"
-BLUEPRINT_DIR="$(dirname "$BLUEPRINT_PATH")"
 
 source "$ROOT_DIR/includes/blueprint/compile.sh" $BLUEPRINT 2>"$BLUEPRINT_PATH"
-DEBUG_PREFIX="BUILD"
 
 if [[ $? -ne 0 ]]; then
     printf "\n${RED}ERROR${RESET}: Unable to compile blueprint '$BLUEPRINT'.\n"
     exit 1
 fi
 
-# Set the project environment directory
-if [[ -n "$ENV_NAME" ]]; then
-    ENV_DIR=$BLUEPRINT_DIR/env/$ENV_NAME
-
-    if [[ ! -d $ENV_DIR ]]; then
-        printf "${RED}ERROR${RESET}: Environment ${YELLOW}$ENV_NAME${RESET} doesn't exist\n"
-        exit 1
-    fi
-fi
+DEBUG_PREFIX="BUILD"
 
 debug_newline_print "Resolving dependencies..."
 
