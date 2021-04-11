@@ -1,5 +1,9 @@
 #!/bin/bash
 
+if [[ -z $SILENT ]]; then
+    SILENT=false
+fi
+
 MODULES_TO_LOAD=($@)
 
 debug_print "Requested modules: ${MODULES_TO_LOAD[*]}"
@@ -82,7 +86,7 @@ while [[ $i -le ${#MODULES_TO_LOAD[@]} ]]; do
 
     ((i = i + 1))
 
-    non_debug_print "."
+    ! $SILENT && non_debug_print "."
 
 done
 

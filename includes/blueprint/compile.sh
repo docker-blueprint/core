@@ -36,15 +36,7 @@ fi
 BLUEPRINT_FILE_TMP=$BLUEPRINT_DIR/blueprint.tmp
 BLUEPRINT_FILE_BASE=$BLUEPRINT_DIR/blueprint.yml
 
-if [[ -z "$ENV_NAME" ]]; then
-    yq_read_value ENV_NAME "environment"
-fi
-
-if [[ -n "$ENV_NAME" ]]; then
-    ENV_DIR=$BLUEPRINT_DIR/env/$ENV_NAME
-fi
-
-debug_newline_print "Generating blueprint file..."
+! $SILENT && debug_newline_print "Generating blueprint file..."
 
 if [[ ! -f "$BLUEPRINT_FILE_BASE" ]]; then
     printf "\n${RED}ERROR${RESET}: Base blueprint.yml doesn't exist.\n"
@@ -74,7 +66,8 @@ fi
 
 # Collect modules to load from temporary preset file and CLI arguments
 
-yq_read_array MODULES "modules" "$BLUEPRINT_FILE_TMP" && non_debug_print "."
+yq_read_array MODULES "modules" "$BLUEPRINT_FILE_TMP" && \
+    ! $SILENT && non_debug_print "."
 
 MODULES_TO_LOAD=()
 
@@ -98,7 +91,7 @@ for module in "${ARG_WITH[@]}"; do
 done
 
 if [[ ${#MODULES_TO_LOAD[@]} > 0 ]]; then
-    source "$ROOT_DIR/includes/resolve-dependencies.sh" ${MODULES_TO_LOAD[@]}
+    SILENT=$SILENT source "$ROOT_DIR/includes/resolve-dependencies.sh" ${MODULES_TO_LOAD[@]}
 fi
 
 # Generate a list of YAML files to merge
@@ -133,7 +126,7 @@ for module in "${MODULES_TO_LOAD[@]}"; do
         append_file_to_merge "$file"
     fi
 
-    non_debug_print "."
+    ! $SILENT && non_debug_print "."
 done
 
 debug_print "Merging files:"
@@ -142,16 +135,19 @@ for file in "${FILES_TO_MERGE[@]#$BLUEPRINT_DIR/}"; do
 done
 
 if [[ -z "${FILES_TO_MERGE[1]}" ]]; then
-    printf -- "$(cat "${FILES_TO_MERGE[0]}")" >"$BLUEPRINT_FILE_TMP" && non_debug_print "."
+    printf -- "$(cat "${FILES_TO_MERGE[0]}")" >"$BLUEPRINT_FILE_TMP" && \
+        ! $SILENT && non_debug_print "."
 else
-    printf -- "$(yq_merge ${FILES_TO_MERGE[@]})" >"$BLUEPRINT_FILE_TMP" && non_debug_print "."
+    printf -- "$(yq_merge ${FILES_TO_MERGE[@]})" >"$BLUEPRINT_FILE_TMP" && \
+        ! $SILENT && non_debug_print "."
 fi
 
 # Get current blueprint commit hash...
 
 cd $BLUEPRINT_DIR
 
-hash=$(git rev-parse HEAD) 2>/dev/null && non_debug_print "."
+hash=$(git rev-parse HEAD) 2>/dev/null && \
+    ! $SILENT && non_debug_print "."
 
 if [[ $? > 0 ]]; then
     unset hash
@@ -161,31 +157,37 @@ cd $PROJECT_DIR
 
 # ... and store it for the version lock
 if [[ -n $hash ]]; then
-    yq -i eval ".version = \"$hash\" | .version style=\"double\"" "$BLUEPRINT_FILE_TMP" && non_debug_print "."
+    yq -i eval ".version = \"$hash\" | .version style=\"double\"" "$BLUEPRINT_FILE_TMP" && \
+        ! $SILENT && non_debug_print "."
 fi
 
 # Store blueprint name
-yq -i eval ".from = \"$BLUEPRINT\" | .from style=\"double\"" "$BLUEPRINT_FILE_TMP" && non_debug_print "."
+yq -i eval ".from = \"$BLUEPRINT\" | .from style=\"double\"" "$BLUEPRINT_FILE_TMP" && \
+    ! $SILENT && non_debug_print "."
 
 # Store blueprint environment
 if [[ -n $ENV_NAME ]]; then
-    yq -i eval ".environment = \"$ENV_NAME\" | .environment style=\"double\"" "$BLUEPRINT_FILE_TMP" && non_debug_print "."
+    yq -i eval ".environment = \"$ENV_NAME\" | .environment style=\"double\"" "$BLUEPRINT_FILE_TMP" && \
+        ! $SILENT && non_debug_print "."
 fi
 
 # Save build arguments to give the user ability to overwrite them later
-yq_read_keys BUILD_ARGS_KEYS 'build_args' "$BLUEPRINT_FILE_TMP" && non_debug_print "."
+yq_read_keys BUILD_ARGS_KEYS 'build_args' "$BLUEPRINT_FILE_TMP" && \
+    ! $SILENT && non_debug_print "."
 
 for variable in ${BUILD_ARGS_KEYS[@]}; do
-    yq_read_value value "build_args.$variable" "$BLUEPRINT_FILE_TMP" && non_debug_print "."
+    yq_read_value value "build_args.$variable" "$BLUEPRINT_FILE_TMP" && \
+        ! $SILENT && non_debug_print "."
 
     if [[ -n ${!variable+x} ]]; then
         value="${!variable:-}"
     fi
 
-    yq -i eval ".build_args.$variable = \"$value\"" "$BLUEPRINT_FILE_TMP" && non_debug_print "."
+    yq -i eval ".build_args.$variable = \"$value\"" "$BLUEPRINT_FILE_TMP" && \
+        ! $SILENT && non_debug_print "."
 done
 
-non_debug_print " ${GREEN}done${RESET}\n"
+! $SILENT && non_debug_print " ${GREEN}done${RESET}\n"
 
 debug_print "Created blueprint file: $BLUEPRINT_FILE_TMP"
 
