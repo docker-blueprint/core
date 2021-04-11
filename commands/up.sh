@@ -14,7 +14,7 @@ ARGS=()
 MODE_SYNC=false
 SYNC_ARGS=()
 MODE_NO_BUILD=false
-BUILD_ARGS=()
+BUILD_ARGS=('--no-up')
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
