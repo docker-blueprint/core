@@ -88,7 +88,7 @@ while [[ "$#" -gt 0 ]]; do
             printf "\t\t\tPass --no-chown to 'sync' command\n"
 
             printf "  ${FLG_COL}--no-scripts${RESET}"
-            printf "\t\t\tDon't attempt to run scripts\n"
+            printf "\t\tDon't attempt to run scripts\n"
 
             exit
 

@@ -37,7 +37,7 @@ while [[ "$#" -gt 0 ]]; do
             printf "\t\t\tDon't attempt to build the blueprint\n"
 
             printf "  ${FLG_COL}--no-scripts${RESET}"
-            printf "\t\t\tDon't attempt to run scripts\n"
+            printf "\t\tDon't attempt to run scripts\n"
 
             printf "  ${FLG_COL}--no-cache${RESET}"
             printf "\t\t\tDon't use docker image cache\n"
