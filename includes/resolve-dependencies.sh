@@ -4,7 +4,15 @@ if [[ -z $SILENT ]]; then
     SILENT=false
 fi
 
-MODULES_TO_LOAD=($@)
+if [[ -z "$@" ]]; then
+    yq_read_array MODULES_TO_LOAD 'modules'
+else
+    MODULES_TO_LOAD=($@)
+fi
+
+debug_print "Resolving dependencies..."
+
+MODULES_TO_DISABLE=()
 
 debug_print "Requested modules: ${MODULES_TO_LOAD[*]}"
 
@@ -45,6 +53,25 @@ while [[ $i -lt ${#MODULES_TO_LOAD[@]} ]]; do
         fi
     done
 
+    # Read disables from each module file
+
+    for dir in "${module_dirs[@]}"; do
+        file="$dir/blueprint.yml"
+        if [[ -f "$file" ]]; then
+            yq_read_array DISABLES 'disables' "$file"
+
+            if [[ ${#DISABLES[@]} > 0 ]]; then
+                debug_print "Module '$module' disables: ${DISABLES[*]}"
+            fi
+
+            # For each dependency to be disabled, add it to the list
+
+            for dependency in "${DISABLES[@]}"; do
+                MODULES_TO_DISABLE+=("$dependency")
+            done
+        fi
+    done
+
     # Read depends_on from each module file
 
     for dir in "${module_dirs[@]}"; do
@@ -52,7 +79,9 @@ while [[ $i -lt ${#MODULES_TO_LOAD[@]} ]]; do
         if [[ -f "$file" ]]; then
             yq_read_array DEPENDS_ON 'depends_on' "$file"
 
-            debug_print "Module '$module' dependencies: ${DEPENDS_ON[*]}"
+            if [[ ${#DEPENDS_ON[@]} > 0 ]]; then
+                debug_print "Module '$module' dependencies: ${DEPENDS_ON[*]}"
+            fi
 
             FOUND=false
 
@@ -91,3 +120,25 @@ while [[ $i -lt ${#MODULES_TO_LOAD[@]} ]]; do
 done
 
 debug_print "Resolved module list: ${MODULES_TO_LOAD[*]}"
+
+debug_print "Modules to disable: ${MODULES_TO_DISABLE[*]}"
+
+PROCESSED_MODULE_LIST=()
+
+for module in "${MODULES_TO_LOAD[@]}"; do
+    IS_DISABLED=false
+    for disabled_module in "${MODULES_TO_DISABLE[@]}"; do
+        if [[ "$module" = "$disabled_module" ]]; then
+            IS_DISABLED=true
+            break
+        fi
+    done
+
+    if ! $IS_DISABLED; then
+        PROCESSED_MODULE_LIST+=("$module")
+    fi
+done
+
+MODULES_TO_LOAD=(${PROCESSED_MODULE_LIST[@]})
+
+debug_print "Final module list: ${MODULES_TO_LOAD[*]}"
