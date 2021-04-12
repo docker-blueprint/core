@@ -25,3 +25,4 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Updated module format: now they are always directories that contain their own
   blueprint files that get merged together
 - Updated `docker-blueprint.yml` file format to store minimal required information
+- Moved examples from help into their own command
