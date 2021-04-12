@@ -116,13 +116,38 @@ source "$ROOT_DIR/includes/blueprint/populate_env.sh" ""
 path="$BLUEPRINT_DIR/scripts/up.$PROJECT_CONTEXT.sh"
 if [[ -f "$path" ]]; then
     script_paths+=("$path")
+    debug_print "Found: ${path#$BLUEPRINT_DIR/}"
 fi
 
 # Then add environment module scripts
 path="$ENV_DIR/scripts/up.$PROJECT_CONTEXT.sh"
 if [[ -f "$path" ]]; then
     script_paths+=("$path")
+    debug_print "Found: ${path#$BLUEPRINT_DIR/}"
 fi
+
+source "$ROOT_DIR/includes/resolve-dependencies.sh" ""
+ACTIVE_MODULES_LIST=(${MODULES_TO_LOAD[@]})
+
+for module in ${MODULES_TO_LOAD[@]}; do
+
+    debug_print "Searching scripts for module: $module"
+
+    # Add base blueprint module scripts
+    path="$BLUEPRINT_DIR/modules/$module/scripts/up.$PROJECT_CONTEXT.sh"
+    if [[ -f "$path" ]]; then
+        script_paths+=("$path")
+        debug_print "Found: ${path#$BLUEPRINT_DIR/}"
+    fi
+
+    # Then add environment module scripts
+    path="$ENV_DIR/modules/$module/scripts/up.$PROJECT_CONTEXT.sh"
+    if [[ -f "$path" ]]; then
+        script_paths+=("$path")
+        debug_print "Found: ${path#$BLUEPRINT_DIR/}"
+    fi
+
+done
 
 status=0
 
