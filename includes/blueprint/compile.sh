@@ -31,6 +31,11 @@ if [[ -n $CHECKPOINT ]]; then
         printf "${RED}ERROR${RESET}: Environment '$ENV_NAME' does not exist for version $CHECKPOINT\n"
         exit 1
     fi
+else
+    if ! $SILENT; then
+        printf "${YELLOW}WARNING${RESET}: Blueprint version is not specified - future upstream changes can potentially break this project!\n"
+        printf "Use ${EXE_COL}docker-blueprint${RESET} ${CMD_COL}lock${RESET} to lock the project to the current version of the blueprint\n"
+    fi
 fi
 
 BLUEPRINT_FILE_TMP=$BLUEPRINT_DIR/blueprint.tmp
