@@ -20,43 +20,42 @@ MODE_NO_CACHE=false
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-        -h|--help)
-            printf "${CMD_COL}build${RESET} [${FLG_COL}options${RESET}]"
-            printf "\t\tBuild containerized technology stack defined in docker-blueprint.yml\n"
+    -h | --help)
+        printf "${CMD_COL}build${RESET} [${FLG_COL}options${RESET}] [${ARG_COL}<tag>${RESET}]"
+        printf "\tBuild containerized technology stack defined in docker-blueprint.yml\n"
 
-            printf "  ${FLG_COL}-f${RESET}, ${FLG_COL}--force${RESET}"
-            printf "\t\t\tAlways generate new docker files. This ${RED}WILL OVERWRITE${RESET} existing files\n"
+        printf "  ${FLG_COL}-f${RESET}, ${FLG_COL}--force${RESET}"
+        printf "\t\t\tAlways generate new docker files. This ${RED}WILL OVERWRITE${RESET} existing files\n"
 
-            printf "  ${FLG_COL}--dry-run${RESET}"
-            printf "\t\tRun the command without writing any files\n"
+        printf "  ${FLG_COL}--dry-run${RESET}"
+        printf "\t\tRun the command without writing any files\n"
 
-            printf "  ${FLG_COL}--skip-compose${RESET}"
-            printf "\t\tDon't generate docker-compose files\n"
+        printf "  ${FLG_COL}--skip-compose${RESET}"
+        printf "\t\tDon't generate docker-compose files\n"
 
-            printf "  ${FLG_COL}--skip-dockerfile${RESET}"
-            printf "\t\tDon't generate dockerfiles\n"
+        printf "  ${FLG_COL}--skip-dockerfile${RESET}"
+        printf "\t\tDon't generate dockerfiles\n"
 
-            printf "  ${FLG_COL}--no-cache${RESET}"
-            printf "\t\t\tDon't use docker image cache\n"
+        printf "  ${FLG_COL}--no-cache${RESET}"
+        printf "\t\t\tDon't use docker image cache\n"
 
-            exit
-
-            ;;
-        -f|--force)
-            MODE_FORCE=true
-            ;;
-        --dry-run)
-            MODE_DRY_RUN=true
-            ;;
-        --skip-compose|--no-compose)
-            MODE_SKIP_COMPOSE=true
-            ;;
-        --skip-dockerfile|--no-dockerfile)
-            MODE_SKIP_DOCKERFILE=true
-            ;;
-        --no-cache)
-            MODE_NO_CACHE=true
-            ;;
+        exit
+        ;;
+    -f | --force)
+        MODE_FORCE=true
+        ;;
+    --dry-run)
+        MODE_DRY_RUN=true
+        ;;
+    --skip-compose | --no-compose)
+        MODE_SKIP_COMPOSE=true
+        ;;
+    --skip-dockerfile | --no-dockerfile)
+        MODE_SKIP_DOCKERFILE=true
+        ;;
+    --no-cache)
+        MODE_NO_CACHE=true
+        ;;
     esac
 
     shift
@@ -111,7 +110,7 @@ debug_newline_print "Reading configuration..."
 yq_read_value DEFAULT_SERVICE "default_service" "$BLUEPRINT_PATH" && non_debug_print "."
 yq_read_keys BUILD_ARGS_KEYS "build_args" "$BLUEPRINT_PATH" && non_debug_print "."
 
-echo "$DEFAULT_SERVICE" > "$LOCAL_DIR/default_service"
+echo "$DEFAULT_SERVICE" >"$LOCAL_DIR/default_service"
 
 BUILD_ARGS=()
 SCRIPT_VARS=()
@@ -184,10 +183,10 @@ printf "Building docker-compose files...\n"
 # Select all unique docker-compose files (even in disabled modules)
 if ! $MODE_SKIP_COMPOSE; then
     FILE_NAMES=($(
-        find "$BLUEPRINT_DIR" -name "docker-compose*.yml" -type f | \
-        xargs basename -a | \
-        sort | \
-        uniq
+        find "$BLUEPRINT_DIR" -name "docker-compose*.yml" -type f |
+            xargs basename -a |
+            sort |
+            uniq
     ))
 fi
 
@@ -233,7 +232,7 @@ for name in ${FILE_NAMES[@]}; do
                 # And if the current environment is empty
                 # or the given directory is not for the current environment
                 if [[ -z $ENV_NAME ]] ||
-                   [[ -z "$(echo "$item" | grep "env/$ENV_NAME")" ]]; then
+                    [[ -z "$(echo "$item" | grep "env/$ENV_NAME")" ]]; then
                     # Then skip the file
                     continue
                 fi
@@ -252,8 +251,8 @@ for name in ${FILE_NAMES[@]}; do
         else
             printf -- "$(
                 yq_merge \
-                "$CURRENT_DOCKER_COMPOSE_FILE" "$file"
-            )" > "$CURRENT_DOCKER_COMPOSE_FILE"
+                    "$CURRENT_DOCKER_COMPOSE_FILE" "$file"
+            )" >"$CURRENT_DOCKER_COMPOSE_FILE"
         fi
 
         non_debug_print "."
@@ -265,7 +264,7 @@ for name in ${FILE_NAMES[@]}; do
 
         substitute_vars() {
             env "${SCRIPT_VARS[@]}" \
-            bash "$ROOT_DIR/includes/preprocessor/substitute-vars.sh" $@
+                bash "$ROOT_DIR/includes/preprocessor/substitute-vars.sh" $@
         }
 
         temp_file="$TEMP_DIR/$name"
@@ -275,7 +274,7 @@ for name in ${FILE_NAMES[@]}; do
         OLD_IFS="$IFS" # Source https://stackoverflow.com/a/18055300/2467106
         IFS=
         while read -r line || [[ -n "$line" ]]; do
-            echo $(substitute_vars "$line" "~") >> "$temp_file"
+            echo $(substitute_vars "$line" "~") >>"$temp_file"
             non_debug_print "."
         done <"$CURRENT_DOCKER_COMPOSE_FILE"
         IFS="$OLD_IFS"

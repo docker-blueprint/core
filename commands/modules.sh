@@ -35,23 +35,18 @@ while [[ "$#" -gt 0 ]]; do
         printf "\t\tOnly list active modules\n"
 
         exit
-
         ;;
     -f | --force)
         MODE_FORCE=true
-
         ;;
     -q | --quiet)
         MODE_QUIET=true
-
         ;;
     --no-scripts)
         MODE_NO_SCRIPTS=true
-
         ;;
     -a | --active)
         MODE_PRINT_ACTIVE_ONLY=true
-
         ;;
     *)
         if [[ -z "$ACTION" ]]; then
@@ -59,7 +54,6 @@ while [[ "$#" -gt 0 ]]; do
         else
             MODULES+=("$1")
         fi
-
         ;;
     esac
 
