@@ -104,13 +104,13 @@ script_paths=()
 source "$ROOT_DIR/includes/blueprint/populate_env.sh" ""
 
 # Add base blueprint module scripts first
-path="$BLUEPRINT_DIR/scripts/up.sh"
+path="$BLUEPRINT_DIR/scripts/up.$PROJECT_CONTEXT.sh"
 if [[ -f "$path" ]]; then
     script_paths+=("$path")
 fi
 
 # Then add environment module scripts
-path="$ENV_DIR/scripts/up.sh"
+path="$ENV_DIR/scripts/up.$PROJECT_CONTEXT.sh"
 if [[ -f "$path" ]]; then
     script_paths+=("$path")
 fi
@@ -118,7 +118,7 @@ fi
 status=0
 
 if ! $MODE_NO_SCRIPTS; then
-    printf "Running up scripts...\n"
+    printf "Running up scripts for ${YELLOW}$PROJECT_CONTEXT${RESET} context...\n"
 
     for path in "${script_paths[@]}"; do
         debug_print "Running script: ${path#$BLUEPRINT_DIR/}"
