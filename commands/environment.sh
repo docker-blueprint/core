@@ -32,6 +32,10 @@ done
 if [[ "$ENVIRONMENT" != "clear" ]]; then
     source "$ROOT_DIR/includes/blueprint/populate_env.sh" ""
 
+    if [[ -n "$ENV_NAME" ]]; then
+        printf "Current environment: %s\n" "$ENV_NAME"
+    fi
+
     if [[ -z "$ENVIRONMENT" ]]; then
         if [[ -d "$BLUEPRINT_DIR/env" ]]; then
             printf "${GREEN}%s${RESET}:\n" "Available environments"
