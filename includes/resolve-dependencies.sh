@@ -17,8 +17,6 @@ source "$ROOT_DIR/includes/blueprint/merge.sh" # export BLUEPRINT_FILE_TMP
 
 yq_read_array MERGED_MODULES_TO_LOAD "modules" "$BLUEPRINT_FILE_TMP"
 
-rm "$BLUEPRINT_FILE_TMP"
-
 for module in "${MERGED_MODULES_TO_LOAD[@]}"; do
     # Remove duplicates
     FOUND=false
