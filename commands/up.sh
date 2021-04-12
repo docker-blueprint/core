@@ -17,6 +17,7 @@ MODE_NO_BUILD=false
 BUILD_ARGS=('--no-up')
 
 MODE_NO_SCRIPTS=false
+MODE_SCRIPTS_ONLY=false
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
@@ -38,6 +39,9 @@ while [[ "$#" -gt 0 ]]; do
 
         printf "  ${FLG_COL}--no-scripts${RESET}"
         printf "\t\tDon't attempt to run scripts\n"
+
+        printf "  ${FLG_COL}--scripts-only${RESET}"
+        printf "\t\tOnly run scripts - don't attempt to bring up the containers\n"
 
         printf "  ${FLG_COL}--no-cache${RESET}"
         printf "\t\t\tDon't use docker image cache\n"
@@ -61,6 +65,9 @@ while [[ "$#" -gt 0 ]]; do
     --no-scripts)
         MODE_NO_SCRIPTS=true
         ;;
+    --scripts-only)
+        MODE_SCRIPTS_ONLY=true
+        ;;
     --no-chown)
         SYNC_ARGS+=('--no-chown')
         ;;
@@ -81,22 +88,24 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
-if ! $MODE_NO_BUILD; then
-    bash $ENTRYPOINT build ${BUILD_ARGS[@]}
+if ! $MODE_SCRIPTS_ONLY;  then
+    if ! $MODE_NO_BUILD; then
+        bash $ENTRYPOINT build ${BUILD_ARGS[@]}
+
+        if [[ $? > 0 ]]; then
+            exit 1
+        fi
+    fi
+
+    eval "$DOCKER_COMPOSE up -d --remove-orphans ${ARGS[@]}"
 
     if [[ $? > 0 ]]; then
         exit 1
     fi
-fi
 
-eval "$DOCKER_COMPOSE up -d --remove-orphans ${ARGS[@]}"
-
-if [[ $? > 0 ]]; then
-    exit 1
-fi
-
-if $MODE_SYNC; then
-    bash $ENTRYPOINT sync ${SYNC_ARGS[@]}
+    if $MODE_SYNC; then
+        bash $ENTRYPOINT sync ${SYNC_ARGS[@]}
+    fi
 fi
 
 script_paths=()
