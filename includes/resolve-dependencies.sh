@@ -4,17 +4,35 @@ if [[ -z $SILENT ]]; then
     SILENT=false
 fi
 
-if [[ -z "$@" ]]; then
-    yq_read_array MODULES_TO_LOAD 'modules'
-else
-    MODULES_TO_LOAD=($@)
-fi
-
 debug_print "Resolving dependencies..."
 
+MODULES_TO_LOAD=($@)
 MODULES_TO_DISABLE=()
 
 debug_print "Requested modules: ${MODULES_TO_LOAD[*]}"
+
+source "$ROOT_DIR/includes/blueprint/merge.sh" # export BLUEPRINT_FILE_TMP
+
+# Collect modules to load from temporary preset file and CLI arguments
+
+yq_read_array MERGED_MODULES_TO_LOAD "modules" "$BLUEPRINT_FILE_TMP"
+
+rm "$BLUEPRINT_FILE_TMP"
+
+for module in "${MERGED_MODULES_TO_LOAD[@]}"; do
+    # Remove duplicates
+    FOUND=false
+    for existing_module in "${MODULES_TO_LOAD[@]}"; do
+        if [[ "$module" = "$existing_module" ]]; then
+            FOUND=true
+            break
+        fi
+    done
+
+    if ! $FOUND; then
+        MODULES_TO_LOAD+=($module)
+    fi
+done
 
 # Resolve all modules and their dependencies
 # Notice: cyclic dependencies WILL cause undefined behavior
