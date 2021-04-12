@@ -12,8 +12,11 @@ if [[ -z "$1" ]]; then
 fi
 
 FORCE_GENERATE=false
+MODE_DRY_RUN=false
 
-UP_ARGS=()
+UP_ARGS=(
+    '--sync'
+)
 
 #
 # Read arguments
@@ -81,6 +84,9 @@ while [[ "$#" -gt 0 ]]; do
             printf "  ${FLG_COL}--clean${RESET}"
             printf "\t\t\tRemove all files in current directory before building a blueprint\n"
 
+            printf "  ${FLG_COL}--dry-run${RESET}"
+            printf "\t\tRun the command without writing any files\n"
+
             printf "  ${FLG_COL}--no-cache${RESET}"
             printf "\t\t\tDon't use docker image cache\n"
 
@@ -91,6 +97,11 @@ while [[ "$#" -gt 0 ]]; do
             printf "\t\tDon't attempt to run scripts\n"
 
             exit
+
+            ;;
+
+        --dry-run)
+            MODE_DRY_RUN=true
 
             ;;
 
@@ -158,15 +169,19 @@ if ! [[ -f "$PWD/$PROJECT_BLUEPRINT_FILE" ]]; then
 
     # Set blueprint field values
     for field in ${fields_to_set[@]}; do
+        debug_print "Updating blueprint field: $field"
+
         yq_read_value value "$field" "$BLUEPRINT_PATH"
 
-        if [[ -n "$value" ]]; then
+        if ! $MODE_DRY_RUN && [[ -n "$value" ]]; then
             yq_write_value "$field" "$value" "$PROJECT_BLUEPRINT_FILE"
         fi
     done
 
     environment="$(yq_read_value "environment" "$BLUEPRINT_PATH")"
-    if [[ -n "$environment" ]]; then
+    if ! $MODE_DRY_RUN && [[ -n "$environment" ]]; then
+        debug_print "Setting environment: $environment"
+
         bash $ENTRYPOINT environment set "$environment" --quiet
     fi
 
@@ -177,9 +192,11 @@ if ! [[ -f "$PWD/$PROJECT_BLUEPRINT_FILE" ]]; then
 
     # Merge blueprint key-value fields
     for field in ${fields_to_merge[@]}; do
+        debug_print "Merging blueprint field: $field"
+
         yq_read_value value "$field" "$BLUEPRINT_PATH"
 
-        if [[ -n "$value" ]]; then
+        if ! $MODE_DRY_RUN && [[ -n "$value" ]]; then
             yq eval-all ".$field = ((.$field // {}) as \$item ireduce ({}; . *+ \$item)) | select(fi == 0)" -i \
                 "$PROJECT_BLUEPRINT_FILE" "$BLUEPRINT_PATH"
         fi
@@ -187,11 +204,15 @@ if ! [[ -f "$PWD/$PROJECT_BLUEPRINT_FILE" ]]; then
 
     # Append modules that were defined with `--with` option
     for module in "${ARG_WITH[@]}"; do
-        bash $ENTRYPOINT modules add "$module" --quiet --no-scripts
+        debug_print "Adding module: $module"
 
-        if [[ $? > 0 ]]; then
-            printf "${RED}ERROR${RESET}: The was an error while adding module '$module'\n"
-            exit 1
+        if ! $MODE_DRY_RUN; then
+            bash $ENTRYPOINT modules add "$module" --quiet --no-scripts
+
+            if [[ $? > 0 ]]; then
+                printf "${RED}ERROR${RESET}: The was an error while adding module '$module'\n"
+                exit 1
+            fi
         fi
     done
 
@@ -199,12 +220,14 @@ if ! [[ -f "$PWD/$PROJECT_BLUEPRINT_FILE" ]]; then
 
 fi
 
-COMMAND="$ENTRYPOINT up ${UP_ARGS[@]}"
-
 if $FORCE_GENERATE; then
-    COMMAND="$COMMAND --force"
+    UP_ARGS+=("--force")
 fi
 
-bash $COMMAND
+command="$ENTRYPOINT up ${UP_ARGS[@]}"
 
-bash $ENTRYPOINT sync
+debug_print "Running command: $command"
+
+if ! $MODE_DRY_RUN; then
+    bash $command
+fi

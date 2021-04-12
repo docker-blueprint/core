@@ -13,6 +13,7 @@ shift
 #
 
 MODE_FORCE=false
+MODE_DRY_RUN=false
 MODE_SKIP_COMPOSE=false
 MODE_SKIP_DOCKERFILE=false
 MODE_NO_CACHE=false
@@ -25,6 +26,9 @@ while [[ "$#" -gt 0 ]]; do
 
             printf "  ${FLG_COL}-f${RESET}, ${FLG_COL}--force${RESET}"
             printf "\t\t\tAlways generate new docker files. This ${RED}WILL OVERWRITE${RESET} existing files\n"
+
+            printf "  ${FLG_COL}--dry-run${RESET}"
+            printf "\t\tRun the command without writing any files\n"
 
             printf "  ${FLG_COL}--skip-compose${RESET}"
             printf "\t\tDon't generate docker-compose files\n"
@@ -40,6 +44,9 @@ while [[ "$#" -gt 0 ]]; do
             ;;
         -f|--force)
             MODE_FORCE=true
+            ;;
+        --dry-run)
+            MODE_DRY_RUN=true
             ;;
         --skip-compose|--no-compose)
             MODE_SKIP_COMPOSE=true
@@ -191,7 +198,9 @@ for name in ${FILE_NAMES[@]}; do
     # otherwise print a warning and skip it
 
     if $MODE_FORCE; then
-        rm -f "$CURRENT_DOCKER_COMPOSE_FILE"
+        if ! $MODE_DRY_RUN; then
+            rm -f "$CURRENT_DOCKER_COMPOSE_FILE"
+        fi
     elif [[ -f "$CURRENT_DOCKER_COMPOSE_FILE" ]]; then
         printf "${BLUE}INFO${RESET}: ${YELLOW}$name${RESET} already exists, skipping generation (run with --force to override).\n"
         continue
@@ -271,7 +280,9 @@ for name in ${FILE_NAMES[@]}; do
         done <"$CURRENT_DOCKER_COMPOSE_FILE"
         IFS="$OLD_IFS"
 
-        mv -f "$temp_file" "$CURRENT_DOCKER_COMPOSE_FILE"
+        if ! $MODE_DRY_RUN; then
+            mv -f "$temp_file" "$CURRENT_DOCKER_COMPOSE_FILE"
+        fi
 
         debug_print "Created docker-compose file: '$name':"
 
@@ -299,7 +310,9 @@ for file in $BLUEPRINT_DIR/[Dd]ockerfile*; do
     fi
 
     if $MODE_FORCE; then
-        rm -f "$CURRENT_DOCKERFILE"
+        if ! $MODE_DRY_RUN; then
+            rm -f "$CURRENT_DOCKERFILE"
+        fi
     elif [[ -f "$CURRENT_DOCKERFILE" ]]; then
         printf "${BLUE}INFO${RESET}: ${YELLOW}$DOCKER_FILE${RESET} already exists, skipping generation (run with --force to override).\n"
         continue
@@ -312,7 +325,9 @@ for file in $BLUEPRINT_DIR/[Dd]ockerfile*; do
         exit 1
     fi
 
-    cp "$file.out" "$CURRENT_DOCKERFILE"
+    if ! $MODE_DRY_RUN; then
+        cp "$file.out" "$CURRENT_DOCKERFILE"
+    fi
 
     if [[ $? > 0 ]]; then
         printf "\n${RED}ERROR${RESET}: Unable to copy processed file\n"
@@ -335,5 +350,8 @@ command="$DOCKER_COMPOSE build ${BUILD_ARGS[@]}"
 
 debug_print "Running command: $command"
 
-eval "$command"
+if ! $MODE_DRY_RUN; then
+    eval "$command"
+fi
+
 
