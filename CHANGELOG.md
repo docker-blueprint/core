@@ -16,6 +16,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - Added nested dependency resolvement during both initialization & build stages
 - Added project configuration (name and context)
 - Added JIT blueprint "compilation" from `docker-blueprint.yml`
+- Added `--dry-run` flag to the new, build & up commands
 
 ### Updated
 - Changed branch & tag naming to be in line with the semantic versioning
