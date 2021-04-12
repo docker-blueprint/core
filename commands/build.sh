@@ -28,7 +28,7 @@ while [[ "$#" -gt 0 ]]; do
         printf "\t\t\tAlways generate new docker files. This ${RED}WILL OVERWRITE${RESET} existing files\n"
 
         printf "  ${FLG_COL}--dry-run${RESET}"
-        printf "\t\tRun the command without writing any files\n"
+        printf "\t\t\tRun the command without writing any files\n"
 
         printf "  ${FLG_COL}--skip-compose${RESET}"
         printf "\t\tDon't generate docker-compose files\n"

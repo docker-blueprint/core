@@ -77,7 +77,7 @@ while [[ "$#" -gt 0 ]]; do
         printf "\t\t\tRemove all files in current directory before building a blueprint\n"
 
         printf "  ${FLG_COL}--dry-run${RESET}"
-        printf "\t\tRun the command without writing any files\n"
+        printf "\t\t\tRun the command without writing any files\n"
 
         printf "  ${FLG_COL}--no-cache${RESET}"
         printf "\t\t\tDon't use docker image cache\n"
