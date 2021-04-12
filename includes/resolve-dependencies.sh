@@ -13,7 +13,7 @@ debug_print "Requested modules: ${MODULES_TO_LOAD[*]}"
 
 i=0
 
-while [[ $i -le ${#MODULES_TO_LOAD[@]} ]]; do
+while [[ $i -lt ${#MODULES_TO_LOAD[@]} ]]; do
 
     module="${MODULES_TO_LOAD[i]}"
 
