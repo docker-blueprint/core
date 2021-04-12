@@ -22,6 +22,7 @@ MODULES=()
 
 MODE_FORCE=false
 MODE_QUIET=false
+MODE_NO_BUILD=false
 MODE_NO_SCRIPTS=false
 MODE_PRINT_ACTIVE_ONLY=false
 
@@ -34,6 +35,9 @@ while [[ "$#" -gt 0 ]]; do
         printf "  ${FLG_COL}-a${RESET}, ${FLG_COL}--active${RESET}"
         printf "\t\tOnly list active modules\n"
 
+        printf "  ${FLG_COL}--no-build${RESET}"
+        printf "\t\t\tDon't attempt to build\n"
+
         printf "  ${FLG_COL}--no-scripts${RESET}"
         printf "\t\tDon't attempt to run scripts\n"
 
@@ -44,6 +48,9 @@ while [[ "$#" -gt 0 ]]; do
         ;;
     -q | --quiet)
         MODE_QUIET=true
+        ;;
+    --no-build)
+        MODE_NO_BUILD=true
         ;;
     --no-scripts)
         MODE_NO_SCRIPTS=true
@@ -213,6 +220,43 @@ else
 fi
 
 for MODULE in "${MODULES[@]}"; do
+    case "$ACTION" in
+    add)
+        exists="$(yq eval ".modules[] | select(. == \"$MODULE\")" "$PROJECT_BLUEPRINT_FILE")"
+        if [[ -z "$exists" ]]; then
+            yq eval ".modules = ((.modules // []) + [\"$MODULE\"])" -i "$PROJECT_BLUEPRINT_FILE"
+            printf -- "Added module '%s' to the project blueprint.\n" "$MODULE"
+        else
+            printf -- "${BLUE}INFO${RESET}: Project blueprint already has module '%s'.\n" "$MODULE"
+        fi
+        ;;
+    remove)
+        exists="$(yq eval ".modules[] | select(. == \"$MODULE\")" "$PROJECT_BLUEPRINT_FILE")"
+        if [[ -n "$exists" ]]; then
+            yq eval "del(.modules[] | select(. == \"$MODULE\"))" -i "$PROJECT_BLUEPRINT_FILE"
+            printf -- "Removed module '%s' from the project blueprint.\n" "$MODULE"
+        else
+            printf -- "${BLUE}INFO${RESET}: Project blueprint doesn't have module '%s'.\n" "$MODULE"
+        fi
+        ;;
+    esac
+
+    if ! $MODE_QUIET && ! $MODE_NO_BUILD; then
+        if ! $MODE_FORCE; then
+            printf "Do you want to rebuild the project? (run with ${FLG_COL}--force${RESET} to always build)\n"
+            printf "${YELLOW}WARNING${RESET}: This will ${RED}overwrite${RESET} existing docker files [y/N] "
+            read -n 1 -r
+            echo ""
+            if [[ $REPLY =~ ^[Yy]$ ]]; then
+                bash $ENTRYPOINT build --force
+            else
+                continue
+            fi
+        else
+            bash $ENTRYPOINT build --force
+        fi
+    fi
+
     if ! $MODE_NO_SCRIPTS; then
         script_paths=()
 
@@ -251,39 +295,4 @@ for MODULE in "${MODULES[@]}"; do
             exit $status
         fi
     fi
-
-    case "$ACTION" in
-    add)
-        exists="$(yq eval ".modules[] | select(. == \"$MODULE\")" "$PROJECT_BLUEPRINT_FILE")"
-        if [[ -z "$exists" ]]; then
-            yq eval ".modules = ((.modules // []) + [\"$MODULE\"])" -i "$PROJECT_BLUEPRINT_FILE"
-            printf -- "Added module '%s' to the project blueprint.\n" "$MODULE"
-        else
-            printf -- "${BLUE}INFO${RESET}: Project blueprint already has module '%s'.\n" "$MODULE"
-        fi
-        ;;
-    remove)
-        exists="$(yq eval ".modules[] | select(. == \"$MODULE\")" "$PROJECT_BLUEPRINT_FILE")"
-        if [[ -n "$exists" ]]; then
-            yq eval "del(.modules[] | select(. == \"$MODULE\"))" -i "$PROJECT_BLUEPRINT_FILE"
-            printf -- "Removed module '%s' from the project blueprint.\n" "$MODULE"
-        else
-            printf -- "${BLUE}INFO${RESET}: Project blueprint doesn't have module '%s'.\n" "$MODULE"
-        fi
-        ;;
-    esac
 done
-
-if ! $MODE_QUIET; then
-    if ! $MODE_FORCE; then
-        printf "Do you want to rebuild the project? (run with ${FLG_COL}--force${RESET} to always build)\n"
-        printf "${YELLOW}WARNING${RESET}: This will ${RED}overwrite${RESET} existing docker files [y/N] "
-        read -n 1 -r
-        if [[ $REPLY =~ ^[Yy]$ ]]; then
-            echo ""
-            bash $ENTRYPOINT build --force
-        fi
-    else
-        bash $ENTRYPOINT build --force
-    fi
-fi
