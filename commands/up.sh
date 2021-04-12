@@ -14,7 +14,7 @@ ARGS=()
 MODE_SYNC=false
 SYNC_ARGS=()
 MODE_NO_BUILD=false
-BUILD_ARGS=('--no-up')
+BUILD_ARGS=()
 
 MODE_NO_SCRIPTS=false
 MODE_SCRIPTS_ONLY=false
