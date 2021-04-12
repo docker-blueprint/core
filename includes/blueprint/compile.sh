@@ -27,7 +27,7 @@ if [[ -n $CHECKPOINT ]]; then
     fi
     cd "$PROJECT_DIR"
 
-    if [[ ! -d "$ENV_DIR" ]]; then
+    if [[ -n "$ENV_NAME" ]] && [[ ! -d "$ENV_DIR" ]]; then
         printf "${RED}ERROR${RESET}: Environment '$ENV_NAME' does not exist for version $CHECKPOINT\n"
         exit 1
     fi

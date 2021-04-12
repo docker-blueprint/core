@@ -106,11 +106,13 @@ MODULES_LIST=()
 ENV_MODULES_LIST=()
 BASE_MODULES_LIST=()
 
-for module in $ENV_DIR/modules/*; do
-    name="$(basename "$module")"
-    ENV_MODULES_LIST+=("$name")
-    MODULES_LIST+=("$name")
-done
+if [[ -n "$ENV_DIR" ]]; then
+    for module in $ENV_DIR/modules/*; do
+        name="$(basename "$module")"
+        ENV_MODULES_LIST+=("$name")
+        MODULES_LIST+=("$name")
+    done
+fi
 
 for module in $BLUEPRINT_DIR/modules/*; do
     name="$(basename "$module")"
