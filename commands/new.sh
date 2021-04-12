@@ -92,24 +92,16 @@ while [[ "$#" -gt 0 ]]; do
         ;;
     --dry-run)
         MODE_DRY_RUN=true
-
         ;;
-
     --no-cache)
         UP_ARGS+=("--no-cache")
-
         ;;
-
     --no-chown)
         UP_ARGS+=("--no-chown")
-
         ;;
-
     --no-scripts)
         UP_ARGS+=("--no-scripts")
-
         ;;
-
     *)
         if [[ -z "$1" ]]; then
             bash $ENTRYPOINT new --help
