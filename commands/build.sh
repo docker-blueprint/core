@@ -56,6 +56,9 @@ while [[ "$#" -gt 0 ]]; do
     --no-cache)
         MODE_NO_CACHE=true
         ;;
+    *)
+        TARGET_IMAGE=$1
+        ;;
     esac
 
     shift
@@ -349,8 +352,19 @@ command="$DOCKER_COMPOSE build ${BUILD_ARGS[@]}"
 
 debug_print "Running command: $command"
 
+status=0
+
 if ! $MODE_DRY_RUN; then
     eval "$command"
+    status=$?
 fi
+
+if [[ $status -eq 0 ]] && [[ -n "$TARGET_IMAGE" ]]; then
+    printf "Applying tag ${YELLOW}$TARGET_IMAGE${RESET} to the newly built image...\n"
+    if ! $MODE_DRY_RUN; then
+        docker tag "${PROJECT_NAME}_${DEFAULT_SERVICE}" "$TARGET_IMAGE"
+    fi
+fi
+
 
 
