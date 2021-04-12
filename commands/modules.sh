@@ -34,6 +34,9 @@ while [[ "$#" -gt 0 ]]; do
         printf "  ${FLG_COL}-a${RESET}, ${FLG_COL}--active${RESET}"
         printf "\t\tOnly list active modules\n"
 
+        printf "  ${FLG_COL}--no-scripts${RESET}"
+        printf "\t\tDon't attempt to run scripts\n"
+
         exit
         ;;
     -f | --force)
