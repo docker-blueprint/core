@@ -174,3 +174,7 @@ if [[ $status > 0 ]]; then
     printf -- "${RED}ERROR${RESET}: Up script returned non-zero code: ${path#$BLUEPRINT_DIR/}\n"
     exit $status
 fi
+
+if ! $MODE_SCRIPTS_ONLY && $MODE_SYNC; then
+    bash $ENTRYPOINT sync --no-chown --skip-user
+fi

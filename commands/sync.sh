@@ -11,6 +11,7 @@ shift
 #
 
 MODE_NO_CHOWN=false
+MODE_SKIP_USER=false
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
@@ -29,6 +30,9 @@ while [[ "$#" -gt 0 ]]; do
         MODE_NO_CHOWN=true
 
         ;;
+    --skip-user)
+        MODE_SKIP_USER=true
+        ;;
     esac
 
     shift
@@ -40,7 +44,7 @@ yq_read_value SYNC_USER "user"
 # Synchronize container user with the current host
 #
 
-if [[ -n "$SYNC_USER" ]]; then
+if ! $MODE_SKIP_USER && [[ -n "$SYNC_USER" ]]; then
     debug_print "SYNC_USER is defined"
 
     echo "Synchronizing user '$SYNC_USER'..."
