@@ -120,7 +120,12 @@ if [[ -f "$path" ]]; then
 fi
 
 # Then add environment module scripts
-path="$ENV_DIR/scripts/up.$PROJECT_CONTEXT.sh"
+if [[ -n "$ENV_NAME" ]]; then
+    path="$ENV_DIR/scripts/up.$PROJECT_CONTEXT.sh"
+else
+    path="$BLUEPRINT_DIR/env/.empty/scripts/up.$PROJECT_CONTEXT.sh"
+fi
+
 if [[ -f "$path" ]]; then
     script_paths+=("$path")
     debug_print "Found: ${path#$BLUEPRINT_DIR/}"
