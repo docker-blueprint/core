@@ -210,44 +210,39 @@ for name in ${FILE_NAMES[@]}; do
 
     debug_newline_print "Generating ${YELLOW}$name${RESET}..."
 
-    # Find all files with the same name
-    FILES=($(find "$BLUEPRINT_DIR" -name "$name" -type f))
-
-    FILTERED_FILES=()
+    docker_compose_file_paths=()
 
     # Add base file if it exists
     file="$BLUEPRINT_DIR/$name"
     if [[ -f "$file" ]]; then
-        FILTERED_FILES+=("$file")
+        docker_compose_file_paths+=("$file")
     fi
 
-    # For each enabled module check whether
-    # the file needs to get merged
+    # Then add environment file if it exists
+    file="$ENV_DIR/$name"
+    if [[ -f "$file" ]]; then
+        docker_compose_file_paths+=("$file")
+    fi
+
+    # For each enabled module add files to merge
     for module in ${MODULES_TO_LOAD[@]}; do
-        for item in ${FILES[@]}; do
-            # If the file doesn't belong to the given module then skip it
-            if [[ -z "$(echo "$item" | grep "modules/$module")" ]]; then
-                continue
-            fi
 
-            # If the file is in an environment directory
-            if [[ -n "$(echo "$item" | grep "env/")" ]]; then
-                # And if the current environment is empty
-                # or the given directory is not for the current environment
-                if [[ -z $ENV_NAME ]] ||
-                    [[ -z "$(echo "$item" | grep "env/$ENV_NAME")" ]]; then
-                    # Then skip the file
-                    continue
-                fi
-            fi
+        # Add base blueprint module files first
+        file="$BLUEPRINT_DIR/modules/$module/$name"
+        if [[ -f "$file" ]]; then
+            docker_compose_file_paths+=("$file")
+        fi
 
-            FILTERED_FILES+=("$item")
-        done
+        # Then add environment module files
+        file="$ENV_DIR/modules/$module/$name"
+        if [[ -f "$file" ]]; then
+            docker_compose_file_paths+=("$file")
+        fi
     done
 
     debug_print "Merging files:"
 
-    for file in ${FILTERED_FILES[@]}; do
+    for file in ${docker_compose_file_paths[@]}; do
         debug_print "- ${file#$BLUEPRINT_DIR/}"
         if [[ ! -f "$CURRENT_DOCKER_COMPOSE_FILE" ]]; then
             cp -f "$file" "$CURRENT_DOCKER_COMPOSE_FILE"
