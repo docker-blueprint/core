@@ -363,6 +363,15 @@ if [[ $status -eq 0 ]] && [[ -n "$TARGET_IMAGE" ]]; then
     printf "Applying tag ${YELLOW}$TARGET_IMAGE${RESET} to the newly built image...\n"
     if ! $MODE_DRY_RUN; then
         docker tag "${PROJECT_NAME}_${DEFAULT_SERVICE}" "$TARGET_IMAGE"
+        status=$?
+    fi
+fi
+
+if [[ "$status" > 0 ]]; then
+    printf "${RED}ERROR${RESET}: Couldn't finish building blueprint.\n"
+    exit $status
+fi
+
     fi
 fi
 
