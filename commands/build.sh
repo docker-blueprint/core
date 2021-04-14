@@ -276,15 +276,39 @@ for name in ${FILE_NAMES[@]}; do
 
         OLD_IFS="$IFS" # Source https://stackoverflow.com/a/18055300/2467106
         IFS=
+
+        # Substitute blueprint variables
+
         while read -r line || [[ -n "$line" ]]; do
             echo $(substitute_vars "$line" "~") >>"$temp_file"
             non_debug_print "."
         done <"$CURRENT_DOCKER_COMPOSE_FILE"
+
+        mv -f "$temp_file" "$CURRENT_DOCKER_COMPOSE_FILE"
+        rm -f "$temp_file" && touch "$temp_file"
+
+        # Remove lines with non-substituted variables
+
+        while read -r line || [[ -n "$line" ]]; do
+            if [[ "$line" =~ "~" ]]; then
+
+                if [[ -n "$replaced" ]]; then
+                    echo "$replaced" >>"$temp_file"
+                fi
+            else
+                echo "$line" >>"$temp_file"
+            fi
+
+            non_debug_print "."
+        done <"$CURRENT_DOCKER_COMPOSE_FILE"
+
         IFS="$OLD_IFS"
 
         if ! $MODE_DRY_RUN; then
             mv -f "$temp_file" "$CURRENT_DOCKER_COMPOSE_FILE"
         fi
+
+        rm -f "$temp_file"
 
         debug_print "Created docker-compose file: '$name':"
 
