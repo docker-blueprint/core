@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DEBUG_PREFIX="LOCK"
+debug_switch_context "LOCK"
 
 debug_print "Running the command..."
 

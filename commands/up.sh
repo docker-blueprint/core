@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DEBUG_PREFIX="UP"
+debug_switch_context "UP"
 
 debug_print "Running the command..."
 

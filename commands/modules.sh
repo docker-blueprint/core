@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DEBUG_PREFIX="MODULES"
+debug_switch_context "MODULES"
 
 debug_print "Running the command..."
 

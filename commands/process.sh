@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DEBUG_PREFIX="PROCESS"
+debug_switch_context "PROCESS"
 
 if ! $AS_FUNCTION; then
     debug_print "Running the command..."

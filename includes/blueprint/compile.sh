@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DEBUG_PREFIX="COMPILE"
+debug_switch_context "COMPILE"
 
 debug_print "Running the command..."
 

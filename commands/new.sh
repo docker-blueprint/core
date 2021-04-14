@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DEBUG_PREFIX="NEW"
+debug_switch_context "NEW"
 
 debug_print "Running the command..."
 
@@ -135,7 +135,7 @@ if ! [[ -f "$PWD/$PROJECT_BLUEPRINT_FILE" ]]; then
     BLUEPRINT_PATH="$TEMP_DIR/blueprint-$BLUEPRINT_HASH"
 
     SILENT=false source "$ROOT_DIR/includes/blueprint/compile.sh" $BLUEPRINT 2>"$BLUEPRINT_PATH"
-    DEBUG_PREFIX="NEW"
+    debug_switch_context "NEW"
 
     # Populate project blueprint
 

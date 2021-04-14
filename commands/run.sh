@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DEBUG_PREFIX="RUN"
+debug_switch_context "RUN"
 
 shift
 
@@ -38,7 +38,7 @@ BLUEPRINT_HASH="$(printf "%s" "$BLUEPRINT$(date +%s)" | openssl dgst -sha1 | sed
 BLUEPRINT_PATH="$TEMP_DIR/blueprint-$BLUEPRINT_HASH"
 
 SILENT=true source "$ROOT_DIR/includes/blueprint/compile.sh" $BLUEPRINT 2>"$BLUEPRINT_PATH"
-DEBUG_PREFIX="BUILD"
+debug_switch_context "RUN"
 
 yq_read_keys POSSIBLE_COMMANDS "commands" "$BLUEPRINT_PATH"
 

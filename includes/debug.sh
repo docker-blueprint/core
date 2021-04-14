@@ -21,6 +21,19 @@ debug_print() {
 }
 export -f debug_print
 
+debug_switch_context() {
+    prefix="DEBUG"
+
+    if [[ -n "$1" ]]; then
+        prefix="$1"
+    fi
+
+    export DEBUG_PREFIX="$prefix"
+
+    debug_print "Switched debug context"
+}
+export -f debug_switch_context
+
 non_debug_print() {
     if [[ -z $DEBUG || $DEBUG -eq 0 ]]; then
         printf -- "$1"

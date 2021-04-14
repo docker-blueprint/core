@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DEBUG_PREFIX="BUILD"
+debug_switch_context "BUILD"
 
 debug_print "Running the command..."
 
@@ -94,7 +94,7 @@ if [[ $? -ne 0 ]]; then
     exit 1
 fi
 
-DEBUG_PREFIX="BUILD"
+debug_switch_context "BUILD"
 
 debug_newline_print "Resolving dependencies..."
 

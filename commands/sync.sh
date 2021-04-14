@@ -1,6 +1,6 @@
 #!/bin/bash
 
-DEBUG_PREFIX="SYNC"
+debug_switch_context "SYNC"
 
 debug_print "Running the command..."
 
