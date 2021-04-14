@@ -7,14 +7,15 @@ shift
 #
 
 case $1 in
-    -h|--help)
-        printf "${CMD_COL}default${RESET} ${ARG_COL}<service> | clear${RESET}"
-        printf "\tSet or clear default service to run commands against (usually set by the blueprint)\n"
-        exit
+-h | --help)
+    printf "${CMD_COL}default${RESET} ${ARG_COL}<service> | clear${RESET}"
+    printf "\tSet or clear default service to run commands against (usually set by the blueprint)\n"
+    exit
 
-        ;;
-    *)
-        SERVICE=$1
+    ;;
+*)
+    SERVICE=$1
+    ;;
 esac
 
 if [[ -z "$SERVICE" ]]; then
@@ -34,7 +35,7 @@ else
     else
         SERVICES=$($DOCKER_COMPOSE ps --services)
         if [[ ${SERVICES[@]} =~ $SERVICE ]]; then
-            echo "$SERVICE" > $LOCAL_DIR/default_service
+            echo "$SERVICE" >$LOCAL_DIR/default_service
             init_default_service
             echo "Default service set: $SERVICE"
         else

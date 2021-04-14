@@ -126,7 +126,7 @@ while read -r line || [[ -n "$line" ]]; do
     result="$(parse_directive "$line")"
 
     if [[ $? -eq 0 ]]; then
-        echo "$result" >> "$temp_file"
+        echo "$result" >>"$temp_file"
 
         if ! $AS_FUNCTION && [[ "$result" != "$line" ]]; then
             debug_print "${RED}>>>${RESET}\n%s\n" "$result"
@@ -141,7 +141,7 @@ mv -f "$temp_file" "$OUTPUT_FILE"
 
 rm -f "$temp_file" && touch "$temp_file"
 while read -r line || [[ -n "$line" ]]; do
-    echo "$(substitute_vars "$line")" >> "$temp_file"
+    echo "$(substitute_vars "$line")" >>"$temp_file"
 
     ! $AS_FUNCTION && non_debug_print "."
 done <"$OUTPUT_FILE"
@@ -156,10 +156,10 @@ while read -r line || [[ -n "$line" ]]; do
         replaced="$(echo "$line" | sed -E "s/#\s*(.*%.+)//g")"
 
         if [[ -n "$replaced" ]]; then
-            echo "$replaced" >> "$temp_file"
+            echo "$replaced" >>"$temp_file"
         fi
     else
-        echo "$line" >> "$temp_file"
+        echo "$line" >>"$temp_file"
     fi
 
     ! $AS_FUNCTION && non_debug_print "."

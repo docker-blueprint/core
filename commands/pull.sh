@@ -29,35 +29,36 @@ MODE_GET_QUALIFIED=false
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-        -h|--help)
-            printf "${CMD_COL}pull${RESET} ${ARG_COL}<blueprint>${RESET} [${FLG_COL}options${RESET}]"
-            printf "\tDownload the latest version of blueprint\n"
+    -h | --help)
+        printf "${CMD_COL}pull${RESET} ${ARG_COL}<blueprint>${RESET} [${FLG_COL}options${RESET}]"
+        printf "\tDownload the latest version of blueprint\n"
 
-            printf "  ${FLG_COL}--clean${RESET}"
-            printf "\t\t\tRemove already existing copy of a blueprint and install fresh download\n"
+        printf "  ${FLG_COL}--clean${RESET}"
+        printf "\t\t\tRemove already existing copy of a blueprint and install fresh download\n"
 
-            exit
+        exit
 
-            ;;
-        --clean)
-            CLEAN_INSTALL=true
-            ;;
-        --dry-run)
-            MODE_DRY_RUN=true
-            ;;
-        --get-qualified-name)
-            MODE_GET_QUALIFIED=true
-            ;;
-        *)
-            if [[ -z "$1" ]]; then
-                printf "Usage: "
-                bash $ENTRYPOINT pull --help
-                exit 1
-            fi
+        ;;
+    --clean)
+        CLEAN_INSTALL=true
+        ;;
+    --dry-run)
+        MODE_DRY_RUN=true
+        ;;
+    --get-qualified-name)
+        MODE_GET_QUALIFIED=true
+        ;;
+    *)
+        if [[ -z "$1" ]]; then
+            printf "Usage: "
+            bash $ENTRYPOINT pull --help
+            exit 1
+        fi
 
-            if [[ -z $BLUEPRINT ]]; then
-                BLUEPRINT=$1
-            fi
+        if [[ -z $BLUEPRINT ]]; then
+            BLUEPRINT=$1
+        fi
+        ;;
     esac
 
     shift
@@ -67,7 +68,7 @@ done
 # Parse blueprint name and branch
 #
 
-IFS=':' read -r -a BLUEPRINT_PART <<< $BLUEPRINT
+IFS=':' read -r -a BLUEPRINT_PART <<<$BLUEPRINT
 
 BLUEPRINT=${BLUEPRINT_PART[0]}
 
@@ -81,7 +82,7 @@ fi
 # Parse blueprint maintainer and name
 #
 
-IFS='/' read -r -a BLUEPRINT_PART <<< $BLUEPRINT
+IFS='/' read -r -a BLUEPRINT_PART <<<$BLUEPRINT
 
 BLUEPRINT_MAINTAINER=${BLUEPRINT_PART[0]}
 BLUEPRINT_NAME=${BLUEPRINT_PART[1]}
@@ -163,8 +164,8 @@ else
         if curl --output /dev/null --silent --head --fail "$BASE_URL/blob/master/blueprint.yml"; then
             if ! $MODE_DRY_RUN; then
                 GIT_TERMINAL_PROMPT=0 \
-                git clone "$BASE_URL.git" $GIT_ARGS \
-                $BLUEPRINT_DIR
+                    git clone "$BASE_URL.git" $GIT_ARGS \
+                    $BLUEPRINT_DIR
             fi
         else
             printf "${RED}ERROR${RESET}: Provided repository is not a blueprint.\n"
@@ -173,7 +174,7 @@ else
     else
         PREVIOUS_DIR="$PWD"
         cd "$BLUEPRINT_DIR"
-        git fetch > /dev/null
+        git fetch >/dev/null
         cd "$PREVIOUS_DIR"
     fi
 fi
@@ -187,7 +188,7 @@ if ! $MODE_DRY_RUN; then
     cd $BLUEPRINT_DIR
 
     # Always checkout master first
-    git checkout master &> /dev/null
+    git checkout master &>/dev/null
 
     BRANCHES=($(git --no-pager branch -a --list --color=never | grep -v HEAD | sed -e 's/\s*remotes\/origin\///' | sed -E 's/\* //' | sed -E 's/\s+//' | sort | uniq))
     TAGS=($(git --no-pager tag --list --color=never))
@@ -201,7 +202,7 @@ if ! $MODE_DRY_RUN; then
     for branch in "${BRANCHES[@]}"; do
         if [[ $BLUEPRINT_BRANCH = $branch ]]; then
             if $AS_FUNCTION; then
-                git checkout $BLUEPRINT_BRANCH &> /dev/null
+                git checkout $BLUEPRINT_BRANCH &>/dev/null
             else
                 git checkout $BLUEPRINT_BRANCH
             fi

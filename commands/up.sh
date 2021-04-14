@@ -88,7 +88,7 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
-if ! $MODE_SCRIPTS_ONLY;  then
+if ! $MODE_SCRIPTS_ONLY; then
     if ! $MODE_NO_BUILD; then
         bash $ENTRYPOINT build ${BUILD_ARGS[@]}
 
