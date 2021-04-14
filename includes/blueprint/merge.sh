@@ -3,7 +3,7 @@
 BLUEPRINT_FILE_TMP=$BLUEPRINT_DIR/blueprint.tmp
 BLUEPRINT_FILE_BASE=$BLUEPRINT_DIR/blueprint.yml
 
-! $SILENT && debug_newline_print "Generating blueprint file..."
+debug_print "Generating blueprint file..."
 
 if [[ ! -f "$BLUEPRINT_FILE_BASE" ]]; then
     printf "\n${RED}ERROR${RESET}: Base blueprint.yml doesn't exist.\n"

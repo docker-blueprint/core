@@ -38,6 +38,8 @@ else
     fi
 fi
 
+! $SILENT && non_debug_print "Generating blueprint file..."
+
 source "$ROOT_DIR/includes/blueprint/merge.sh" # export BLUEPRINT_FILE_TMP
 
 # Collect modules to load from temporary preset file and CLI arguments
