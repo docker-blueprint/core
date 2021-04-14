@@ -156,7 +156,8 @@ while [[ "$#" -gt 0 ]]; do
                     echo "Cannot execute command against default service - no default service specified."
                     exit 1
                 else
-                    eval "${COMMAND[@]}"
+                    debug_print "Running command: ${COMMAND[*]}"
+                    eval "${COMMAND[*]}"
                 fi
             else
                 source "$ROOT_DIR/commands/help.sh"
