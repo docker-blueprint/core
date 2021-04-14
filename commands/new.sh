@@ -14,9 +14,7 @@ fi
 FORCE_GENERATE=false
 MODE_DRY_RUN=false
 
-UP_ARGS=(
-    '--sync'
-)
+UP_ARGS=()
 
 #
 # Read arguments
