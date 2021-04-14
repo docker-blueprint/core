@@ -29,8 +29,6 @@ debug_switch_context() {
     fi
 
     export DEBUG_PREFIX="$prefix"
-
-    debug_print "Switched debug context"
 }
 export -f debug_switch_context
 
