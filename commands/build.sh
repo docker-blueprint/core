@@ -322,9 +322,3 @@ if [[ "$status" > 0 ]]; then
     printf "${RED}ERROR${RESET}: Couldn't finish building blueprint.\n"
     exit $status
 fi
-
-    fi
-fi
-
-
-
