@@ -32,7 +32,7 @@ This allows developers to easily bring up local development environment
 on any machine, building `Dockerfile` and `docker-compose.yml` files with a simple command:
 
 ```
-docker-blueprint new php --env laravel --with mysql redis
+docker-blueprint new php --env laravel --with mysql redis horizon
 ```
 
 ## Interact
@@ -44,7 +44,7 @@ and runtime environment inside the container!
 Access your development environment seamlessly:
 
 ```
-docker-blueprint php -i
+docker-blueprint npm run watch
 ```
 
 ## Share
