@@ -221,6 +221,8 @@ else
     done
 fi
 
+needs_rebuild=false
+
 for MODULE in "${MODULES[@]}"; do
     case "$ACTION" in
     add)
@@ -228,6 +230,7 @@ for MODULE in "${MODULES[@]}"; do
         if [[ -z "$exists" ]]; then
             yq eval ".modules = ((.modules // []) + [\"$MODULE\"])" -i "$PROJECT_BLUEPRINT_FILE"
             printf -- "Added module '%s' to the project blueprint.\n" "$MODULE"
+            needs_rebuild=true
         else
             printf -- "${BLUE}INFO${RESET}: Project blueprint already has module '%s'.\n" "$MODULE"
         fi
@@ -237,13 +240,14 @@ for MODULE in "${MODULES[@]}"; do
         if [[ -n "$exists" ]]; then
             yq eval "del(.modules[] | select(. == \"$MODULE\"))" -i "$PROJECT_BLUEPRINT_FILE"
             printf -- "Removed module '%s' from the project blueprint.\n" "$MODULE"
+            needs_rebuild=true
         else
             printf -- "${BLUE}INFO${RESET}: Project blueprint doesn't have module '%s'.\n" "$MODULE"
         fi
         ;;
     esac
 
-    if ! $MODE_QUIET && ! $MODE_NO_BUILD; then
+    if ! $MODE_QUIET && ! $MODE_NO_BUILD && $needs_rebuild; then
         if ! $MODE_FORCE; then
             printf "Do you want to rebuild the project? (run with ${FLG_COL}--force${RESET} to always build)\n"
             printf "${YELLOW}WARNING${RESET}: This will ${RED}overwrite${RESET} existing docker files [y/N] "
