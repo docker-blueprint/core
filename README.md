@@ -6,7 +6,9 @@
 
 <p align="center">
     <img alt="Platform: Linux" src="https://img.shields.io/badge/platform-linux-lightgrey">
-    <img alt="License" src="https://img.shields.io/github/license/docker-blueprint/core">
+    <a href="https://github.com/docker-blueprint/core/blob/master/LICENSE">
+        <img alt="License" src="https://img.shields.io/github/license/docker-blueprint/core">
+    </a>
 </p>
 
 - 💻 **Ephemeral development environments** - easily build up and tear down
