@@ -55,7 +55,7 @@ yq_write_value() {
         FILE="$3"
     fi
 
-    yq eval ".$1 = \"$2\" | .$1 style=\"double\"" -i "$FILE"
+    yq eval ".$1 = \"$2\" | .$1 style=\"single\"" -i "$FILE"
 }
 
 yq_read_array() {

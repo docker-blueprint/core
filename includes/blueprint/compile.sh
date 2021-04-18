@@ -146,17 +146,17 @@ cd $PROJECT_DIR
 
 # ... and store it for the version lock
 if [[ -n $hash ]]; then
-    yq -i eval ".version = \"$hash\" | .version style=\"double\"" "$BLUEPRINT_FILE_TMP" && \
+    yq -i eval ".version = \"$hash\" | .version style=\"single\"" "$BLUEPRINT_FILE_TMP" && \
         ! $SILENT && non_debug_print "."
 fi
 
 # Store blueprint name
-yq -i eval ".from = \"$BLUEPRINT\" | .from style=\"double\"" "$BLUEPRINT_FILE_TMP" && \
+yq -i eval ".from = \"$BLUEPRINT\" | .from style=\"single\"" "$BLUEPRINT_FILE_TMP" && \
     ! $SILENT && non_debug_print "."
 
 # Store blueprint environment
 if [[ -n $ENV_NAME ]]; then
-    yq -i eval ".environment = \"$ENV_NAME\" | .environment style=\"double\"" "$BLUEPRINT_FILE_TMP" && \
+    yq -i eval ".environment = \"$ENV_NAME\" | .environment style=\"single\"" "$BLUEPRINT_FILE_TMP" && \
         ! $SILENT && non_debug_print "."
 fi
 
@@ -172,7 +172,7 @@ for variable in ${BUILD_ARGS_KEYS[@]}; do
         value="${!variable:-}"
     fi
 
-    yq -i eval ".build_args.$variable = \"$value\"" "$BLUEPRINT_FILE_TMP" && \
+    yq -i eval ".build_args.$variable = \"$value\" | .build_args.$variable style=\"single\"" "$BLUEPRINT_FILE_TMP" && \
         ! $SILENT && non_debug_print "."
 done
 
