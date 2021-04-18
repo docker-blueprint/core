@@ -37,6 +37,9 @@ while [[ "$#" -gt 0 ]]; do
         printf "  ${FLG_COL}-a${RESET}, ${FLG_COL}--active${RESET}"
         printf "\t\tOnly list active modules\n"
 
+        printf "  ${FLG_COL}--no-chown${RESET}"
+        printf "\t\t\tPass --no-chown to 'sync' command\n"
+
         printf "  ${FLG_COL}--no-build${RESET}"
         printf "\t\t\tDon't attempt to build\n"
 
@@ -58,6 +61,9 @@ while [[ "$#" -gt 0 ]]; do
     --no-scripts)
         MODE_NO_SCRIPTS=true
         UP_ARGS+=("--no-scripts")
+        ;;
+    --no-chown)
+        UP_ARGS+=("--no-chown")
         ;;
     -a | --active)
         MODE_PRINT_ACTIVE_ONLY=true
