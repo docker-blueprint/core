@@ -63,4 +63,4 @@ Interested in setting up your development environment?
 
 # Try it yourself!
 
-You can find the online version of the documentation at https://docker-blueprint.github.io
+Get started by installing `docker-blueprint` on your machine https://docker-blueprint.github.io/#/getting-started
