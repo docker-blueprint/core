@@ -1,4 +1,8 @@
-<p align="center"><a href="https://docker-blueprint.github.io" target="_blank"><img src="https://raw.githubusercontent.com/docker-blueprint/docker-blueprint.github.io/master/docs/_media/icon.png" width="600"></a></p>
+<p align="center">
+    <a href="https://docker-blueprint.github.io" target="_blank">
+        <img src="https://raw.githubusercontent.com/docker-blueprint/docker-blueprint.github.io/master/docs/_media/icon.png" width="600">
+    </a>
+</p>
 
 <p align="center">
     <img alt="Platform: Linux" src="https://img.shields.io/badge/platform-linux-lightgrey">
