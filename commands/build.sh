@@ -107,7 +107,7 @@ non_debug_print " ${GREEN}done${RESET}\n"
 # export SCRIPT_VARS
 # export SCRIPT_VARS_ENV
 # export SCRIPT_VARS_BUILD_ARGS
-source "$ROOT_DIR/includes/get-script-vars.sh"
+SILENT=false source "$ROOT_DIR/includes/get-script-vars.sh"
 
 #
 # Build docker-compose.yml

@@ -131,7 +131,7 @@ if [[ -f "$path" ]]; then
     debug_print "Found: ${path#$BLUEPRINT_DIR/}"
 fi
 
-source "$ROOT_DIR/includes/resolve-dependencies.sh" ""
+SILENT=true source "$ROOT_DIR/includes/resolve-dependencies.sh" ""
 ACTIVE_MODULES_LIST=(${MODULES_TO_LOAD[@]})
 
 for module in ${MODULES_TO_LOAD[@]}; do
