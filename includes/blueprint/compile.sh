@@ -6,6 +6,16 @@ debug_print "Running the command..."
 
 BLUEPRINT="$1"
 
+if [[ -z "$BLUEPRINT" ]]; then
+    printf "${RED}ERROR${RESET}: \$BLUEPRINT cannot be empty\n"
+    exit 1
+fi
+
+if [[ -z "$TEMP_DIR" ]]; then
+    printf "${RED}ERROR${RESET}: \$TEMP_DIR cannot be empty\n"
+    exit 1
+fi
+
 if [[ -z $SILENT ]]; then
     SILENT=false
 fi
@@ -170,8 +180,9 @@ done
 
 debug_print "Created blueprint file: $BLUEPRINT_FILE_TMP"
 
-# Output compiled blueprint content to stderr,
-# since stdout is used for progress reporting
-cat "$BLUEPRINT_FILE_TMP" >&2
+BLUEPRINT_HASH="$(printf "%s" "$BLUEPRINT$(date +%s)" | openssl dgst -sha1 | sed 's/^.* //')"
+BLUEPRINT_PATH="$TEMP_DIR/blueprint-$BLUEPRINT_HASH"
 
-rm -f "$BLUEPRINT_FILE_TMP"
+mv "$BLUEPRINT_FILE_TMP" "$BLUEPRINT_PATH"
+
+export BLUEPRINT_PATH

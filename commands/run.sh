@@ -34,10 +34,8 @@ done
 
 SILENT=true source "$ROOT_DIR/includes/blueprint/populate_env.sh" ""
 
-BLUEPRINT_HASH="$(printf "%s" "$BLUEPRINT$(date +%s)" | openssl dgst -sha1 | sed 's/^.* //')"
-BLUEPRINT_PATH="$TEMP_DIR/blueprint-$BLUEPRINT_HASH"
-
-SILENT=true source "$ROOT_DIR/includes/blueprint/compile.sh" $BLUEPRINT 2>"$BLUEPRINT_PATH"
+# export BLUEPRINT_PATH
+SILENT=true source "$ROOT_DIR/includes/blueprint/compile.sh" "$BLUEPRINT"
 debug_switch_context "RUN"
 
 yq_read_keys POSSIBLE_COMMANDS "commands" "$BLUEPRINT_PATH"

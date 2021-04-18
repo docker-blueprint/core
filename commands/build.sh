@@ -84,10 +84,8 @@ yq_read_array MODULES_TO_LOAD 'modules' && printf "."
 
 printf " ${GREEN}done${RESET}\n"
 
-BLUEPRINT_HASH="$(printf "%s" "$BLUEPRINT$(date +%s)" | openssl dgst -sha1 | sed 's/^.* //')"
-BLUEPRINT_PATH="$TEMP_DIR/blueprint-$BLUEPRINT_HASH"
-
-source "$ROOT_DIR/includes/blueprint/compile.sh" $BLUEPRINT 2>"$BLUEPRINT_PATH"
+# export BLUEPRINT_PATH
+source "$ROOT_DIR/includes/blueprint/compile.sh" "$BLUEPRINT"
 
 if [[ $? -ne 0 ]]; then
     printf "\n${RED}ERROR${RESET}: Unable to compile blueprint '$BLUEPRINT'.\n"
