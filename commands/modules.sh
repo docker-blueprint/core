@@ -276,6 +276,11 @@ for MODULE in "${MODULES[@]}"; do
 
         status=0
 
+        # export SCRIPT_VARS
+        # export SCRIPT_VARS_ENV
+        # export SCRIPT_VARS_BUILD_ARGS
+        source "$ROOT_DIR/includes/get-script-vars.sh"
+
         for path in "${script_paths[@]}"; do
             printf "Running script for module '$MODULE'...\n"
             debug_print "Running script: ${path#$BLUEPRINT_DIR/}"
@@ -283,7 +288,7 @@ for MODULE in "${MODULES[@]}"; do
             PROGRAM="$(source "$ROOT_DIR/includes/script/prepare.sh" "$(cat "$path")")"
 
             command="bash -c \"$PROGRAM\""
-            bash $ENTRYPOINT $DEFAULT_SERVICE exec "$command"
+            bash $ENTRYPOINT "${SCRIPT_VARS_ENV[@]}" $DEFAULT_SERVICE exec "$command"
 
             status=$?
 

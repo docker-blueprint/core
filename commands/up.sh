@@ -159,13 +159,18 @@ status=0
 if ! $MODE_NO_SCRIPTS; then
     printf "Running up scripts for ${YELLOW}$PROJECT_CONTEXT${RESET} context...\n"
 
+    # export SCRIPT_VARS
+    # export SCRIPT_VARS_ENV
+    # export SCRIPT_VARS_BUILD_ARGS
+    source "$ROOT_DIR/includes/get-script-vars.sh"
+
     for path in "${script_paths[@]}"; do
-        debug_print "Running script: ${path#$BLUEPRINT_DIR/}"
+        printf "Running script: ${path#$BLUEPRINT_DIR/}\n"
 
         PROGRAM="$(source "$ROOT_DIR/includes/script/prepare.sh" "$(cat "$path")")"
 
         command="bash -c \"$PROGRAM\""
-        bash $ENTRYPOINT $DEFAULT_SERVICE exec "$command"
+        bash $ENTRYPOINT "${SCRIPT_VARS_ENV[@]}" $DEFAULT_SERVICE exec "$command"
 
         status=$?
 

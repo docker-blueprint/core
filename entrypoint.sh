@@ -125,6 +125,20 @@ while [[ "$#" -gt 0 ]]; do
                     COMMAND+=("-T")
                 fi
 
+                ENV_VARS=()
+
+                while [[ "$#" -gt 0 ]]; do
+                    case $1 in
+                    -e* | --env*)
+                        COMMAND+=("$1")
+                        shift
+                        ;;
+                    *)
+                        break
+                        ;;
+                    esac
+                done
+
                 if [[ ! -z "$2" ]] && [[ "$2" == "sudo" ]]; then
                     COMMAND+=("$1 ${@:3}")
                 elif [[ "$1" == "sudo" ]]; then
