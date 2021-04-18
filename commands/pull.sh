@@ -23,68 +23,66 @@
 
 shift # Remove command name from the argument list
 
+CLEAN_INSTALL=false
 MODE_DRY_RUN=false
 MODE_GET_QUALIFIED=false
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-        -h|--help)
-            printf "${CMD_COL}pull${RESET} ${ARG_COL}<blueprint>${RESET}"
-            printf "\t\tDownload the latest version of blueprint\n"
+    -h | --help)
+        printf "${CMD_COL}pull${RESET} ${ARG_COL}<blueprint>${RESET} [${FLG_COL}options${RESET}]"
+        printf "\tDownload the latest version of blueprint\n"
 
-            exit
+        printf "  ${FLG_COL}--clean${RESET}"
+        printf "\t\t\tRemove already existing copy of a blueprint and install fresh download\n"
 
-            ;;
-        --dry-run)
-            MODE_DRY_RUN=true
-            ;;
-        --get-qualified-name)
-            MODE_GET_QUALIFIED=true
-            ;;
-        *)
-            if [[ -z "$1" ]]; then
-                printf "Usage: "
-                bash $ENTRYPOINT pull --help
-                exit 1
-            fi
+        exit
 
-            if [[ -z $BLUEPRINT ]]; then
-                BLUEPRINT=$1
-            fi
+        ;;
+    --clean)
+        CLEAN_INSTALL=true
+        ;;
+    --dry-run)
+        MODE_DRY_RUN=true
+        ;;
+    --get-qualified-name)
+        MODE_GET_QUALIFIED=true
+        ;;
+    *)
+        if [[ -z "$1" ]]; then
+            printf "Usage: "
+            bash $ENTRYPOINT pull --help
+            exit 1
+        fi
+
+        if [[ -z $BLUEPRINT ]]; then
+            BLUEPRINT=$1
+        fi
+        ;;
     esac
 
     shift
 done
 
 #
-# Check if blueprint is a local directory
+# Parse blueprint name and branch
 #
 
-if [[ -d $BLUEPRINT ]] && [[ $BLUEPRINT =~ "/" || $BLUEPRINT =~ "." || $BLUEPRINT =~ ".." ]]; then
-    mkdir -p "$DIR/blueprints/.local"
+IFS=':' read -r -a BLUEPRINT_PART <<<$BLUEPRINT
 
-    HASH=$(echo -n "$BLUEPRINT" | openssl dgst -sha1 | sed 's/^.* //')
-    BLUEPRINT_DIR="$DIR/blueprints/.local/$HASH"
+BLUEPRINT=${BLUEPRINT_PART[0]}
 
-    if ! $AS_FUNCTION; then
-        echo "Copying '$BLUEPRINT'..."
-    fi
-
-    rm -rf $BLUEPRINT_DIR
-    cp -rf $BLUEPRINT $BLUEPRINT_DIR
-
-    if $AS_FUNCTION; then
-        echo $BLUEPRINT_DIR
-    fi
-
-    exit
+if [[ -z ${BLUEPRINT_PART[1]} ]]; then
+    BLUEPRINT_BRANCH="master"
+else
+    BLUEPRINT_BRANCH=${BLUEPRINT_PART[1]}
 fi
 
 #
 # Parse blueprint maintainer and name
 #
 
-IFS='/' read -r -a BLUEPRINT_PART <<< $BLUEPRINT
+IFS='/' read -r -a BLUEPRINT_PART <<<$BLUEPRINT
 
 BLUEPRINT_MAINTAINER=${BLUEPRINT_PART[0]}
 BLUEPRINT_NAME=${BLUEPRINT_PART[1]}
@@ -99,20 +97,6 @@ else
     BLUEPRINT_NAME=${BLUEPRINT_PART[1]}
 fi
 
-#
-# Parse blueprint name and branch
-#
-
-IFS=':' read -r -a BLUEPRINT_PART <<< $BLUEPRINT_NAME
-
-BLUEPRINT_NAME=${BLUEPRINT_PART[0]}
-
-if [[ -z ${BLUEPRINT_PART[1]} ]]; then
-    BLUEPRINT_BRANCH="master"
-else
-    BLUEPRINT_BRANCH=${BLUEPRINT_PART[1]}
-fi
-
 BLUEPRINT_QUALIFIED_NAME="$BLUEPRINT_MAINTAINER/$BLUEPRINT_NAME:$BLUEPRINT_BRANCH"
 
 if $MODE_GET_QUALIFIED; then
@@ -125,51 +109,73 @@ if $MODE_GET_QUALIFIED; then
 fi
 
 #
-# Build path for the resolved blueprint
+# Check if blueprint is a local directory
 #
 
-if [[ $BLUEPRINT_MAINTAINER = "docker-blueprint" ]]; then
-    BLUEPRINT_DIR="$DIR/blueprints/_/$BLUEPRINT_NAME"
-else
-    BLUEPRINT_DIR="$DIR/blueprints/$BLUEPRINT_MAINTAINER/$BLUEPRINT_NAME"
-fi
+if [[ -d $BLUEPRINT ]] && [[ $BLUEPRINT =~ "/" || $BLUEPRINT =~ "." || $BLUEPRINT =~ ".." ]]; then
+    mkdir -p "$LOCAL_DIR/blueprints/.local"
 
-PREVIOUS_DIR=$PWD
+    HASH=$(echo -n "$BLUEPRINT" | openssl dgst -sha1 | sed 's/^.* //')
+    BLUEPRINT_DIR="$LOCAL_DIR/blueprints/.local/$HASH"
 
-if $AS_FUNCTION; then
-    GIT_ARGS="-q"
-fi
-
-#
-# Try to clone or update blueprint repository
-#
-
-if ! $AS_FUNCTION; then
-    echo "Pulling blueprint '$BLUEPRINT_QUALIFIED_NAME'..."
-fi
-
-if [[ -d $BLUEPRINT_DIR ]]; then
-    if ! $MODE_DRY_RUN; then
-        cd $BLUEPRINT_DIR
-        git pull $GIT_ARGS 2> /dev/null
-        cd $PREVIOUS_DIR
+    if ! $AS_FUNCTION; then
+        echo "Copying '$BLUEPRINT'..."
     fi
+
+    rm -rf $BLUEPRINT_DIR
+    cp -rf $BLUEPRINT $BLUEPRINT_DIR
 else
-    BASE_URL="https://github.com/$BLUEPRINT_MAINTAINER/$BLUEPRINT_NAME"
-
     #
-    # Check if repository exists and is a blueprint
+    # Build path for the resolved blueprint
     #
 
-    if curl --output /dev/null --silent --head --fail "$BASE_URL/blob/master/blueprint.yml"; then
-        if ! $MODE_DRY_RUN; then
-            GIT_TERMINAL_PROMPT=0 \
-            git clone "$BASE_URL.git" $GIT_ARGS \
-            $BLUEPRINT_DIR
+    if [[ $BLUEPRINT_MAINTAINER = "docker-blueprint" ]]; then
+        BLUEPRINT_DIR="$LOCAL_DIR/blueprints/_/$BLUEPRINT_NAME"
+    else
+        BLUEPRINT_DIR="$LOCAL_DIR/blueprints/$BLUEPRINT_MAINTAINER/$BLUEPRINT_NAME"
+    fi
+
+    PREVIOUS_DIR=$PWD
+
+    if $AS_FUNCTION; then
+        GIT_ARGS="-q"
+    fi
+
+    #
+    # Try to clone or update blueprint repository
+    #
+
+    if ! $AS_FUNCTION; then
+        echo "Pulling blueprint '$BLUEPRINT_QUALIFIED_NAME'..."
+    fi
+
+    if $CLEAN_INSTALL; then
+        echo "Removing previous version of the blueprint..."
+        rm -rf $BLUEPRINT_DIR
+    fi
+
+    if [[ ! -d $BLUEPRINT_DIR ]]; then
+        BASE_URL="https://github.com/$BLUEPRINT_MAINTAINER/$BLUEPRINT_NAME"
+
+        #
+        # Check if repository exists and is a blueprint
+        #
+
+        if curl --output /dev/null --silent --head --fail "$BASE_URL/blob/master/blueprint.yml"; then
+            if ! $MODE_DRY_RUN; then
+                GIT_TERMINAL_PROMPT=0 \
+                    git clone "$BASE_URL.git" $GIT_ARGS \
+                    $BLUEPRINT_DIR
+            fi
+        else
+            printf "${RED}ERROR${RESET}: Provided repository is not a blueprint.\n"
+            exit 1
         fi
     else
-        echo "Provided repository is not a blueprint."
-        exit 1
+        PREVIOUS_DIR="$PWD"
+        cd "$BLUEPRINT_DIR"
+        git fetch >/dev/null
+        cd "$PREVIOUS_DIR"
     fi
 fi
 
@@ -181,11 +187,11 @@ if ! $MODE_DRY_RUN; then
 
     cd $BLUEPRINT_DIR
 
-    # Always synchronize with remote
-    git -c advice.detachedHead=false reset --hard "origin/master" > /dev/null
+    # Always checkout master first
+    git checkout master &>/dev/null
 
-    BRANCHES="$(git --no-pager branch -a --list --color=never | grep -v HEAD | grep remotes/origin | sed -e 's/\s*remotes\/origin\///')"
-    TAGS="$(git --no-pager tag --list --color=never)"
+    BRANCHES=($(git --no-pager branch -a --list --color=never | grep -v HEAD | sed -e 's/\s*remotes\/origin\///' | sed -E 's/\* //' | sed -E 's/\s+//' | sort | uniq))
+    TAGS=($(git --no-pager tag --list --color=never))
 
     for tag in "${TAGS[@]}"; do
         BRANCHES+=($tag)
@@ -195,7 +201,11 @@ if ! $MODE_DRY_RUN; then
 
     for branch in "${BRANCHES[@]}"; do
         if [[ $BLUEPRINT_BRANCH = $branch ]]; then
-            git -c advice.detachedHead=false reset --hard $BLUEPRINT_BRANCH > /dev/null
+            if $AS_FUNCTION; then
+                git checkout $BLUEPRINT_BRANCH &>/dev/null
+            else
+                git checkout $BLUEPRINT_BRANCH
+            fi
             FOUND=true
             break
         fi
@@ -203,7 +213,7 @@ if ! $MODE_DRY_RUN; then
 
     if ! $FOUND; then
         if ! $AS_FUNCTION; then
-            printf "${RED}Error${RESET}: Unable to find version '$BLUEPRINT_BRANCH'.\n"
+            printf "${RED}ERROR${RESET}: Unable to find version '$BLUEPRINT_BRANCH'.\n"
         fi
         exit 1
     else

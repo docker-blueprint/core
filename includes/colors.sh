@@ -27,9 +27,12 @@ if [[ -t 1 ]] && [[ -z ${DOCKER_BLUEPRINT_NO_COLOR:+x} ]]; then
     fi
 fi
 
-export EXE_COL=$RESET
+export EXE_COL=$BLUE
 export SRV_COL=$LIGHT_GRAY
 export CMD_COL=$GREEN
 export ARG_COL=$RESET
 export FLG_COL=$RED
 export FLG_VAL_COL=$RESET
+
+export ICON_EMPTY=" "
+export ICON_CHECK="\xE2\x9C\x94"

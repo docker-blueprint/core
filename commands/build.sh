@@ -1,5 +1,9 @@
 #!/bin/bash
 
+debug_switch_context "BUILD"
+
+debug_print "Running the command..."
+
 # Blueprint BUILD command
 
 shift
@@ -8,17 +12,63 @@ shift
 # Read arguments
 #
 
+MODE_FORCE=false
+MODE_DRY_RUN=false
+MODE_SKIP_COMPOSE=false
+MODE_SKIP_DOCKERFILE=false
+MODE_NO_CACHE=false
+
 while [[ "$#" -gt 0 ]]; do
     case $1 in
-        -h|--help)
-            printf "${CMD_COL}build${RESET} [${FLG_COL}options${RESET}]"
-            printf "\t\tBuild containerized technology stack defined in docker-blueprint.yml\n"
+    -h | --help)
+        printf "${CMD_COL}build${RESET} [${FLG_COL}options${RESET}] [${ARG_COL}<tag>${RESET}]"
+        printf "\tBuild containerized technology stack defined in docker-blueprint.yml\n"
 
-            exit
+        printf "  ${FLG_COL}-f${RESET}, ${FLG_COL}--force${RESET}"
+        printf "\t\t\tAlways generate new docker files. This ${RED}WILL OVERWRITE${RESET} existing files\n"
+
+        printf "  ${FLG_COL}--dry-run${RESET}"
+        printf "\t\t\tRun the command without writing any files\n"
+
+        printf "  ${FLG_COL}--skip-compose${RESET}"
+        printf "\t\tDon't generate docker-compose files\n"
+
+        printf "  ${FLG_COL}--skip-dockerfile${RESET}"
+        printf "\t\tDon't generate dockerfiles\n"
+
+        printf "  ${FLG_COL}--no-cache${RESET}"
+        printf "\t\t\tDon't use docker image cache\n"
+
+        exit
+        ;;
+    -f | --force)
+        MODE_FORCE=true
+        ;;
+    --dry-run)
+        MODE_DRY_RUN=true
+        ;;
+    --skip-compose | --no-compose)
+        MODE_SKIP_COMPOSE=true
+        ;;
+    --skip-dockerfile | --no-dockerfile)
+        MODE_SKIP_DOCKERFILE=true
+        ;;
+    --no-cache)
+        MODE_NO_CACHE=true
+        ;;
+    *)
+        TARGET_IMAGE=$1
+        ;;
     esac
 
     shift
 done
+
+if [[ ! -f "$PWD/$PROJECT_BLUEPRINT_FILE" ]]; then
+    printf "${RED}ERROR${RESET}: docker-blueprint.yml doesn't exist.\n"
+    printf "Create one by running: ${BLUE}docker-blueprint ${GREEN}new${RESET}\n"
+    exit 1
+fi
 
 #
 # Initialize path variables
@@ -26,229 +76,249 @@ done
 
 printf "Loading blueprint..."
 
-read_value BLUEPRINT 'blueprint.name' && printf "."
-read_value CHECKPOINT 'blueprint.version' && printf "."
-read_value ENV_NAME 'blueprint.env' && printf "."
-read_array MODULES_TO_LOAD 'modules' && printf "."
+# Use base metadata from `docker-blueprint.yml` in order to derive full blueprint
 
-BLUEPRINT_DIR=$(AS_FUNCTION=true bash $ENTRYPOINT pull $BLUEPRINT)
-
-if [[ $? -ne 0 ]]; then
-    printf "\n${RED}Error${RESET}: Unable to pull blueprint '$BLUEPRINT'.\n"
-    exit 1
-fi
+yq_read_value BLUEPRINT 'from' && printf "."
+yq_read_value ENV_NAME 'environment' && printf "."
+yq_read_array MODULES_TO_LOAD 'modules' && printf "."
 
 printf " ${GREEN}done${RESET}\n"
 
-if [[ -n $CHECKPOINT ]]; then
-    cd $BLUEPRINT_DIR
-    git checkout $CHECKPOINT 2> /dev/null
-    if [[ $? -eq 0 ]]; then
-        printf "Version: ${CYAN}$CHECKPOINT${RESET}\n"
-    else
-        printf "${YELLOW}Warning${RESET}: unable to checkout version $CHECKPOINT\n"
-    fi
-    cd $PROJECT_DIR
+# export BLUEPRINT_PATH
+source "$ROOT_DIR/includes/blueprint/compile.sh" "$BLUEPRINT"
+
+if [[ $? -ne 0 ]]; then
+    printf "\n${RED}ERROR${RESET}: Unable to compile blueprint '$BLUEPRINT'.\n"
+    exit 1
 fi
 
-if [[ -n "$ENV_NAME" ]]; then
-    ENV_DIR=$BLUEPRINT_DIR/env/$ENV_NAME
-fi
+debug_switch_context "BUILD"
+
+debug_newline_print "Resolving dependencies..."
+
+source "$ROOT_DIR/includes/resolve-dependencies.sh" ${MODULES_TO_LOAD[@]}
+
+non_debug_print " ${GREEN}done${RESET}\n"
 
 #
 # Read generated configuration
 #
 
-printf "Reading configuration..."
-
-read_value DEFAULT_SERVICE "default_service" && printf "."
-read_keys DEPENDENCIES_KEYS "dependencies" && printf "."
-read_keys BUILD_ARGS_KEYS "build_args" && printf "."
-read_keys PURGE_KEYS "purge" && printf " ${GREEN}done${RESET}\n"
-
-echo "$DEFAULT_SERVICE" > "$DIR/default_service"
-
-BUILD_ARGS=()
-
-BUILD_ARGS+=("--build-arg BLUEPRINT_DIR=$BLUEPRINT_DIR")
-
-SCRIPT_VARS=()
-SCRIPT_VARS+=("ENV_DIR=$ENV_DIR")
-SCRIPT_VARS+=("BLUEPRINT_DIR=$BLUEPRINT_DIR")
+# export SCRIPT_VARS
+# export SCRIPT_VARS_ENV
+# export SCRIPT_VARS_BUILD_ARGS
+source "$ROOT_DIR/includes/get-script-vars.sh"
 
 #
 # Build docker-compose.yml
 #
 
-printf "Building docker-compose.yml..."
+printf "Building docker-compose files...\n"
 
-cp "$BLUEPRINT_DIR/templates/docker-compose.yml" "$PWD/docker-compose.yml"
+# Select all unique docker-compose files (even in disabled modules)
+if ! $MODE_SKIP_COMPOSE; then
+    FILE_NAMES=($(
+        find "$BLUEPRINT_DIR" -name "docker-compose*.yml" -type f |
+            xargs basename -a |
+            sort |
+            uniq
+    ))
+fi
 
-chunk="$BLUEPRINT_DIR" \
-perl -0 -i -pe 's/#\s*(.*)\$BLUEPRINT_DIR/$1$ENV{"chunk"}/g' \
-"$PWD/docker-compose.yml" && printf "."
+for name in ${FILE_NAMES[@]}; do
+    CURRENT_DOCKER_COMPOSE_FILE="$PWD/$name"
 
-# Replace 'environment' placeholders
+    # Make sure file doesn't exist in the project directory,
+    # otherwise print a warning and skip it
 
-CHUNK="$(yq read -p pv $BLUEPRINT_FILE_FINAL 'environment' | pr -To 4)"
-chunk="$CHUNK" perl -0 -i -pe 's/ *# environment:root/$ENV{"chunk"}/' \
-"$PWD/docker-compose.yml" && printf "."
-
-CHUNK="$(yq read -p v $BLUEPRINT_FILE_FINAL 'environment' | pr -To 6)"
-chunk="$CHUNK" perl -0 -i -pe 's/ *# environment/$ENV{"chunk"}/' \
-"$PWD/docker-compose.yml" && printf "."
-
-# Replace 'services' placeholders
-
-CHUNK="$(yq read -p pv $BLUEPRINT_FILE_FINAL 'services')"
-chunk="$CHUNK" perl -0 -i -pe 's/ *# services:root/$ENV{"chunk"}/' \
-"$PWD/docker-compose.yml" && printf "."
-
-CHUNK="$(yq read -p v $BLUEPRINT_FILE_FINAL 'services' | pr -To 2)"
-chunk="$CHUNK" perl -0 -i -pe 's/ *# services/$ENV{"chunk"}/' \
-"$PWD/docker-compose.yml" && printf "."
-
-# Replace 'volumes' placeholders
-
-CHUNK="$(yq read -p pv $BLUEPRINT_FILE_FINAL 'volumes')"
-chunk="$CHUNK" perl -0 -i -pe 's/ *# volumes:root/$ENV{"chunk"}/' \
-"$PWD/docker-compose.yml" && printf "."
-
-CHUNK="$(yq read -p v $BLUEPRINT_FILE_FINAL 'volumes' | pr -To 2)"
-chunk="$CHUNK" perl -0 -i -pe 's/ *# volumes/$ENV{"chunk"}/' \
-"$PWD/docker-compose.yml" && printf "."
-
-# Replace +variables
-
-for variable in ${BUILD_ARGS_KEYS[@]}; do
-    read_value value "build_args.$variable"
-
-    # Replace build argument value with env variable value if it is set
-    if [[ -n ${!variable+x} ]]; then
-        value="${!variable:-}"
+    if $MODE_FORCE; then
+        if ! $MODE_DRY_RUN; then
+            rm -f "$CURRENT_DOCKER_COMPOSE_FILE"
+        fi
+    elif [[ -f "$CURRENT_DOCKER_COMPOSE_FILE" ]]; then
+        printf "${BLUE}INFO${RESET}: ${YELLOW}$name${RESET} already exists, skipping generation (run with --force to override).\n"
+        continue
     fi
 
-    BUILD_ARGS+=("--build-arg $variable=$value")
-    SCRIPT_VARS+=("$variable=$value")
+    debug_newline_print "Generating ${YELLOW}$name${RESET}..."
 
-    value="$value" perl -0 -i -pe "s/\+$variable/"'$ENV{"value"}/' \
-    "$PWD/docker-compose.yml" && printf "."
+    docker_compose_file_paths=()
+
+    # Add base file if it exists
+    file="$BLUEPRINT_DIR/$name"
+    if [[ -f "$file" ]]; then
+        docker_compose_file_paths+=("$file")
+    fi
+
+    # Then add environment file if it exists
+    file="$ENV_DIR/$name"
+    if [[ -f "$file" ]]; then
+        docker_compose_file_paths+=("$file")
+    fi
+
+    # For each enabled module add files to merge
+    for module in ${MODULES_TO_LOAD[@]}; do
+
+        # Add base blueprint module files first
+        file="$BLUEPRINT_DIR/modules/$module/$name"
+        if [[ -f "$file" ]]; then
+            docker_compose_file_paths+=("$file")
+        fi
+
+        # Then add environment module files
+        file="$ENV_DIR/modules/$module/$name"
+        if [[ -f "$file" ]]; then
+            docker_compose_file_paths+=("$file")
+        fi
+    done
+
+    debug_print "Merging files:"
+
+    for file in ${docker_compose_file_paths[@]}; do
+        debug_print "- ${file#$BLUEPRINT_DIR/}"
+        if [[ ! -f "$CURRENT_DOCKER_COMPOSE_FILE" ]]; then
+            cp -f "$file" "$CURRENT_DOCKER_COMPOSE_FILE"
+        else
+            printf -- "$(
+                yq_merge \
+                    "$CURRENT_DOCKER_COMPOSE_FILE" "$file"
+            )" >"$CURRENT_DOCKER_COMPOSE_FILE"
+        fi
+
+        non_debug_print "."
+    done
+
+    if [[ -f "$CURRENT_DOCKER_COMPOSE_FILE" ]]; then
+        # Remove empty lines
+        sed -ri '/^\s*$/d' "$CURRENT_DOCKER_COMPOSE_FILE"
+
+        substitute_vars() {
+            env "${SCRIPT_VARS[@]}" \
+                bash "$ROOT_DIR/includes/preprocessor/substitute-vars.sh" $@
+        }
+
+        temp_file="$TEMP_DIR/$name"
+        mkdir -p "$(dirname "$temp_file")"
+        rm -f "$temp_file" && touch "$temp_file"
+
+        OLD_IFS="$IFS" # Source https://stackoverflow.com/a/18055300/2467106
+        IFS=
+
+        # Substitute blueprint variables
+
+        while read -r line || [[ -n "$line" ]]; do
+            echo $(substitute_vars "$line" "~") >>"$temp_file"
+            non_debug_print "."
+        done <"$CURRENT_DOCKER_COMPOSE_FILE"
+
+        mv -f "$temp_file" "$CURRENT_DOCKER_COMPOSE_FILE"
+        rm -f "$temp_file" && touch "$temp_file"
+
+        # Remove lines with non-substituted variables
+
+        while read -r line || [[ -n "$line" ]]; do
+            if [[ "$line" =~ "~" ]]; then
+
+                if [[ -n "$replaced" ]]; then
+                    echo "$replaced" >>"$temp_file"
+                fi
+            else
+                echo "$line" >>"$temp_file"
+            fi
+
+            non_debug_print "."
+        done <"$CURRENT_DOCKER_COMPOSE_FILE"
+
+        IFS="$OLD_IFS"
+
+        if ! $MODE_DRY_RUN; then
+            mv -f "$temp_file" "$CURRENT_DOCKER_COMPOSE_FILE"
+        fi
+
+        rm -f "$temp_file"
+
+        debug_print "Created docker-compose file: '$name':"
+
+        non_debug_print " ${GREEN}done${RESET}\n"
+    fi
 done
-
-# Remove empty lines
-
-sed -ri '/^\s*$/d' "$PWD/docker-compose.yml"
-
-printf " ${GREEN}done${RESET}\n"
 
 #
 # Build dockerfile
 #
 
-printf "Building dockerfile..."
+printf "Building dockerfiles...\n"
 
-cp "$BLUEPRINT_DIR/templates/dockerfile" "$PWD/dockerfile"
+for file in $BLUEPRINT_DIR/[Dd]ockerfile*; do
+    # https://stackoverflow.com/a/43606356/2467106
+    # http://mywiki.wooledge.org/BashPitfalls#line-57
+    [ -e "$file" ] || continue
 
-CHUNK="$(yq read -p v $BLUEPRINT_FILE_FINAL 'stages.development[*]')"
-chunk="$CHUNK" perl -0 -i -pe 's/ *# \$DEVELOPMENT_COMMANDS/$ENV{"chunk"}/' \
-"$PWD/dockerfile"
+    DOCKER_FILE=$(basename "$file")
 
-CHUNK="$(yq read -p v $BLUEPRINT_FILE_FINAL 'stages.production[*]')"
-chunk="$CHUNK" perl -0 -i -pe 's/ *# \$PRODUCTION_COMMANDS/$ENV{"chunk"}/' \
-"$PWD/dockerfile"
+    CURRENT_DOCKERFILE="$PWD/$DOCKER_FILE"
 
-for key in "${DEPENDENCIES_KEYS[@]}"; do
-    read_array DEPS "dependencies.$key"
-    key=$(echo "$key" | tr [:lower:] [:upper:])
-    printf "."
+    if $MODE_SKIP_DOCKERFILE; then
+        continue
+    fi
 
-    key="$key" chunk="${DEPS[*]}" \
-    perl -0 -i -pe 's/#\s*(.*)\$DEPS_$ENV{"key"}/$1$ENV{"chunk"}/g' \
-    "$PWD/dockerfile"
+    if $MODE_FORCE; then
+        if ! $MODE_DRY_RUN; then
+            rm -f "$CURRENT_DOCKERFILE"
+        fi
+    elif [[ -f "$CURRENT_DOCKERFILE" ]]; then
+        printf "${BLUE}INFO${RESET}: ${YELLOW}$DOCKER_FILE${RESET} already exists, skipping generation (run with --force to override).\n"
+        continue
+    fi
+
+    env "${SCRIPT_VARS[@]}" bash $ENTRYPOINT process "$file"
+
+    if [[ $? > 0 ]]; then
+        printf "\n${RED}ERROR${RESET}: There was an error processing $file\n"
+        exit 1
+    fi
+
+    if ! $MODE_DRY_RUN; then
+        cp "$file.out" "$CURRENT_DOCKERFILE"
+    fi
+
+    if [[ $? > 0 ]]; then
+        printf "\n${RED}ERROR${RESET}: Unable to copy processed file\n"
+        exit 1
+    fi
+
+    # Clean up after processing
+    rm -f "$file.out"
 done
-
-for key in "${PURGE_KEYS[@]}"; do
-    read_array PURGE "purge.$key"
-    key=$(echo "$key" | tr [:lower:] [:upper:])
-    printf "."
-
-    key="$key" chunk="${PURGE[*]}" \
-    perl -0 -i -pe 's/#\s*(.*)\$PURGE_$ENV{"key"}/$1$ENV{"chunk"}/g' \
-    "$PWD/dockerfile"
-done
-
-chunk="$BLUEPRINT_DIR" \
-perl -0 -i -pe 's/#\s*(.*)\$BLUEPRINT_DIR/$1$ENV{"chunk"}/g' \
-"$PWD/dockerfile"
-
-printf " ${GREEN}done${RESET}\n"
 
 #
 # Build containers
 #
 
-docker-compose build ${BUILD_ARGS[@]}
-
-echo "Removing existing stack..."
-
-docker-compose down
-
-echo "Building new stack..."
-
-bash $ENTRYPOINT up
-
-#
-# Restart container to apply chown
-#
-
-echo "Restarting container '$DEFAULT_SERVICE'..."
-docker-compose restart "$DEFAULT_SERVICE"
-
-#
-# Run initialization scripts
-#
-
-if [[ -d $ENV_DIR && -f "$ENV_DIR/before.sh" ]]; then
-    echo "Initializing environment before modules..."
-    env ${SCRIPT_VARS[@]} bash "$ENV_DIR/before.sh"
-elif [[ -d $BLUEPRINT_DIR && -f "$BLUEPRINT_DIR/before.sh" ]]; then
-    echo "Initializing blueprint before modules..."
-    env ${SCRIPT_VARS[@]} bash "$BLUEPRINT_DIR/before.sh"
+if $MODE_NO_CACHE; then
+    SCRIPT_VARS_BUILD_ARGS+=("--no-cache")
 fi
 
-for module in "${MODULES_TO_LOAD[@]}"; do
-    if [[ -f "$BLUEPRINT_DIR/modules/$module/init.sh" ]]; then
-        echo "Initializing module '$module'..."
-        env ${SCRIPT_VARS[@]} MODULE_DIR="$BLUEPRINT_DIR/modules/$module" \
-        bash "$BLUEPRINT_DIR/modules/$module/init.sh"
-    fi
+command="$DOCKER_COMPOSE build ${SCRIPT_VARS_BUILD_ARGS[@]}"
 
-    if [[ -f "$ENV_DIR/modules/$module/init.sh" ]]; then
-        echo "Initializing environment module '$module'..."
-        env ${SCRIPT_VARS[@]} MODULE_DIR="$ENV_DIR/modules/$module" \
-        bash "$ENV_DIR/modules/$module/init.sh"
-    fi
-done
+debug_print "Running command: $command"
 
-if [[ -d $ENV_DIR && -f "$ENV_DIR/after.sh" ]]; then
-    echo "Initializing environment after modules..."
-    env ${SCRIPT_VARS[@]} bash "$ENV_DIR/after.sh"
-elif [[ -d $BLUEPRINT_DIR && -f "$BLUEPRINT_DIR/after.sh" ]]; then
-    echo "Initializing blueprint after modules..."
-    env ${SCRIPT_VARS[@]} bash "$BLUEPRINT_DIR/after.sh"
+status=0
+
+if ! $MODE_DRY_RUN; then
+    eval "$command"
+    status=$?
 fi
 
-#
-# Comment .env variables that collide with docker-compose environment
-#
+if [[ $status -eq 0 ]] && [[ -n "$TARGET_IMAGE" ]]; then
+    printf "Applying tag ${YELLOW}$TARGET_IMAGE${RESET} to the newly built image...\n"
+    if ! $MODE_DRY_RUN; then
+        docker tag "${PROJECT_NAME}_${DEFAULT_SERVICE}" "$TARGET_IMAGE"
+        status=$?
+    fi
+fi
 
-if [[ -f .env ]]; then
-    readarray -t VARIABLES < <(yq read -p p "$BLUEPRINT_FILE_FINAL" "environment.*")
-
-    for variable in "${VARIABLES[@]}"; do
-        v="${variable#'environment.'}" \
-        perl -i -pe 's/^(?!#)(\s*$ENV{v})/# $1/' .env
-    done
-
-    echo "Commented environment variables used by Docker"
+if [[ "$status" > 0 ]]; then
+    printf "${RED}ERROR${RESET}: Couldn't finish building blueprint.\n"
+    exit $status
 fi

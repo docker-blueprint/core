@@ -14,6 +14,7 @@ for PROGRAM in "${REQUIREMENTS[@]}"; do
 done
 
 PROJECT_DIR=~/.docker-blueprint
+ENTRYPOINT="$PROJECT_DIR/entrypoint.sh"
 
 if [[ -d "$PROJECT_DIR" ]]; then
     echo "Updating docker-blueprint to the latest version..."
@@ -22,10 +23,14 @@ if [[ -d "$PROJECT_DIR" ]]; then
 else
     echo "Downloading the latest version of docker-blueprint..."
     git clone https://github.com/docker-blueprint/core.git "$PROJECT_DIR"
-    chmod +x "$PROJECT_DIR/entrypoint.sh"
+    chmod +x "$ENTRYPOINT"
 fi
 
-if [[ -z $(which docker-blueprint) ]]; then
+SUDO="$(which sudo 2>/dev/null)"
+
+which docker-blueprint >/dev/null
+
+if [[ $? > 0 ]]; then
 
     BIN_DIRS=(
         /usr/local/bin
@@ -36,13 +41,13 @@ if [[ -z $(which docker-blueprint) ]]; then
         if [[ -d "$DIR" ]]; then
             echo "Creating link in '$DIR'..."
 
-            sudo ln -s "$PROJECT_DIR/entrypoint.sh" "$DIR/docker-blueprint"
-            sudo ln -s "$PROJECT_DIR/entrypoint.sh" "$DIR/dob"
+            $SUDO ln -sf "$ENTRYPOINT" "$DIR/docker-blueprint"
+            $SUDO ln -sf "$ENTRYPOINT" "$DIR/dob"
 
             if [[ $? -eq 0 ]]; then
                 echo "Installed successuflly."
                 echo ""
-                echo "Run the program by typing 'dob' (or long version docker-blueprint)"
+                echo "Run the program by typing 'dob' (or the long version: docker-blueprint)"
                 exit 0
             else
                 echo "Unable to create link."

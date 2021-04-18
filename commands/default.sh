@@ -7,14 +7,15 @@ shift
 #
 
 case $1 in
-    -h|--help)
-        printf "${CMD_COL}default clear${RESET}\t\t\tClear default service\n"
-        printf "${CMD_COL}default${RESET} ${ARG_COL}<service>${RESET}\t\tSet default service to run commands against (usually set by the blueprint)\n"
-        exit
+-h | --help)
+    printf "${CMD_COL}default${RESET} ${ARG_COL}<service> | clear${RESET}"
+    printf "\tSet or clear default service to run commands against (usually set by the blueprint)\n"
+    exit
 
-        ;;
-    *)
-        SERVICE=$1
+    ;;
+*)
+    SERVICE=$1
+    ;;
 esac
 
 if [[ -z "$SERVICE" ]]; then
@@ -27,14 +28,14 @@ if [[ -z "$SERVICE" ]]; then
     echo "Usage: $EXECUTABLE_NAME default <service>"
 else
     if [[ "$SERVICE" == "clear" ]]; then
-        if [[ -f $DIR/default_service ]]; then
-            rm $DIR/default_service
+        if [[ -f $LOCAL_DIR/default_service ]]; then
+            rm $LOCAL_DIR/default_service
         fi
         echo "Default service cleared"
     else
-        SERVICES=$(docker-compose ps --services)
+        SERVICES=$($DOCKER_COMPOSE ps --services)
         if [[ ${SERVICES[@]} =~ $SERVICE ]]; then
-            echo "$SERVICE" > $DIR/default_service
+            echo "$SERVICE" >$LOCAL_DIR/default_service
             init_default_service
             echo "Default service set: $SERVICE"
         else
