@@ -11,6 +11,11 @@ if [[ -z "$BLUEPRINT" ]]; then
     export BLUEPRINT
 fi
 
+if [[ -z "$BLUEPRINT" ]]; then
+    printf "${RED}ERROR${RESET}: \$BLUEPRINT cannot be empty\n"
+    exit 1
+fi
+
 debug_print "Populating environment variables for blueprint: ${BLUEPRINT}"
 
 if [[ -z "$BLUEPRINT_QUALIFIED_NAME" ]]; then
