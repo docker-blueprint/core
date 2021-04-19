@@ -185,6 +185,8 @@ if [[ $status > 0 ]]; then
     exit $status
 fi
 
-if ! $MODE_SCRIPTS_ONLY && $MODE_SYNC; then
-    bash $ENTRYPOINT sync --no-chown --skip-user
+# Sync again, because new files could have been created by scripts
+
+if ! $MODE_NO_SCRIPTS && $MODE_SYNC; then
+    bash $ENTRYPOINT sync ${SYNC_ARGS[@]} --skip-user
 fi
