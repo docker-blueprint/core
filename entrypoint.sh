@@ -26,9 +26,9 @@ export TEMP_DIR="$LOCAL_DIR/tmp"
 export ENTRYPOINT="$ROOT_DIR/entrypoint.sh"
 export PROJECT_BLUEPRINT_FILE=docker-blueprint.yml
 
-# Delete temporary files older than 30 minutes
+# Delete temporary files older than 5 minutes
 mkdir -p "$TEMP_DIR"
-find "$TEMP_DIR" -mindepth 1 -type f -mmin +30 -delete
+find "$TEMP_DIR" -mindepth 1 -type f -mmin +5 -delete
 
 mkdir -p $LOCAL_DIR
 source "$ROOT_DIR/includes/update-gitignore.sh"
