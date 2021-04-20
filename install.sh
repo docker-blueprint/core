@@ -96,7 +96,6 @@ if [[ -z "$(which yq)" ]]; then
     if [[ -z "$REPLY" ]] || [[ $REPLY =~ ^[Yy]$ ]]; then
         echo "Trying to install using webi..."
         curl -sS https://webinstall.dev/yq@4 | bash
-        export PATH="$HOME/.local/bin:$PATH"
     fi
 fi
 
