@@ -47,7 +47,7 @@ if [[ -z "$(which docker)" ]]; then
             exit 1
         fi
     else
-        if can_install_docker; then
+        if $can_install_docker; then
             printf "We can attempt to automatically install 'docker' using convinience script:\n"
             printf "${HIGHLIGHT}https://docs.docker.com/engine/install/ubuntu/#install-using-the-convenience-script${RESET}\n"
             printf "\n"
@@ -61,7 +61,7 @@ if [[ -z "$(which docker)" ]]; then
                     echo "Unable to install 'docker', skipping..."
                 fi
 
-                if is_ubuntu; then
+                if $is_ubuntu; then
                     curl -fsSL https://get.docker.com/rootless | sh
                 fi
             fi
