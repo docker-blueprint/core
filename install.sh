@@ -7,7 +7,7 @@ REQUIREMENTS=(
 )
 
 for PROGRAM in "${REQUIREMENTS[@]}"; do
-    if [[ -z $(which $PROGRAM) ]]; then
+    if [[ -z "$(which $PROGRAM)" ]]; then
         echo "Error: '$PROGRAM' is not installed. Please install '$PROGRAM' first."
         exit 1
     fi
