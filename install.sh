@@ -23,7 +23,7 @@ fi
 can_install_docker=false
 
 is_ubuntu=false
-if lsb_release -si | grep -qEi "Ubuntu"; then
+if lsb_release -si &>/dev/null | grep -qEi "Ubuntu"; then
     is_ubuntu=true
     can_install_docker=true
 fi
