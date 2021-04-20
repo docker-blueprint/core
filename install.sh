@@ -5,9 +5,14 @@ RESET="\033[0;0m"
 
 REQUIREMENTS=(
     git
-    docker
-    docker-compose
 )
+
+for PROGRAM in "${REQUIREMENTS[@]}"; do
+    if [[ -z "$(which $PROGRAM)" ]]; then
+        echo "Error: '$PROGRAM' is not installed. Please install '$PROGRAM' first."
+        exit 1
+    fi
+done
 
 is_wsl=false
 
@@ -74,13 +79,6 @@ if [[ -z "$(which docker-compose)" ]]; then
         sudo chmod +x /usr/local/bin/docker-compose
     fi
 fi
-
-for PROGRAM in "${REQUIREMENTS[@]}"; do
-    if [[ -z "$(which $PROGRAM)" ]]; then
-        echo "Error: '$PROGRAM' is not installed. Please install '$PROGRAM' first."
-        exit 1
-    fi
-done
 
 #
 # yq installer
