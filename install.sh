@@ -62,6 +62,7 @@ if [[ -z "$(which docker)" ]]; then
                 fi
 
                 if $is_ubuntu; then
+                    sudo apt-get install -y uidmap
                     curl -fsSL https://get.docker.com/rootless | sh
                 fi
             fi
