@@ -47,26 +47,7 @@ if [[ -z "$(which docker)" ]]; then
             exit 1
         fi
     else
-        if $can_install_docker; then
-            printf "We can attempt to automatically install 'docker' using convinience script:\n"
-            printf "${HIGHLIGHT}https://docs.docker.com/engine/install/ubuntu/#install-using-the-convenience-script${RESET}\n"
-            printf "\n"
-            printf "Do you want to automatically install 'docker'? [Y/n] "
-            read -n 1 -r REPLY
-            echo ""
-            if [[ -z "$REPLY" ]] || [[ $REPLY =~ ^[Yy]$ ]]; then
-                echo "Trying to install 'docker'..."
-                curl -fsSL https://get.docker.com | sh
-                if [[ $? > 0 ]]; then
-                    echo "Unable to install 'docker', skipping..."
-                fi
-
-                if $is_ubuntu; then
-                    sudo apt-get install -y uidmap
-                    curl -fsSL https://get.docker.com/rootless | sh
-                fi
-            fi
-        fi
+        echo "Error: 'docker' is not installed. Please install 'docker' first."
     fi
     echo ""
 fi
