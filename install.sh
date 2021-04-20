@@ -60,6 +60,10 @@ if [[ -z "$(which docker)" ]]; then
                 if [[ $? > 0 ]]; then
                     echo "Unable to install 'docker', skipping..."
                 fi
+
+                if is_ubuntu; then
+                    curl -fsSL https://get.docker.com/rootless | sh
+                fi
             fi
         fi
     fi
