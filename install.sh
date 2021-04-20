@@ -32,7 +32,7 @@ fi
 # docker installer
 #
 
-if [[ -z "$(which docker)" ]]; then
+if ! which docker &>/dev/null; then
     printf "You do not appear to have 'docker' installed (${HIGHLIGHT}https://docker.com${RESET})\n"
 
     if $is_wsl; then
@@ -58,7 +58,7 @@ fi
 # docker-compose installer
 #
 
-if [[ -z "$(which docker-compose)" ]]; then
+if ! which docker-compose &>/dev/null; then
     printf "You do not appear to have 'docker-compose' installed (${HIGHLIGHT}https://docs.docker.com/compose/install${RESET})\n"
 
     printf "We can attempt to automatically install 'docker-compose' using curl:\n"
@@ -83,7 +83,7 @@ fi
 # yq installer
 #
 
-if [[ -z "$(which yq)" ]]; then
+if ! which yq &>/dev/null; then
     printf "You do not appear to have 'yq' installed (${HIGHLIGHT}https://github.com/mikefarah/yq${RESET})\n"
     printf "For the best experience it is recommended to install a standalone version of 'yq'\n"
     printf "\n"
