@@ -9,6 +9,14 @@ REQUIREMENTS=(
     docker-compose
 )
 
+is_wsl=false
+
+if grep -qEi "(Microsoft|WSL)" /proc/version &>/dev/null; then
+    is_wsl=true
+fi
+
+source "$(dirname "$BASH_SOURCE")/installer/docker.sh"
+
 for PROGRAM in "${REQUIREMENTS[@]}"; do
     if [[ -z "$(which $PROGRAM)" ]]; then
         echo "Error: '$PROGRAM' is not installed. Please install '$PROGRAM' first."
