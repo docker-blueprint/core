@@ -195,8 +195,6 @@ if ! [[ -f "$PWD/$PROJECT_BLUEPRINT_FILE" ]]; then
         fi
     done
 
-    rm -f "$BLUEPRINT_PATH"
-
 fi
 
 if $FORCE_GENERATE; then
