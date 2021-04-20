@@ -96,6 +96,9 @@ if [[ -z "$(which yq)" ]]; then
     if [[ -z "$REPLY" ]] || [[ $REPLY =~ ^[Yy]$ ]]; then
         echo "Trying to install using webi..."
         curl -sS https://webinstall.dev/yq@4 | bash
+        printf "\n"
+        printf "  ${HIGHLIGHT}Please restart your shell in order for the changes to take effect${RESET}\n"
+        printf "\n"
     fi
 fi
 
