@@ -135,12 +135,13 @@ fi
 
 cd $BLUEPRINT_DIR
 
-hash=$(git rev-parse HEAD) 2>/dev/null && \
-    ! $SILENT && non_debug_print "."
+hash=$(git rev-parse HEAD) 2>/dev/null
 
 if [[ $? > 0 ]]; then
     unset hash
 fi
+
+! $SILENT && non_debug_print "."
 
 cd $PROJECT_DIR
 
