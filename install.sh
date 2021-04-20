@@ -47,7 +47,9 @@ if [[ -z "$(which docker)" ]]; then
             exit 1
         fi
     else
-        echo "Error: 'docker' is not installed. Please install 'docker' first."
+        printf "You can install docker using convinience script:\n"
+        printf "${HIGHLIGHT}https://docs.docker.com/engine/install/ubuntu/#install-using-the-convenience-script${RESET}\n"
+        exit 1
     fi
     echo ""
 fi
