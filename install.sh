@@ -28,9 +28,9 @@ if [[ -z "$(which docker)" ]]; then
     printf "You do not appear to have 'docker' installed (${HIGHLIGHT}https://docker.com${RESET})\n"
 
     if $is_wsl; then
-        printf "We detected that you are running this installer under WSL and\n"
-        printf "that 'docker' is not installed. Please install Docker for Desktop\n"
-        printf "for the best experience: ${HIGHLIGHT}https://www.docker.com/products/docker-desktop${RESET}\n"
+        printf "We detected that you are running this installer under WSL.\n"
+        printf "Please install Docker for Desktop for the best experience:\n"
+        printf "${HIGHLIGHT}https://www.docker.com/products/docker-desktop${RESET}\n"
         printf "\n"
         printf "Do you want to continue installing? [y/N] "
         read -n 1 -r
@@ -39,21 +39,21 @@ if [[ -z "$(which docker)" ]]; then
             exit 1
         fi
     else
-        printf "Since docker-blueprint is designed to work with docker, you will not be able to use it without docker\n"
-        printf "We can attempt to automatically install docker using convinience script:\n"
+        printf "We can attempt to automatically install 'docker' using convinience script:\n"
         printf "${HIGHLIGHT}https://docs.docker.com/engine/install/ubuntu/#install-using-the-convenience-script${RESET}\n"
         printf "\n"
-        printf "Do you want to automatically install docker? [Y/n] "
+        printf "Do you want to automatically install 'docker'? [Y/n] "
         read -n 1 -r
         echo ""
         if [[ -z "$REPLY" ]] || [[ $REPLY =~ ^[Yy]$ ]]; then
-            echo "Trying to install docker..."
+            echo "Trying to install 'docker'..."
             curl -fsSL https://get.docker.com | sh
             if [[ $? > 0 ]]; then
-                printf "Unable to install docker, skipping..."
+                echo "Unable to install 'docker', skipping..."
             fi
         fi
     fi
+    echo ""
 fi
 
 #
@@ -63,21 +63,22 @@ fi
 if [[ -z "$(which docker-compose)" ]]; then
     printf "You do not appear to have 'docker-compose' installed (${HIGHLIGHT}https://docs.docker.com/compose/install${RESET})\n"
 
-    printf "Since docker-blueprint is designed to work with docker-compose, you will not be able to use it without docker-compose\n"
-    printf "We can attempt to automatically install docker-compose using curl:\n"
+    printf "We can attempt to automatically install 'docker-compose' using curl:\n"
     printf "${HIGHLIGHT}https://docs.docker.com/compose/install/#install-compose-on-linux-systems${RESET}\n"
     printf "\n"
-    printf "Do you want to automatically install docker-compose? [Y/n] "
+    printf "Do you want to automatically install 'docker-compose'? [Y/n] "
     read -n 1 -r
     echo ""
     if [[ -z "$REPLY" ]] || [[ $REPLY =~ ^[Yy]$ ]]; then
-        echo "Trying to install docker-compose..."
+        echo "Trying to install 'docker-compose'..."
         sudo curl -L "https://github.com/docker/compose/releases/download/1.29.1/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
         if [[ $? > 0 ]]; then
-            printf "Unable to install docker-compose, skipping..."
+            echo "Unable to install 'docker-compose', skipping..."
+        else
+            sudo chmod +x /usr/local/bin/docker-compose
         fi
-        sudo chmod +x /usr/local/bin/docker-compose
     fi
+    echo ""
 fi
 
 #
@@ -95,7 +96,7 @@ if [[ -z "$(which yq)" ]]; then
         echo "Trying to install using webi..."
         curl -sS https://webinstall.dev/yq@4 | bash
         printf "\n"
-        printf "  ${HIGHLIGHT}Please restart your shell in order for the changes to take effect${RESET}\n"
+        printf "${HIGHLIGHT}Please restart your shell in order for the changes to take effect${RESET}\n"
         printf "\n"
     fi
 fi
