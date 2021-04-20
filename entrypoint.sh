@@ -14,6 +14,7 @@
 # The above copyright notice and this permission notice shall be included in all
 # copies or substantial portions of the Software.
 
+
 export EXECUTABLE_NAME=$(basename "${BASH_SOURCE}")
 
 export PROJECT_DIR=$PWD
