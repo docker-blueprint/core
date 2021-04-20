@@ -33,7 +33,7 @@ if [[ -z "$(which docker)" ]]; then
         printf "${HIGHLIGHT}https://www.docker.com/products/docker-desktop${RESET}\n"
         printf "\n"
         printf "Do you want to continue installing? [y/N] "
-        read -n 1 -r
+        read -n 1 -r REPLY
         echo ""
         if [[ ! $REPLY =~ ^[Yy]$ ]]; then
             exit 1
@@ -43,16 +43,7 @@ if [[ -z "$(which docker)" ]]; then
         printf "${HIGHLIGHT}https://docs.docker.com/engine/install/ubuntu/#install-using-the-convenience-script${RESET}\n"
         printf "\n"
         printf "Do you want to automatically install 'docker'? [Y/n] "
-        read -n 1 -r
-        echo ""
-        if [[ -z "$REPLY" ]] || [[ $REPLY =~ ^[Yy]$ ]]; then
-            echo "Trying to install 'docker'..."
-            curl -fsSL https://get.docker.com | sh
-            if [[ $? > 0 ]]; then
-                echo "Unable to install 'docker', skipping..."
-            fi
-        fi
-    fi
+        read -n 1 -r REPLY
     echo ""
 fi
 
@@ -67,7 +58,7 @@ if [[ -z "$(which docker-compose)" ]]; then
     printf "${HIGHLIGHT}https://docs.docker.com/compose/install/#install-compose-on-linux-systems${RESET}\n"
     printf "\n"
     printf "Do you want to automatically install 'docker-compose'? [Y/n] "
-    read -n 1 -r
+    read -n 1 -r REPLY
     echo ""
     if [[ -z "$REPLY" ]] || [[ $REPLY =~ ^[Yy]$ ]]; then
         echo "Trying to install 'docker-compose'..."
@@ -90,7 +81,7 @@ if [[ -z "$(which yq)" ]]; then
     printf "For the best experience it is recommended to install a standalone version of 'yq'\n"
     printf "\n"
     printf "Do you want to attempt to automatically install 'yq'? [Y/n] "
-    read -n 1 -r
+    read -n 1 -r REPLY
     echo ""
     if [[ -z "$REPLY" ]] || [[ $REPLY =~ ^[Yy]$ ]]; then
         echo "Trying to install using webi..."

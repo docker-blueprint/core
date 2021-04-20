@@ -64,7 +64,7 @@ if ! $MODE_QUIET; then
     if ! $MODE_FORCE; then
         printf "Do you want to rebuild the project? (run with ${FLG_COL}--force${RESET} to always build)\n"
         printf "${YELLOW}WARNING${RESET}: This will ${RED}overwrite${RESET} existing docker files [y/N] "
-        read -n 1 -r
+        read -n 1 -r REPLY
         if [[ $REPLY =~ ^[Yy]$ ]]; then
             echo ""
             bash $ENTRYPOINT build --force
