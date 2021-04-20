@@ -20,6 +20,14 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &>/dev/null; then
     is_wsl=true
 fi
 
+can_install_docker=false
+
+is_ubuntu=false
+if lsb_release -si | grep -qEi "Ubuntu"; then
+    is_ubuntu=true
+    can_install_docker=true
+fi
+
 #
 # docker installer
 #
@@ -39,11 +47,22 @@ if [[ -z "$(which docker)" ]]; then
             exit 1
         fi
     else
-        printf "We can attempt to automatically install 'docker' using convinience script:\n"
-        printf "${HIGHLIGHT}https://docs.docker.com/engine/install/ubuntu/#install-using-the-convenience-script${RESET}\n"
-        printf "\n"
-        printf "Do you want to automatically install 'docker'? [Y/n] "
-        read -n 1 -r REPLY
+        if can_install_docker; then
+            printf "We can attempt to automatically install 'docker' using convinience script:\n"
+            printf "${HIGHLIGHT}https://docs.docker.com/engine/install/ubuntu/#install-using-the-convenience-script${RESET}\n"
+            printf "\n"
+            printf "Do you want to automatically install 'docker'? [Y/n] "
+            read -n 1 -r REPLY
+            echo ""
+            if [[ -z "$REPLY" ]] || [[ $REPLY =~ ^[Yy]$ ]]; then
+                echo "Trying to install 'docker'..."
+                curl -fsSL https://get.docker.com | sh
+                if [[ $? > 0 ]]; then
+                    echo "Unable to install 'docker', skipping..."
+                fi
+            fi
+        fi
+    fi
     echo ""
 fi
 
