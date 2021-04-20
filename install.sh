@@ -16,6 +16,7 @@ if grep -qEi "(Microsoft|WSL)" /proc/version &>/dev/null; then
 fi
 
 source "$(dirname "$BASH_SOURCE")/installer/docker.sh"
+source "$(dirname "$BASH_SOURCE")/installer/docker-compose.sh"
 
 for PROGRAM in "${REQUIREMENTS[@]}"; do
     if [[ -z "$(which $PROGRAM)" ]]; then
