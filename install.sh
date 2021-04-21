@@ -7,13 +7,6 @@ REQUIREMENTS=(
     git
 )
 
-for PROGRAM in "${REQUIREMENTS[@]}"; do
-    if [[ -z "$(which $PROGRAM)" ]]; then
-        echo "Error: '$PROGRAM' is not installed. Please install '$PROGRAM' first."
-        exit 1
-    fi
-done
-
 is_wsl=false
 
 if grep -qEi "(Microsoft|WSL)" /proc/version &>/dev/null; then
@@ -27,6 +20,16 @@ if lsb_release -si &>/dev/null | grep -qEi "Ubuntu"; then
     is_ubuntu=true
     can_install_docker=true
 fi
+
+for PROGRAM in "${REQUIREMENTS[@]}"; do
+    if [[ -z "$(which $PROGRAM)" ]]; then
+        echo "Error: '$PROGRAM' is not installed. Please install '$PROGRAM' first."
+        if which apt-get &>/dev/null; then
+            echo "You can try install it by running 'sudo apt-get install $PROGRAM'"
+        fi
+        exit 1
+    fi
+done
 
 #
 # docker installer
