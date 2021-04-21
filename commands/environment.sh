@@ -67,9 +67,9 @@ if ! $MODE_QUIET; then
         read -n 1 -r REPLY
         if [[ $REPLY =~ ^[Yy]$ ]]; then
             echo ""
-            bash $ENTRYPOINT build --force
+            bash $ENTRYPOINT up --force
         fi
     else
-        bash $ENTRYPOINT build --force
+        bash $ENTRYPOINT up --force
     fi
 fi

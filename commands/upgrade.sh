@@ -62,9 +62,9 @@ if ! $MODE_NO_BUILD; then
         read -n 1 -r REPLY
         echo ""
         if [[ $REPLY =~ ^[Yy]$ ]]; then
-            bash $ENTRYPOINT build --force
+            bash $ENTRYPOINT up --force
         fi
     else
-        bash $ENTRYPOINT build --force
+        bash $ENTRYPOINT up --force
     fi
 fi
