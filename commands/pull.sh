@@ -49,20 +49,19 @@ while [[ "$#" -gt 0 ]]; do
         MODE_GET_QUALIFIED=true
         ;;
     *)
-        if [[ -z "$1" ]]; then
-            printf "Usage: "
-            bash $ENTRYPOINT pull --help
-            exit 1
-        fi
-
         if [[ -z $BLUEPRINT ]]; then
-            BLUEPRINT=$1
+            BLUEPRINT="$1"
         fi
         ;;
     esac
 
     shift
 done
+
+if [[ -z $BLUEPRINT ]]; then
+    bash $ENTRYPOINT pull --help
+    exit 1
+fi
 
 #
 # Parse blueprint name and branch
