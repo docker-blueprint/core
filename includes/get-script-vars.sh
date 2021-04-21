@@ -17,10 +17,14 @@ yq_read_keys BUILD_ARGS_KEYS "build_args" "$BLUEPRINT_PATH"
 ! $SILENT  && non_debug_print "."
 
 SCRIPT_VARS=()
+SCRIPT_VARS_ENV=()
+SCRIPT_VARS_BUILD_ARGS=()
 
 add_variable() {
     debug_print "Added variable $1='$2'"
     SCRIPT_VARS+=("BLUEPRINT_$1=$2")
+    SCRIPT_VARS_ENV+=("-e BLUEPRINT_$1='$2'")
+    SCRIPT_VARS_BUILD_ARGS+=("--build-arg $1='$2'")
 }
 
 add_variable "BLUEPRINT_DIR" "${BLUEPRINT_DIR#"$PWD/"}"
@@ -83,23 +87,5 @@ done
 ! $SILENT && non_debug_print " ${GREEN}done${RESET}\n"
 
 export SCRIPT_VARS
-
-SCRIPT_VARS_BUILD_ARGS=()
-
-for var in "${SCRIPT_VARS[@]}"; do
-    name="$(echo "$var" | cut -d'=' -f1)"
-    value="$(echo "$var" | cut -d'=' -f2)"
-    SCRIPT_VARS_BUILD_ARGS+=("--build-arg $name='$value'")
-done
-
-export SCRIPT_VARS_BUILD_ARGS
-
-SCRIPT_VARS_ENV=()
-
-for var in "${SCRIPT_VARS[@]}"; do
-    name="$(echo "$var" | cut -d'=' -f1)"
-    value="$(echo "$var" | cut -d'=' -f2)"
-    SCRIPT_VARS_ENV+=("-e $name='$value'")
-done
-
 export SCRIPT_VARS_ENV
+export SCRIPT_VARS_BUILD_ARGS
