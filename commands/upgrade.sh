@@ -41,7 +41,7 @@ target_branch="$(echo "$BLUEPRINT_QUALIFIED_NAME" | cut -d: -f2)"
 CHECKPOINT="$(git rev-parse origin/$target_branch)"
 if [[ $? -eq 0 ]]; then
     if [[ "$CHECKPOINT" != "$PREVIOUS_VERSION" ]]; then
-        printf "Latest version: ${CYAN}$CHECKPOINT${RESET}\n"
+        printf "New version available: ${CYAN}$CHECKPOINT${RESET}\n"
     else
         printf "Already using latest version\n"
         exit
@@ -53,9 +53,7 @@ fi
 
 cd "$PROJECT_DIR"
 
-debug_print "Writing current version: $CHECKPOINT"
-
-yq_write_value "version" "$CHECKPOINT"
+debug_print "New version: $CHECKPOINT"
 
 if ! $MODE_NO_BUILD; then
     if ! $MODE_FORCE; then
@@ -64,9 +62,11 @@ if ! $MODE_NO_BUILD; then
         read -n 1 -r REPLY
         echo ""
         if [[ $REPLY =~ ^[Yy]$ ]]; then
+            yq_write_value "version" "$CHECKPOINT"
             bash $ENTRYPOINT up --force
         fi
     else
+        yq_write_value "version" "$CHECKPOINT"
         bash $ENTRYPOINT up --force
     fi
 fi
