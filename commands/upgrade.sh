@@ -36,7 +36,9 @@ source "$ROOT_DIR/includes/blueprint/populate_env.sh" ""
 
 cd "$BLUEPRINT_DIR"
 
-CHECKPOINT="$(git rev-parse HEAD)"
+target_branch="$(echo "$BLUEPRINT_QUALIFIED_NAME" | cut -d: -f2)"
+
+CHECKPOINT="$(git rev-parse origin/$target_branch)"
 if [[ $? -eq 0 ]]; then
     if [[ "$CHECKPOINT" != "$PREVIOUS_VERSION" ]]; then
         printf "Latest version: ${CYAN}$CHECKPOINT${RESET}\n"
