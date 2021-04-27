@@ -68,8 +68,19 @@ if [[ -f .env ]]; then
     debug_print "Found .env file in the project directory"
     debug_print "Looking for docker-compose files..."
 
+    files=(
+        docker-compose.$PROJECT_CONTEXT.y*ml
+        docker-compose.y*ml
+    )
+
     temp_file="$TEMP_DIR/docker-compose.env"
-    for file in docker-compose*; do
+    touch "$temp_file"
+
+    for file in ${files[@]}; do
+        if [[ ! -f "$file" ]]; then
+            continue
+        fi
+
         debug_print "Found file: $file"
 
         if [[ ! -f "$temp_file" ]]; then
