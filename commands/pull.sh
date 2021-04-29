@@ -32,8 +32,8 @@ MODE_GET_QUALIFIED=false
 while [[ "$#" -gt 0 ]]; do
     case $1 in
     -h | --help)
-        printf "${CMD_COL}pull${RESET} ${ARG_COL}<blueprint>${RESET} [${FLG_COL}options${RESET}]"
-        printf "\tDownload the latest version of blueprint\n"
+        printf "${CMD_COL}pull${RESET} [${ARG_COL}<blueprint>${RESET}] [${FLG_COL}options${RESET}]"
+        printf "\tDownload the latest version of a blueprint\n"
 
         printf "  ${FLG_COL}--clean${RESET}"
         printf "\t\t\tRemove already existing copy of a blueprint and install fresh download\n"
