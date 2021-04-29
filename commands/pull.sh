@@ -237,6 +237,17 @@ if ! $MODE_DRY_RUN; then
         fi
     fi
 
+    yq_read_value CHECKPOINT 'version'
+
+    # Set the blueprint repository to the version specified.
+    # This allows to always safely reproduce previous versions of the blueprint.
+    if [[ -n "$CHECKPOINT" ]]; then
+        ! $AS_FUNCTION && printf "${BLUE}INFO${RESET}: Version lock applied: ${CYAN}$CHECKPOINT${RESET}\n"
+        git checkout $CHECKPOINT 2>/dev/null
+    else
+        ! $AS_FUNCTION && printf "${BLUE}INFO${RESET}: No version lock found - using latest version.\n"
+    fi
+
     cd $PREVIOUS_DIR
 
 fi
