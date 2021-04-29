@@ -60,9 +60,23 @@ while [[ "$#" -gt 0 ]]; do
     shift
 done
 
-if [[ -z $BLUEPRINT ]]; then
-    bash $ENTRYPOINT pull --help
-    exit 1
+if [[ -z "$BLUEPRINT" ]]; then
+    debug_print "No blueprint name provided - trying to resolve from $PROJECT_BLUEPRINT_FILE..."
+
+    # Try to read blueprint name from docker-blueprint.yml
+    if [[ -f "$PROJECT_BLUEPRINT_FILE" ]]; then
+        yq_read_value BLUEPRINT 'from'
+        if [[ -z "$BLUEPRINT" ]]; then
+            printf "${RED}ERROR${RESET}: Unable to resolve blueprint from project blueprint file.\n\n"
+            bash $ENTRYPOINT pull --help
+            exit 1
+        else
+            debug_print "Found blueprint '$BLUEPRINT' in project blueprint file"
+        fi
+    else
+        bash $ENTRYPOINT pull --help
+        exit 1
+    fi
 fi
 
 #
