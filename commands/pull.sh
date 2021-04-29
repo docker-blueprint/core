@@ -17,6 +17,8 @@
 # Function mode allows to use this command in conjunction
 # with others (i.e. create).
 
+debug_switch_context "PULL"
+
 #
 # Read arguments
 #
