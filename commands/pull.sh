@@ -189,6 +189,7 @@ else
     else
         PREVIOUS_DIR="$PWD"
         cd "$BLUEPRINT_DIR"
+        git checkout master &>/dev/null
         git pull >/dev/null
         cd "$PREVIOUS_DIR"
     fi
