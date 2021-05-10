@@ -69,4 +69,9 @@ if ! $MODE_NO_BUILD; then
         yq_write_value "version" "$CHECKPOINT"
         bash $ENTRYPOINT up --force
     fi
+else
+    yq_write_value "version" "$CHECKPOINT"
+    printf "Updated version to the latest without rebuilding\n"
+    printf "You can build manually later with 'docker-blueprint build --force'\n"
+    printf "\n"
 fi
