@@ -57,6 +57,12 @@ while [[ "$#" -gt 0 ]]; do
         printf "  ${FLG_COL}--skip-env${RESET}"
         printf "\t\t\tPass --skip-env to 'sync' command\n"
 
+        printf "  ${FLG_COL}--skip-compose${RESET}"
+        printf "\t\tDon't generate docker-compose files\n"
+
+        printf "  ${FLG_COL}--skip-dockerfile${RESET}"
+        printf "\t\tDon't generate dockerfiles\n"
+
         exit
         ;;
     -f | --force)
