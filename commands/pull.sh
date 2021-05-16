@@ -32,6 +32,7 @@ MODE_GET_QUALIFIED=false
 while [[ "$#" -gt 0 ]]; do
     case $1 in
     -h | --help)
+        if [[ "$WITH_USAGE" -eq 1 ]]; then printf "Usage:\n"; fi
         printf "${CMD_COL}pull${RESET} [${ARG_COL}<blueprint>${RESET}] [${FLG_COL}options${RESET}]"
         printf "\tDownload the latest version of a blueprint\n"
 
@@ -68,7 +69,7 @@ if [[ -z "$BLUEPRINT" ]]; then
         yq_read_value BLUEPRINT 'from'
         if [[ -z "$BLUEPRINT" ]]; then
             ! $AS_FUNCTION && printf "${RED}ERROR${RESET}: Unable to resolve blueprint from project blueprint file.\n\n"
-            bash $ENTRYPOINT pull --help
+            WITH_USAGE=1 bash $ENTRYPOINT pull --help
             exit 1
         else
             ! $AS_FUNCTION && debug_print "Found blueprint '$BLUEPRINT' in project blueprint file"
@@ -190,7 +191,13 @@ else
         PREVIOUS_DIR="$PWD"
         cd "$BLUEPRINT_DIR"
         git checkout master &>/dev/null
-        git pull >/dev/null
+        git pull &>/dev/null
+        if [[ $? -gt 0 ]]; then
+            cd "$PREVIOUS_DIR"
+            printf "${RED}ERROR${RESET}: Blueprint directory has local changes\n"
+            printf "You can clear local changes with 'docker-blueprint pull --clean'\n"
+            exit 1
+        fi
         cd "$PREVIOUS_DIR"
     fi
 fi
