@@ -31,9 +31,6 @@ while [[ "$#" -gt 0 ]]; do
         printf "  ${FLG_COL}--no-sync${RESET}"
         printf "\t\t\tDon't attempt to sync service container with the local environment\n"
 
-        printf "  ${FLG_COL}--no-chown${RESET}"
-        printf "\t\t\tPass --no-chown to 'sync' command\n"
-
         printf "  ${FLG_COL}--no-build${RESET}"
         printf "\t\t\tDon't attempt to build the blueprint\n"
 
@@ -50,6 +47,21 @@ while [[ "$#" -gt 0 ]]; do
         printf "\t\t\tPass --force to 'build' command\n"
         printf "\t\t\t\tThis will force to regenerate new docker files\n"
         printf "\t\t\t\tpotentially overwriting current ones\n"
+
+        printf "  ${FLG_COL}--no-chown${RESET}"
+        printf "\t\t\tPass --no-chown to 'sync' command\n"
+
+        printf "  ${FLG_COL}--skip-user${RESET}"
+        printf "\t\t\tPass --skip-user to 'sync' command\n"
+
+        printf "  ${FLG_COL}--skip-env${RESET}"
+        printf "\t\t\tPass --skip-env to 'sync' command\n"
+
+        printf "  ${FLG_COL}--skip-compose${RESET}"
+        printf "\t\tDon't generate docker-compose files\n"
+
+        printf "  ${FLG_COL}--skip-dockerfile${RESET}"
+        printf "\t\tDon't generate dockerfiles\n"
 
         exit
         ;;
@@ -70,6 +82,12 @@ while [[ "$#" -gt 0 ]]; do
         ;;
     --no-chown)
         SYNC_ARGS+=('--no-chown')
+        ;;
+    --skip-user)
+        SYNC_ARGS+=('--skip-user')
+        ;;
+    --skip-env)
+        SYNC_ARGS+=('--skip-env')
         ;;
     --no-sync)
         MODE_SYNC=false
@@ -131,7 +149,7 @@ if [[ -f "$path" ]]; then
     debug_print "Found: ${path#$BLUEPRINT_DIR/}"
 fi
 
-source "$ROOT_DIR/includes/resolve-dependencies.sh" ""
+SILENT=true source "$ROOT_DIR/includes/resolve-dependencies.sh" ""
 ACTIVE_MODULES_LIST=(${MODULES_TO_LOAD[@]})
 
 for module in ${MODULES_TO_LOAD[@]}; do
@@ -185,6 +203,8 @@ if [[ $status > 0 ]]; then
     exit $status
 fi
 
-if ! $MODE_SCRIPTS_ONLY && $MODE_SYNC; then
-    bash $ENTRYPOINT sync --no-chown --skip-user
+# Sync again, because new files could have been created by scripts
+
+if ! $MODE_NO_SCRIPTS && $MODE_SYNC; then
+    bash $ENTRYPOINT sync ${SYNC_ARGS[@]} --skip-user
 fi

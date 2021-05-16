@@ -17,6 +17,8 @@
 # Function mode allows to use this command in conjunction
 # with others (i.e. create).
 
+debug_switch_context "PULL"
+
 #
 # Read arguments
 #
@@ -30,8 +32,9 @@ MODE_GET_QUALIFIED=false
 while [[ "$#" -gt 0 ]]; do
     case $1 in
     -h | --help)
-        printf "${CMD_COL}pull${RESET} ${ARG_COL}<blueprint>${RESET} [${FLG_COL}options${RESET}]"
-        printf "\tDownload the latest version of blueprint\n"
+        if [[ "$WITH_USAGE" -eq 1 ]]; then printf "Usage:\n"; fi
+        printf "${CMD_COL}pull${RESET} [${ARG_COL}<blueprint>${RESET}] [${FLG_COL}options${RESET}]"
+        printf "\tDownload the latest version of a blueprint\n"
 
         printf "  ${FLG_COL}--clean${RESET}"
         printf "\t\t\tRemove already existing copy of a blueprint and install fresh download\n"
@@ -49,20 +52,33 @@ while [[ "$#" -gt 0 ]]; do
         MODE_GET_QUALIFIED=true
         ;;
     *)
-        if [[ -z "$1" ]]; then
-            printf "Usage: "
-            bash $ENTRYPOINT pull --help
-            exit 1
-        fi
-
         if [[ -z $BLUEPRINT ]]; then
-            BLUEPRINT=$1
+            BLUEPRINT="$1"
         fi
         ;;
     esac
 
     shift
 done
+
+if [[ -z "$BLUEPRINT" ]]; then
+    ! $AS_FUNCTION && debug_print "No blueprint name provided - trying to resolve from $PROJECT_BLUEPRINT_FILE..."
+
+    # Try to read blueprint name from docker-blueprint.yml
+    if [[ -f "$PROJECT_BLUEPRINT_FILE" ]]; then
+        yq_read_value BLUEPRINT 'from'
+        if [[ -z "$BLUEPRINT" ]]; then
+            ! $AS_FUNCTION && printf "${RED}ERROR${RESET}: Unable to resolve blueprint from project blueprint file.\n\n"
+            WITH_USAGE=1 bash $ENTRYPOINT pull --help
+            exit 1
+        else
+            ! $AS_FUNCTION && debug_print "Found blueprint '$BLUEPRINT' in project blueprint file"
+        fi
+    else
+        bash $ENTRYPOINT pull --help
+        exit 1
+    fi
+fi
 
 #
 # Parse blueprint name and branch
@@ -174,7 +190,14 @@ else
     else
         PREVIOUS_DIR="$PWD"
         cd "$BLUEPRINT_DIR"
-        git fetch >/dev/null
+        git checkout master &>/dev/null
+        git pull &>/dev/null
+        if [[ $? -gt 0 ]]; then
+            cd "$PREVIOUS_DIR"
+            printf "${RED}ERROR${RESET}: Blueprint directory has local changes\n"
+            printf "You can clear local changes with 'docker-blueprint pull --clean'\n"
+            exit 1
+        fi
         cd "$PREVIOUS_DIR"
     fi
 fi
@@ -220,6 +243,21 @@ if ! $MODE_DRY_RUN; then
         if ! $AS_FUNCTION; then
             echo "Successfuly pulled version '$BLUEPRINT_BRANCH'."
         fi
+    fi
+
+    yq_read_value CHECKPOINT 'version'
+
+    # Set the blueprint repository to the version specified.
+    # This allows to always safely reproduce previous versions of the blueprint.
+    if [[ -n "$CHECKPOINT" ]]; then
+        if ! $AS_FUNCTION; then
+            printf "${BLUE}INFO${RESET}: Version lock applied: ${CYAN}$CHECKPOINT${RESET}\n"
+            git checkout $CHECKPOINT 2>/dev/null
+        else
+            git checkout $CHECKPOINT &>/dev/null
+        fi
+    else
+        ! $AS_FUNCTION && printf "${BLUE}INFO${RESET}: No version lock found - using latest version.\n"
     fi
 
     cd $PREVIOUS_DIR

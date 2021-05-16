@@ -30,7 +30,7 @@ if [[ -n $CHECKPOINT ]]; then
     cd "$BLUEPRINT_DIR"
     git checkout $CHECKPOINT 2> /dev/null
     if [[ $? -eq 0 ]]; then
-        printf "Version: ${CYAN}$CHECKPOINT${RESET}\n"
+        ! $SILENT && printf "Version: ${CYAN}$CHECKPOINT${RESET}\n"
     else
         printf "${RED}ERROR${RESET}: Unable to checkout version $CHECKPOINT\n"
         exit 1
@@ -135,12 +135,13 @@ fi
 
 cd $BLUEPRINT_DIR
 
-hash=$(git rev-parse HEAD) 2>/dev/null && \
-    ! $SILENT && non_debug_print "."
+hash=$(git rev-parse HEAD) 2>/dev/null
 
 if [[ $? > 0 ]]; then
     unset hash
 fi
+
+! $SILENT && non_debug_print "."
 
 cd $PROJECT_DIR
 

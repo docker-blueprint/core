@@ -26,6 +26,8 @@ MODE_NO_BUILD=false
 MODE_NO_SCRIPTS=false
 MODE_PRINT_ACTIVE_ONLY=false
 
+UP_ARGS=()
+
 while [[ "$#" -gt 0 ]]; do
     case $1 in
     -h | --help)
@@ -34,6 +36,9 @@ while [[ "$#" -gt 0 ]]; do
 
         printf "  ${FLG_COL}-a${RESET}, ${FLG_COL}--active${RESET}"
         printf "\t\tOnly list active modules\n"
+
+        printf "  ${FLG_COL}--no-chown${RESET}"
+        printf "\t\t\tPass --no-chown to 'sync' command\n"
 
         printf "  ${FLG_COL}--no-build${RESET}"
         printf "\t\t\tDon't attempt to build\n"
@@ -51,9 +56,14 @@ while [[ "$#" -gt 0 ]]; do
         ;;
     --no-build)
         MODE_NO_BUILD=true
+        UP_ARGS+=("--no-build")
         ;;
     --no-scripts)
         MODE_NO_SCRIPTS=true
+        UP_ARGS+=("--no-scripts")
+        ;;
+    --no-chown)
+        UP_ARGS+=("--no-chown")
         ;;
     -a | --active)
         MODE_PRINT_ACTIVE_ONLY=true
@@ -99,7 +109,7 @@ source "$ROOT_DIR/includes/blueprint/populate_env.sh" ""
 
 yq_read_array MODULES_TO_LOAD 'modules'
 EXPLICIT_MODULES_LIST=(${MODULES_TO_LOAD[@]})
-source "$ROOT_DIR/includes/resolve-dependencies.sh" ${MODULES_TO_LOAD[@]}
+SILENT=true source "$ROOT_DIR/includes/resolve-dependencies.sh" ${MODULES_TO_LOAD[@]}
 ACTIVE_MODULES_LIST=(${MODULES_TO_LOAD[@]})
 
 MODULES_LIST=()
@@ -221,6 +231,7 @@ else
     done
 fi
 
+script_paths=()
 needs_rebuild=false
 
 for MODULE in "${MODULES[@]}"; do
@@ -247,63 +258,59 @@ for MODULE in "${MODULES[@]}"; do
         ;;
     esac
 
-    if ! $MODE_QUIET && ! $MODE_NO_BUILD && $needs_rebuild; then
-        if ! $MODE_FORCE; then
-            printf "Do you want to rebuild the project? (run with ${FLG_COL}--force${RESET} to always build)\n"
-            printf "${YELLOW}WARNING${RESET}: This will ${RED}overwrite${RESET} existing docker files [y/N] "
-            read -n 1 -r
-            echo ""
-            if [[ $REPLY =~ ^[Yy]$ ]]; then
-                bash $ENTRYPOINT build --force
-            else
-                continue
-            fi
-        else
-            bash $ENTRYPOINT build --force
-        fi
+    # Add base blueprint module scripts first
+    path="$BLUEPRINT_DIR/modules/$MODULE/scripts/$ACTION.sh"
+    if [[ -f "$path" ]]; then
+        script_paths+=("$path")
     fi
 
-    if ! $MODE_NO_SCRIPTS; then
-        script_paths=()
-
-        # Add base blueprint module scripts first
-        path="$BLUEPRINT_DIR/modules/$MODULE/scripts/$ACTION.sh"
-        if [[ -f "$path" ]]; then
-            script_paths+=("$path")
-        fi
-
-        # Then add environment module scripts
-        path="$ENV_DIR/modules/$MODULE/scripts/$ACTION.sh"
-        if [[ -f "$path" ]]; then
-            script_paths+=("$path")
-        fi
-
-        status=0
-
-        # export SCRIPT_VARS
-        # export SCRIPT_VARS_ENV
-        # export SCRIPT_VARS_BUILD_ARGS
-        source "$ROOT_DIR/includes/get-script-vars.sh"
-
-        for path in "${script_paths[@]}"; do
-            printf "Running script for module '$MODULE'...\n"
-            debug_print "Running script: ${path#$BLUEPRINT_DIR/}"
-
-            PROGRAM="$(source "$ROOT_DIR/includes/script/prepare.sh" "$(cat "$path")")"
-
-            command="bash -c \"$PROGRAM\""
-            bash $ENTRYPOINT "${SCRIPT_VARS_ENV[@]}" $DEFAULT_SERVICE exec "$command"
-
-            status=$?
-
-            if [[ $status > 0 ]]; then
-                break
-            fi
-        done
-
-        if [[ $status > 0 ]]; then
-            printf -- "${RED}ERROR${RESET}: Module script returned non-zero code: ${path#$BLUEPRINT_DIR/}\n"
-            exit $status
-        fi
+    # Then add environment module scripts
+    path="$ENV_DIR/modules/$MODULE/scripts/$ACTION.sh"
+    if [[ -f "$path" ]]; then
+        script_paths+=("$path")
     fi
 done
+
+if ! $MODE_QUIET && ! $MODE_NO_BUILD && $needs_rebuild; then
+    if ! $MODE_FORCE; then
+        printf "Do you want to rebuild the project? (run with ${FLG_COL}--force${RESET} to always build)\n"
+        printf "${YELLOW}WARNING${RESET}: This will ${RED}overwrite${RESET} existing docker files [y/N] "
+        read -n 1 -r REPLY
+        echo ""
+        if [[ $REPLY =~ ^[Yy]$ ]]; then
+            bash $ENTRYPOINT up --force ${UP_ARGS[@]}
+        fi
+    else
+        bash $ENTRYPOINT up --force ${UP_ARGS[@]}
+    fi
+fi
+
+if ! $MODE_NO_SCRIPTS; then
+    status=0
+
+    # export SCRIPT_VARS
+    # export SCRIPT_VARS_ENV
+    # export SCRIPT_VARS_BUILD_ARGS
+    source "$ROOT_DIR/includes/get-script-vars.sh"
+
+    for path in "${script_paths[@]}"; do
+        printf "Running script for module '$MODULE'...\n"
+        debug_print "Running script: ${path#$BLUEPRINT_DIR/}"
+
+        PROGRAM="$(source "$ROOT_DIR/includes/script/prepare.sh" "$(cat "$path")")"
+
+        command="bash -c \"$PROGRAM\""
+        bash $ENTRYPOINT "${SCRIPT_VARS_ENV[@]}" $DEFAULT_SERVICE exec "$command"
+
+        status=$?
+
+        if [[ $status > 0 ]]; then
+            break
+        fi
+    done
+
+    if [[ $status > 0 ]]; then
+        printf -- "${RED}ERROR${RESET}: Module script returned non-zero code: ${path#$BLUEPRINT_DIR/}\n"
+        exit $status
+    fi
+fi

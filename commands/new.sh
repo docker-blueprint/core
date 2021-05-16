@@ -130,7 +130,7 @@ fi
 if ! [[ -f "$PWD/$PROJECT_BLUEPRINT_FILE" ]]; then
 
     # export BLUEPRINT_PATH
-    SILENT=false source "$ROOT_DIR/includes/blueprint/compile.sh" "$BLUEPRINT"
+    SILENT=true source "$ROOT_DIR/includes/blueprint/compile.sh" "$BLUEPRINT"
     debug_switch_context "NEW"
 
     # Populate project blueprint
@@ -194,8 +194,6 @@ if ! [[ -f "$PWD/$PROJECT_BLUEPRINT_FILE" ]]; then
             fi
         fi
     done
-
-    rm -f "$BLUEPRINT_PATH"
 
 fi
 

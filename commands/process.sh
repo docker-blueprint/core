@@ -54,7 +54,7 @@ fi
 while [[ "$#" -gt 0 ]]; do
     case $1 in
     -h | --help)
-        printf "${CMD_COL}process${RESET} [${FLG_COL}options${RESET}] ${ARG_COL}<path>${RESET}"
+        printf "${CMD_COL}process${RESET} ${ARG_COL}<path>${RESET} [${FLG_COL}options${RESET}]"
         printf "\t"
         printf "Preprocess dockerfile template from the blueprint\n"
 

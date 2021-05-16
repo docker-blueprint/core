@@ -140,6 +140,8 @@ elif [[ -n "$PROJECT_CONTEXT" ]]; then
     debug_print "Using DEFAULT context: $PROJECT_CONTEXT"
 fi
 
+debug_print "Program to run:\n%s\n" "$PROGRAM"
+
 # Escape backslashes first
 PROGRAM="$(echo "$PROGRAM" | sed -E 's/\\/\\\\/g')"
 # Escape variable sign ($) to execute it inside runtime
@@ -149,10 +151,9 @@ PROGRAM="$(echo "$PROGRAM" | sed -E 's/"/\\"/g')"
 
 command="env ${ENV_PREFIX[*]} $RUNTIME \"$PROGRAM\""
 
-debug_print "Program to run:\n$PROGRAM"
 debug_print "Running..."
 
-bash $ENTRYPOINT ${ENTRYPOINT_ARGS[*]} -- $SERVICE $COMMAND_VERB "$command"
+bash $ENTRYPOINT ${ENTRYPOINT_ARGS[*]} $SERVICE $COMMAND_VERB "$command"
 
 for key in "${ENVIRONMENT_KEYS[@]}"; do
     unset $key

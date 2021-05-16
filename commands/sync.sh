@@ -12,6 +12,7 @@ shift
 
 MODE_NO_CHOWN=false
 MODE_SKIP_USER=false
+MODE_SKIP_ENV=false
 
 while [[ "$#" -gt 0 ]]; do
     case $1 in
@@ -28,10 +29,12 @@ while [[ "$#" -gt 0 ]]; do
         ;;
     --no-chown)
         MODE_NO_CHOWN=true
-
         ;;
     --skip-user)
         MODE_SKIP_USER=true
+        ;;
+    --skip-env)
+        MODE_SKIP_ENV=true
         ;;
     esac
 
@@ -64,12 +67,23 @@ if ! $MODE_SKIP_USER && [[ -n "$SYNC_USER" ]]; then
     fi
 fi
 
-if [[ -f .env ]]; then
+if ! $MODE_SKIP_ENV && [[ -f .env ]]; then
     debug_print "Found .env file in the project directory"
     debug_print "Looking for docker-compose files..."
 
+    files=(
+        docker-compose.$PROJECT_CONTEXT.y*ml
+        docker-compose.y*ml
+    )
+
     temp_file="$TEMP_DIR/docker-compose.env"
-    for file in docker-compose*; do
+    touch "$temp_file"
+
+    for file in ${files[@]}; do
+        if [[ ! -f "$file" ]]; then
+            continue
+        fi
+
         debug_print "Found file: $file"
 
         if [[ ! -f "$temp_file" ]]; then
