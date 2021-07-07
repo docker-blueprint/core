@@ -23,8 +23,11 @@ export DIR_NAME=.docker-blueprint
 export ROOT_DIR=~/.docker-blueprint
 export LOCAL_DIR="$PROJECT_DIR/$DIR_NAME"
 export TEMP_DIR="$LOCAL_DIR/tmp"
+export CACHE_DIR="$ROOT_DIR/cache"
 export ENTRYPOINT="$ROOT_DIR/entrypoint.sh"
 export PROJECT_BLUEPRINT_FILE=docker-blueprint.yml
+
+mkdir -p "$CACHE_DIR"
 
 # Delete temporary files older than 5 minutes
 mkdir -p "$TEMP_DIR"
@@ -99,6 +102,7 @@ if [[ -f "$ROOT_DIR/commands/$1.sh" ]]; then
     fi
 
     source "$ROOT_DIR/commands/$1.sh"
+    source "$ROOT_DIR/includes/check-upstream.sh"
     exit
 fi
 
@@ -106,6 +110,7 @@ MODE_NO_TTY=false
 
 if [[ $# -eq 0 ]]; then
     source "$ROOT_DIR/commands/help.sh"
+    source "$ROOT_DIR/includes/check-upstream.sh"
     exit
 fi
 
@@ -113,18 +118,18 @@ while [[ "$#" -gt 0 ]]; do
     case $1 in
     start | stop | restart | down)
         $DOCKER_COMPOSE "$1" ${@:2}
-        exit
+        break
         ;;
 
     -h | --help)
         source "$ROOT_DIR/commands/help.sh"
-        exit
+        break
         ;;
 
     -v | --version)
         AS_FUNCTION=false
         source "$ROOT_DIR/commands/version.sh"
-        exit
+        break
         ;;
 
     -T)
@@ -197,3 +202,5 @@ while [[ "$#" -gt 0 ]]; do
 
     shift
 done
+
+source "$ROOT_DIR/includes/check-upstream.sh"
